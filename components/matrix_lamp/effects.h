@@ -11812,6 +11812,7 @@ static void RainbowRings() {
 // =====================================
 
 static int8_t count = 0;
+static int8_t dir = 0;
 static uint8_t flip = 0;
 static uint8_t generation = 0;
 static uint8_t rnd = 4; // 1-8
