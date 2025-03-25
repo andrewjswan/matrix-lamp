@@ -11844,10 +11844,10 @@ void munchRoutine() {
   for (uint8_t x = 0; x < minDimLocal; x++) {
     for (uint8_t y = 0; y < minDimLocal; y++) {
       CRGB color = (x ^ y ^ flip) < count ? ColorFromPalette(RainbowColors_p, ((x ^ y) << rnd) + generation, modes[currentMode].Brightness) : CRGB::Black;
-      if (x < pWIDTH and y < pHEIGHT) leds[XY(x, y)] = color;
-      if (x + minDimLocal < pWIDTH and y < pHEIGHT) leds[XY(x + minDimLocal, y)] = color;
-      if (y + minDimLocal < pHEIGHT and x < pWIDTH) leds[XY(x, y + minDimLocal)] = color;
-      if (x + minDimLocal < pWIDTH and y + minDimLocal < pHEIGHT) leds[XY(x + minDimLocal, y + minDimLocal)] = color;
+      if (x < WIDTH and y < HEIGHT) leds[XY(x, y)] = color;
+      if (x + minDimLocal < WIDTH and y < HEIGHT) leds[XY(x + minDimLocal, y)] = color;
+      if (y + minDimLocal < HEIGHT and x < WIDTH) leds[XY(x, y + minDimLocal)] = color;
+      if (x + minDimLocal < WIDTH and y + minDimLocal < HEIGHT) leds[XY(x + minDimLocal, y + minDimLocal)] = color;
     }
   }
 
