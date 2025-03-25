@@ -11651,7 +11651,8 @@ static void RainbowSpot() {
     deltaValue = modes[currentMode].Scale;
     hue = 96;
     emitterY = 0;
-    FastLED.clear();
+
+    ledsClear(); // esphome: FastLED.clear();
   }
 
   // Calculate the radius based on the sound value --
@@ -11713,7 +11714,7 @@ static void RainbowSpot() {
 //             © SlingMaster
 //            Радужные кольца
 // =====================================
-static  float codeEff(double t, double i, double x, double y) {
+static float codeEff(double t, double i, double x, double y) {
   hue = 255U; hue2 = 0U; // | CENTER_X_MAJOR
   return sin16((t - sqrt3((x - CENTER_X_MAJOR) * (x - CENTER_X_MAJOR) + (y - CENTER_Y_MAJOR) * (y - CENTER_Y_MAJOR))) * 8192.0) / 32767.0;
 }
@@ -11800,6 +11801,71 @@ static void RainbowRings() {
     }
   }
   step++;
+}
+#endif
+
+#ifdef DEF_VYSHYVANKA
+// ============ Vyshyvanka =============
+//       (с) проект Aurora "Munch"
+//     adopted/updated by kostyamat
+//          Эффект "Вышиванка" 
+// =====================================
+
+static int8_t count = 0;
+static uint8_t flip = 0;
+static uint8_t generation = 0;
+static uint8_t rnd = 4; // 1-8
+static uint8_t mic[2];
+static uint8_t minDimLocal = max(WIDTH, HEIGHT) > 32 ? 32 : 16;
+
+const uint8_t width_adj = (WIDTH < HEIGHT ? (HEIGHT - WIDTH) / 2 : 0);
+const uint8_t height_adj = (HEIGHT < WIDTH ? (WIDTH - HEIGHT) / 2 : 0);
+const uint8_t maxDim_steps = 256 / max(WIDTH, HEIGHT);
+
+void munchRoutine() {
+  if (loadingFlag) {
+    #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+    if (selectedSettings) {
+      //                     scale | speed
+      setModeSettings(random8(100U), random8(255U));
+    }
+    #endif // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+
+    loadingFlag = false;
+
+    generation = 0;
+    dir = 1;
+    count = 0;
+    flip = 0;
+
+    ledsClear(); // esphome: FastLED.clear();
+  }
+
+  for (uint8_t x = 0; x < minDimLocal; x++) {
+    for (uint8_t y = 0; y < minDimLocal; y++) {
+      CRGB color = (x ^ y ^ flip) < count ? ColorFromPalette(RainbowColors_p, ((x ^ y) << rnd) + generation, modes[currentMode].Brightness) : CRGB::Black;
+      if (x < pWIDTH and y < pHEIGHT) leds[XY(x, y)] = color;
+      if (x + minDimLocal < pWIDTH and y < pHEIGHT) leds[XY(x + minDimLocal, y)] = color;
+      if (y + minDimLocal < pHEIGHT and x < pWIDTH) leds[XY(x, y + minDimLocal)] = color;
+      if (x + minDimLocal < pWIDTH and y + minDimLocal < pHEIGHT) leds[XY(x + minDimLocal, y + minDimLocal)] = color;
+    }
+  }
+
+  count += dir;
+
+  if (count <= 0 || count >= mic[0]) {
+    dir = -dir;
+    if (count <= 0) {
+      mic[0] = mic[1];
+      if (flip == 0)
+        flip = mic[1] - 1;
+      else
+        flip = 0;
+    }
+  }
+  
+  generation++;
+  mic[1] = minDimLocal;
 }
 #endif
 

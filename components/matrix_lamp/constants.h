@@ -158,9 +158,10 @@
 #define EFF_POPURI              (128U)   // Попурі
 #define EFF_RAINBOW_SPOT        (129U)   // Веселкова Пляма
 #define EFF_RAINBOW_RINGS       (130U)   // Веселкові кільця
-#define EFF_UKRAINE             (131U)   // Україна
+#define EFF_VYSHYVANKA          (131U)   // Вишиванка
+#define EFF_UKRAINE             (132U)   // Україна
                                    
-#define MODE_AMOUNT             (132U)   // Количество режимов
+#define MODE_AMOUNT             (133U)   // Количество режимов
 
 namespace esphome {
 namespace matrix_lamp {
@@ -300,6 +301,7 @@ static const uint8_t defaultSettings[][3] PROGMEM = {
   {   8, 128,  20}, // Попурі
   {  40, 200,  40}, // Веселкова Пляма
   {  20, 128,  25}, // Веселкові кільця
+  {  20, 128,  25}, // Вишиванка
   {  15, 240,  50}  // Україна
 }; //             ^-- проверьте, чтобы у предыдущей строки не было запятой после скобки
 
