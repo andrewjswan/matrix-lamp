@@ -11823,7 +11823,7 @@ const uint8_t width_adj = (WIDTH < HEIGHT ? (HEIGHT - WIDTH) / 2 : 0);
 const uint8_t height_adj = (HEIGHT < WIDTH ? (WIDTH - HEIGHT) / 2 : 0);
 const uint8_t maxDim_steps = 256 / max(WIDTH, HEIGHT);
 
-void munchRoutine() {
+static void munchRoutine() {
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
