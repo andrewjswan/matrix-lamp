@@ -16,5 +16,6 @@ ignore = [
     "FIX002", # Line contains TODO, consider resolving an issue
     "TD003", # Missing issue link on the line following this TODO
     "ASYNC230", # Async functions should not open files with blocking methods
-    "ASYNC210" # Async functions should not call blocking HTTP methods
+    "ASYNC210", # Async functions should not call blocking HTTP methods
+    "LOG015" # info() call on root logger
 ]
