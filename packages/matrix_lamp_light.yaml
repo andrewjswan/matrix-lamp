@@ -533,6 +533,10 @@ light:
           mode: RAINBOW_RINGS
 
       - matrix_lamp_effect:
+          name: Vyshyvanka  # Вишиванка
+          mode: VYSHYVANKA
+
+      - matrix_lamp_effect:
           name: White light  # Бeлый cвeт
           mode: WHITE_COLOR
 
