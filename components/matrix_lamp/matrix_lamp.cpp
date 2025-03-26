@@ -38,11 +38,11 @@ void MatrixLamp::setup() {
   
   #if defined(USE_API)
   // Set brightness for current effect
-  register_service(&MatrixLamp::set_effect_brightness, "set_effect_brightness", {value});
+  register_service(&MatrixLamp::set_effect_brightness, "set_effect_brightness", {"value"});
   // Set speed for current effect
-  register_service(&MatrixLamp::set_effect_speed, "set_effect_speed", {value});
+  register_service(&MatrixLamp::set_effect_speed, "set_effect_speed", {"value"});
   // Set scale for current effect
-  register_service(&MatrixLamp::set_effect_scale, "set_effect_scale", {value});
+  register_service(&MatrixLamp::set_effect_scale, "set_effect_scale", {"value"});
   // Reset brightness, speed, scale to default for current effect
   register_service(&MatrixLamp::reset_effect_settings, "reset_effect_settings");
   #endif // #if defined(USE_API)
