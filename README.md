@@ -152,7 +152,13 @@ You can call this from, e.g., the developer tools service.
   show_icon {"icon_name"}
   show_bitmap {"bitmap"}
   hide_icon
+
+  set_effect_brightness {"value"}
+  set_effect_speed {"value"}
+  set_effect_scale {"value"}
+  reset_effect_settings
 ```
+
 #### Lambda
 
 You can use the above functions also in [lambdas](https://esphome.io/automations/actions#lambda-action) in your esphome YAML.
