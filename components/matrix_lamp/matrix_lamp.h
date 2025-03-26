@@ -13,11 +13,11 @@ static const char *const MATRIX_LAMP_VERSION = "2025.2.13";
 class MatrixLamp_Icon;
 #endif // #if defined(MATRIX_LAMP_USE_DISPLAY)
 
-#ifdef MATRIX_LAMP_BITMAP_MODE
+#if defined(MATRIX_LAMP_BITMAP_MODE)
 #define BITMAPICON MAXICONS + 1
 #endif
 
-#if defined(MATRIX_LAMP_USE_DISPLAY) && defined(USE_API)
+#if defined(USE_API)
 class MatrixLamp : public Component, public api::CustomAPIDevice {
 #else
 class MatrixLamp : public Component {
@@ -53,6 +53,17 @@ class MatrixLamp : public Component {
     void SetScaleFromColorForEffect(uint8_t mode, Color color);
     // Set custom effect
     void SetCustomEffect(uint8_t mode);
+
+#if defined(USE_API)
+    // Set brightness for current effect
+    void set_effect_brightness(int value);
+    // Set speed for current effect
+    void set_effect_speed(int value);
+    // Set scale for current effect
+    void set_effect_scale(int value);
+    // Reset brightness, speed, scale to default for current effect
+    void reset_effect_settings(int value);
+#endif // #if defined(USE_API)
 
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     bool GetRandomSettings();
