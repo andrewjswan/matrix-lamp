@@ -188,7 +188,7 @@ void MatrixLamp::SetRandomSettings(bool b)
 
 #if defined(USE_API)
 // Set brightness for current effect
-void set_effect_brightness(int value)
+void MatrixLamp::set_effect_brightness(int value)
 {
   if (value > 255) {
     value = 255;
@@ -197,19 +197,19 @@ void set_effect_brightness(int value)
 }
 
 // Set speed for current effect
-void set_effect_speed(int value)
+void MatrixLamp::set_effect_speed(int value)
 {
   this->SetSpeedForEffect(currentMode, value);
 }
 
 // Set scale for current effect
-void set_effect_scale(int value)
+void MatrixLamp::set_effect_scale(int value)
 {
   this->SetScaleForEffect(currentMode, value);
 }
 
 // Reset brightness, speed, scale to default for current effect
-void reset_effect_settings()
+void MatrixLamp::reset_effect_settings()
 {
   if (currentMode >= MODE_AMOUNT) {
     return;
