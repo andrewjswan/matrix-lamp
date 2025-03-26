@@ -62,7 +62,7 @@ class MatrixLamp : public Component {
     // Set scale for current effect
     void set_effect_scale(int value);
     // Reset brightness, speed, scale to default for current effect
-    void reset_effect_settings(int value);
+    void reset_effect_settings();
 #endif // #if defined(USE_API)
 
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
