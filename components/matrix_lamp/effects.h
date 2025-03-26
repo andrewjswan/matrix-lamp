@@ -158,7 +158,7 @@ static void fire2012WithPalette() {
       if (modes[currentMode].Scale == 100)
         leds[XY(x, (HEIGHT - 1) - j)] = ColorFromPalette(WaterfallColors_p, colorindex);
       else
-        leds[XY(x, (HEIGHT - 1) - j)] = ColorFromPalette(CRGBPalette16( CRGB::Black, CHSV(modes[currentMode].Scale * 2.57, 255U, 255U) , CHSV(modes[currentMode].Scale * 2.57, 128U, 255U) , CRGB::White), colorindex);// 2.57 вместо 2.55, потому что 100 для белого цвета
+        leds[XY(x, (HEIGHT - 1) - j)] = ColorFromPalette(CRGBPalette16(CRGB::Black, CHSV(modes[currentMode].Scale * 2.57, 255U, 255U), CHSV(modes[currentMode].Scale * 2.57, 128U, 255U), CRGB::White), colorindex); // 2.57 вместо 2.55, потому что 100 для белого цвета
     }
   }
 }
@@ -11827,24 +11827,25 @@ static void munchRoutine() {
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      //                     scale | speed
-      setModeSettings(random8(100U), random8(255U));
+      //                         scale | speed
+      setModeSettings(1U + random8(90U), 140U + random8(100U));
     }
     #endif // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
     loadingFlag = false;
-
+    setCurrentPalette();
+    
     generation = 0;
     dir = 1;
     count = 0;
     flip = 0;
 
-    ledsClear(); // esphome: FastLED.clear();
+    // ledsClear(); // esphome: FastLED.clear();
   }
 
   for (uint8_t x = 0; x < minDimLocal; x++) {
     for (uint8_t y = 0; y < minDimLocal; y++) {
-      CRGB color = (x ^ y ^ flip) < count ? ColorFromPalette(RainbowColors_p, ((x ^ y) << rnd) + generation, modes[currentMode].Brightness) : CRGB::Black;
+      CRGB color = (x ^ y ^ flip) < count ? ColorFromPalette(*curPalette, ((x ^ y) << rnd) + generation, modes[currentMode].Brightness) : leds[XY(x, y)].subtractFromRGB(minDimLocal / 2);
       if (x < WIDTH and y < HEIGHT) leds[XY(x, y)] = color;
       if (x + minDimLocal < WIDTH and y < HEIGHT) leds[XY(x + minDimLocal, y)] = color;
       if (y + minDimLocal < HEIGHT and x < WIDTH) leds[XY(x, y + minDimLocal)] = color;
