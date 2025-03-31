@@ -38,6 +38,7 @@ from .const import (
     CONF_FRAMEDURATION,
     CONF_FRAMEINTERVAL,
     CONF_ICONS,
+    CONF_INTENSITY_ID,
     CONF_LAMEID,
     CONF_MATRIX_ID,
     CONF_MATRIX_TYPE,
@@ -82,6 +83,7 @@ MATRIX_LAMP_SCHEMA = cv.Schema(
         cv.Optional(CONF_ORIENTATION): cv.templatable(cv.int_range(min=0, max=7)),
         cv.Optional(CONF_MATRIX_TYPE): cv.templatable(cv.int_range(min=0, max=1)),
         cv.Optional(CONF_SETTINGS, default=False): cv.boolean,
+        cv.Optional(CONF_INTENSITY_ID): cv.use_id(TemplateNumber),
         cv.Optional(CONF_SCALE_ID): cv.use_id(TemplateNumber),
         cv.Optional(CONF_SPEED_ID): cv.use_id(TemplateNumber),
         cv.Optional(CONF_BITMAP, default=False): cv.boolean,
@@ -118,6 +120,9 @@ async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
     cg.add_define("WIDTH", config[CONF_WIDTH])
     cg.add_define("HEIGHT", config[CONF_HEIGHT])
 
+    if CONF_INTENSITY_ID in config:
+        intensity_number = await cg.get_variable(config[CONF_INTENSITY_ID])
+        cg.add(var.set_intensity(intensity_number))
     if CONF_SCALE_ID in config:
         scale_number = await cg.get_variable(config[CONF_SCALE_ID])
         cg.add(var.set_scale(scale_number))
