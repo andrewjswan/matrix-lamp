@@ -29,6 +29,7 @@ class MatrixLamp : public Component {
     void dump_config() override;
     void on_shutdown() override;
 
+    void set_intensity(template_::TemplateNumber *intensity);
     void set_scale(template_::TemplateNumber *scale);
     void set_speed(template_::TemplateNumber *speed);
 
@@ -46,6 +47,8 @@ class MatrixLamp : public Component {
 #endif // #ifndef MATRIX_TYPE
 
     // Set scale for effect
+    void SetIntensityForEffect(uint8_t mode, uint8_t intensity);
+    // Set scale for effect
     void SetScaleForEffect(uint8_t mode, uint8_t scale);
     // Set speed for effect
     void SetSpeedForEffect(uint8_t mode, uint8_t speed);
@@ -55,8 +58,8 @@ class MatrixLamp : public Component {
     void SetCustomEffect(uint8_t mode);
 
 #if defined(USE_API) && defined(MATRIX_LAMP_SETTINGS)
-    // Set brightness for current effect
-    void set_effect_brightness(int value);
+    // Set intensity for current effect
+    void set_effect_intensity(int value);
     // Set speed for current effect
     void set_effect_speed(int value);
     // Set scale for current effect
@@ -107,6 +110,7 @@ class MatrixLamp : public Component {
     #endif
 #endif // #if defined(MATRIX_LAMP_USE_DISPLAY)
 
+    esphome::template_::TemplateNumber *intensity{nullptr};
     esphome::template_::TemplateNumber *scale{nullptr};
     esphome::template_::TemplateNumber *speed{nullptr};
 }; // class MatrixLamp
