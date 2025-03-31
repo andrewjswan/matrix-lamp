@@ -38,7 +38,7 @@ void MatrixLamp::setup() {
   
   #if defined(USE_API) && defined(MATRIX_LAMP_SETTINGS)
   // Set brightness for current effect
-  register_service(&MatrixLamp::set_effect_brightness, "set_effect_brightness", {"value"});
+  register_service(&MatrixLamp::set_effect_intensity, "set_effect_intensity", {"value"});
   // Set speed for current effect
   register_service(&MatrixLamp::set_effect_speed, "set_effect_speed", {"value"});
   // Set scale for current effect
@@ -86,6 +86,10 @@ void MatrixLamp::add_icon(MatrixLamp_Icon *icon)
 }
 #endif // #if defined(MATRIX_LAMP_USE_DISPLAY)
 
+void MatrixLamp::set_intensity(template_::TemplateNumber *intensity) {
+  this->intensity = intensity;
+} // set_intensity()
+
 void MatrixLamp::set_scale(template_::TemplateNumber *scale) {
   this->scale = scale;
 } // set_scale()
@@ -97,6 +101,17 @@ void MatrixLamp::set_speed(template_::TemplateNumber *speed) {
 void MatrixLamp::ResetCurrentEffect()
 {
   currentMode = MODE_AMOUNT;
+}
+
+void MatrixLamp::SetIntensityForEffect(uint8_t mode, uint8_t intensity)
+{
+  if (mode >= MODE_AMOUNT) {
+    return;
+  }
+  if (intensity > 255) {
+    intensity = 255;
+  }
+  modes[mode].Brightness = intensity;
 }
 
 void MatrixLamp::SetScaleForEffect(uint8_t mode, uint8_t scale)
@@ -123,6 +138,10 @@ void MatrixLamp::SetSpeedForEffect(uint8_t mode, uint8_t speed)
 
 void MatrixLamp::SetScaleFromColorForEffect(uint8_t mode, Color color)
 {
+  if (mode >= MODE_AMOUNT) {
+    return;
+  }
+
   if (color.red == 255 && color.green == 255 && color.blue == 255)
   {
     this->SetScaleForEffect(mode, 0);
@@ -187,13 +206,10 @@ void MatrixLamp::SetRandomSettings(bool b)
 #endif // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
 #if defined(USE_API) && defined(MATRIX_LAMP_SETTINGS)
-// Set brightness for current effect
-void MatrixLamp::set_effect_brightness(int value)
+// Set intensity for current effect
+void MatrixLamp::set_effect_intensity(int value)
 {
-  if (value > 255) {
-    value = 255;
-  }
-  modes[currentMode].Brightness = value;
+  this->SetIntensityForEffect(currentMode, value);
 }
 
 // Set speed for current effect
