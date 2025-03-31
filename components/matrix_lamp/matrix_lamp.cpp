@@ -112,6 +112,7 @@ void MatrixLamp::SetIntensityForEffect(uint8_t mode, uint8_t intensity)
     intensity = 255;
   }
   modes[mode].Brightness = intensity;
+  loadingFlag = true;
 }
 
 void MatrixLamp::SetScaleForEffect(uint8_t mode, uint8_t scale)
@@ -123,6 +124,7 @@ void MatrixLamp::SetScaleForEffect(uint8_t mode, uint8_t scale)
     scale = 255;
   }
   modes[mode].Scale = scale;
+  loadingFlag = true;
 }
 
 void MatrixLamp::SetSpeedForEffect(uint8_t mode, uint8_t speed)
@@ -134,6 +136,7 @@ void MatrixLamp::SetSpeedForEffect(uint8_t mode, uint8_t speed)
     speed = 100;
   }
   modes[mode].Speed = speed;
+  loadingFlag = true;
 }
 
 void MatrixLamp::SetScaleFromColorForEffect(uint8_t mode, Color color)
@@ -257,6 +260,11 @@ void MatrixLamp::ShowFrame(uint8_t CurrentMode, esphome::Color current_color, li
     if (!random_settings)
 #endif // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     {
+      if (this->intensity) {
+        auto intensity = this->intensity->make_call();
+        intensity.set_value(modes[currentMode].Brightness);
+        intensity.perform();
+      }
       if (this->speed) {
         auto speed = this->speed->make_call();
         speed.set_value(modes[currentMode].Speed);
@@ -275,6 +283,12 @@ void MatrixLamp::ShowFrame(uint8_t CurrentMode, esphome::Color current_color, li
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
   if (random_settings)
   {
+    if (this->intensity && (modes[currentMode].Brightness != (int)this->intensity->state))
+    {
+      auto intensity = this->intensity->make_call();
+      intensity.set_value(modes[currentMode].Brightness);
+      intensity.perform();
+    }
     if (this->speed && (modes[currentMode].Speed != (int)this->speed->state))
     {
       auto speed = this->speed->make_call();
@@ -301,6 +315,11 @@ void MatrixLamp::ShowFrame(uint8_t CurrentMode, esphome::Color current_color, li
   esphome::delay(1);
   #endif
 
+  if (this->intensity && (modes[currentMode].Brightness != (int)this->intensity->state))
+  {
+    modes[currentMode].Brightness = (int)this->intensity->state;
+    loadingFlag = true; // без перезапуска эффекта ничего и не увидишь
+  }
   if (this->speed && (modes[currentMode].Speed != (int)this->speed->state))
   {
     modes[currentMode].Speed = (int)this->speed->state;
