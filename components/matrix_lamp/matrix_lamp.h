@@ -46,7 +46,7 @@ class MatrixLamp : public Component {
     bool SetMatrixType(uint8_t type);
 #endif // #ifndef MATRIX_TYPE
 
-    // Set scale for effect
+    // Set intensity for effect
     void SetIntensityForEffect(uint8_t mode, uint8_t intensity);
     // Set scale for effect
     void SetScaleForEffect(uint8_t mode, uint8_t scale);
