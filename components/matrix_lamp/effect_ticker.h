@@ -417,8 +417,11 @@ static void effectsTick()
     #ifdef DEF_VYSHYVANKA
     case EFF_VYSHYVANKA:          DYNAMIC_DELAY_TICK { effTimer = millis(); munchRoutine();                    }  break;  // (131U) Вишиванка
     #endif
+    #ifdef DEF_INCREMENTALDRIFT
+    case EFF_INCREMENTALDRIFT:    DYNAMIC_DELAY_TICK { effTimer = millis(); IncrementalDriftRoutine();         }  break;  // (132U) Incremental Drift
+    #endif
     #ifdef DEF_UKRAINE
-    case EFF_UKRAINE:             DYNAMIC_DELAY_TICK { effTimer = millis(); Ukraine();                         }  break;  // (132U) Україна
+    case EFF_UKRAINE:             DYNAMIC_DELAY_TICK { effTimer = millis(); Ukraine();                         }  break;  // (133U) Україна
     #endif
   }
 }
