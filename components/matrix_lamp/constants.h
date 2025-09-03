@@ -159,16 +159,17 @@
 #define EFF_RAINBOW_SPOT        (129U)   // Веселкова Пляма
 #define EFF_RAINBOW_RINGS       (130U)   // Веселкові кільця
 #define EFF_VYSHYVANKA          (131U)   // Вишиванка
-#define EFF_UKRAINE             (132U)   // Україна
+#define EFF_INCREMENTALDRIFT    (132U)   // Incremental Drift
+#define EFF_UKRAINE             (133U)   // Україна
                                    
-#define MODE_AMOUNT             (133U)   // Количество режимов
+#define MODE_AMOUNT             (134U)   // Количество режимов
 
 namespace esphome {
 namespace matrix_lamp {
 
 // ============= МАССИВ НАСТРОЕК ЭФФЕКТОВ ПО УМОЛЧАНИЮ ===================
 // формат записи:
-//{ Яркость, Скорость, Масштаб},
+// { Яркость, Скорость, Масштаб},
 static const uint8_t defaultSettings[][3] PROGMEM = {
   {   9, 207,  26}, // Бeлый cвeт
   {  10, 252,  32}, // Cмeнa цвeтa
@@ -302,6 +303,7 @@ static const uint8_t defaultSettings[][3] PROGMEM = {
   {  40, 200,  40}, // Веселкова Пляма
   {  20, 128,  25}, // Веселкові кільця
   { 150, 200,  85}, // Вишиванка
+  { 200, 125,  50}, // Incremental Drift
   {  15, 240,  50}  // Україна
 }; //             ^-- проверьте, чтобы у предыдущей строки не было запятой после скобки
 
