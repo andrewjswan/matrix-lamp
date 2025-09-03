@@ -80,6 +80,7 @@ nav:
       - Settings override: settings-override.md
   - Matrix Lamp:
       - Component: matrix-lamp-component.md
+      - Effects: effects.md
       - Icons and Animations: icons-and-animations.md
       - API: api.md
   - Additionals: additionals.md
