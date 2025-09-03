@@ -11951,8 +11951,17 @@ static void munchRoutine() {
 }
 #endif
 
-#ifdef DEF_INCREMENTALDRIFT_ROSE
-void IncrementalDriftRoutine() {
+#ifdef DEF_INCREMENTALDRIFT
+// ============ Incremental Drift =============
+// The name "Incremental Drift" was coined by the 
+// late computer animation pioneer John Whitney, 
+// in his 1980 book, Digital Harmony. He describes 
+// a system of abstract motion graphics in which 
+// each particle moves successively faster, obeying 
+// simple ratios in accord with musical harmonics 
+// of 1/1, 1/2, 1/3, 1/4 and so on.
+// =====================================
+static void IncrementalDriftRoutine() {
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
@@ -11961,19 +11970,20 @@ void IncrementalDriftRoutine() {
     }
     #endif // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     loadingFlag = false;
+
+    if ((modes[currentMode].scale >= 0) && (modes[currentMode].scale < 20)) { 
+      currentPalette = RainbowColors_p;
+    } else if ((modes[currentMode].scale >= 20) && (modes[currentMode].scale < 40)) { 
+      currentPalette  =  PartyColors_p;
+    } else if ((modes[currentMode].scale >= 40) && (modes[currentMode].scale < 60)) {
+      currentPalette  =  CloudColors_p;
+    } else if ((modes[currentMode].scale >= 60) && (modes[currentMode].scale < 80)) {
+      currentPalette  =  LavaColors_p;
+    } else if ((modes[currentMode].scale >= 80) && (modes[currentMode].scale <= 100)) {
+      currentPalette = ForestColors_p;
+    }
   }
 
-  if ((modes[currentMode].scale >= 0) && (modes[currentMode].scale < 20)) { 
-     currentPalette = RainbowColors_p;
-  } else if ((modes[currentMode].scale >= 20) && (modes[currentMode].scale < 40)) { 
-     currentPalette  =  PartyColors_p;
-  } else if ((modes[currentMode].scale >= 40) && (modes[currentMode].scale < 60)) {
-     currentPalette  =  CloudColors_p;
-  } else if ((modes[currentMode].scale >= 60) && (modes[currentMode].scale < 80)) {
-     currentPalette  =  LavaColors_p;
-  } else if ((modes[currentMode].scale >= 80) && (modes[currentMode].scale <= 100)) {
-     currentPalette = ForestColors_p;
-  }
   uint8_t dim = beatsin8(2, 170, 250);
   dimAll(dim);
 
@@ -12001,3 +12011,4 @@ void IncrementalDriftRoutine() {
 
 }  // namespace matrix_lamp
 }  // namespace esphome
+
