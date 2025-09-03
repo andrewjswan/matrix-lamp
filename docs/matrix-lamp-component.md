@@ -1,6 +1,6 @@
 ## Matrix Lamp Component
 
-```Yaml
+``` { .yaml .copy .annotate }
 external_components:
   - source:
       type: git
