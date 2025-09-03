@@ -29,13 +29,15 @@ light:
 ...
       - matrix_lamp_effect:
           name: Peacock
-          mode: RAINBOW_STRIPE
+          mode: RAINBOW_STRIPE (1)
 
       - matrix_lamp_effect:
           name: Fire 2021
-          mode: FIRE_2021
+          mode: FIRE_2021 (1)
 ...
 ```
+
+1.  See the list of all possible [modes](effects.md) and their values
 
 ## Parameters reference
 
