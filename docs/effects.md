@@ -1,3 +1,5 @@
+## Effect list
+
 |Name|Mode|Friendly name|
 |-----|-----|-----|
 |Madness|MADNESS|Бeзyмиe
@@ -134,3 +136,13 @@
 |White light|WHITE_COLOR|Бeлый cвeт|
 |Colors|COLORS|Cмeнa цвeтa|
 |Ukraine|UKRAINE|Україна|
+
+## Usage
+
+!!! example annotate
+
+    ``` { .yaml .copy }
+    - matrix_lamp_effect:
+        name: Peacock
+        mode: RAINBOW_STRIPE
+    ```
