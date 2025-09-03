@@ -11951,5 +11951,53 @@ static void munchRoutine() {
 }
 #endif
 
+#ifdef DEF_INCREMENTALDRIFT_ROSE
+void IncrementalDriftRoutine() {
+  if (loadingFlag) {
+    #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+    if (selectedSettings) {
+      //                          scale | speed
+      setModeSettings(1U + random8(100U), 140U + random8(100U));
+    }
+    #endif // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+    loadingFlag = false;
+  }
+
+  if ((modes[currentMode].scale >= 0) && (modes[currentMode].scale < 20)) { 
+     currentPalette = RainbowColors_p;
+  } else if ((modes[currentMode].scale >= 20) && (modes[currentMode].scale < 40)) { 
+     currentPalette  =  PartyColors_p;
+  } else if ((modes[currentMode].scale >= 40) && (modes[currentMode].scale < 60)) {
+     currentPalette  =  CloudColors_p;
+  } else if ((modes[currentMode].scale >= 60) && (modes[currentMode].scale < 80)) {
+     currentPalette  =  LavaColors_p;
+  } else if ((modes[currentMode].scale >= 80) && (modes[currentMode].scale <= 100)) {
+     currentPalette = ForestColors_p;
+  }
+  uint8_t dim = beatsin8(2, 170, 250);
+  dimAll(dim);
+
+  for (uint8_t i = 0; i < WIDTH; i++)
+  {
+    CRGB color;
+    uint8_t x = 0;
+    uint8_t y = 0;
+
+    if (i < CENTER_X_MAJOR) {
+      x = beatcos8((i + 1) * 2, i, WIDTH - i);
+      y = beatsin8((i + 1) * 2, i, HEIGHT - i);
+      color = ColorFromPalette(currentPalette, i * 14);
+    }
+    else 
+    {
+      x = beatsin8((WIDTH  - i) * 2, WIDTH - i, i + 1);
+      y = beatcos8((HEIGHT - i) * 2, HEIGHT - i, i + 1);
+      color = ColorFromPalette(currentPalette, (31 - i) * 14);
+    }
+    drawPixelXY(x, y, color);
+  }
+}
+#endif
+
 }  // namespace matrix_lamp
 }  // namespace esphome
