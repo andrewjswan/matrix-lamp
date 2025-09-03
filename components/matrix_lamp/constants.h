@@ -159,7 +159,7 @@
 #define EFF_RAINBOW_SPOT        (129U)   // Веселкова Пляма
 #define EFF_RAINBOW_RINGS       (130U)   // Веселкові кільця
 #define EFF_VYSHYVANKA          (131U)   // Вишиванка
-#define EFF_INCREMENTALDRIFT    (132U)   // Incremental Drift
+#define EFF_INCREMENTALDRIFT    (132U)   // Инкрементальный дрейф
 #define EFF_UKRAINE             (133U)   // Україна
                                    
 #define MODE_AMOUNT             (134U)   // Количество режимов
@@ -303,7 +303,7 @@ static const uint8_t defaultSettings[][3] PROGMEM = {
   {  40, 200,  40}, // Веселкова Пляма
   {  20, 128,  25}, // Веселкові кільця
   { 150, 200,  85}, // Вишиванка
-  { 200, 125,  50}, // Incremental Drift
+  { 200, 125,  50}, // Инкрементальный дрейф
   {  15, 240,  50}  // Україна
 }; //             ^-- проверьте, чтобы у предыдущей строки не было запятой после скобки
 
