@@ -535,7 +535,7 @@ light:
       - matrix_lamp_effect:
           name: Vyshyvanka  # Вишиванка
           mode: VYSHYVANKA
- 
+
       - matrix_lamp_effect:
           name: Incremental Drift  # Инкрементальный дрейф
           mode: INCREMENTAL_DRIFT
