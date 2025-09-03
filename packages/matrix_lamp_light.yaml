@@ -537,6 +537,10 @@ light:
           mode: VYSHYVANKA
 
       - matrix_lamp_effect:
+          name: Incremental Drift  # Инкрементальный дрейф
+          mode: INCREMENTAL_DRIFT
+
+      - matrix_lamp_effect:
           name: White light  # Бeлый cвeт
           mode: WHITE_COLOR
 
