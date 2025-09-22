@@ -1,5 +1,28 @@
 # Changelog
 
+## v1.5.13.37 - 2025-09-22
+
+### What's Changed
+
+### 🚀 Features
+
+- Bump FastLED to 3.10.3 @andrewjswan (#65)
+- Add preset example package @andrewjswan (#64)
+
+### 🧰 Maintenance
+
+- Bump FastLED to 3.10.3 @andrewjswan (#65)
+
+### Sponsorship
+
+If you like this project, please consider supporting me:
+
+- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
+
+### Changelog
+
+**Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.35...v1.5.13.37
+
 ## v1.5.13.35 - 2025-09-13
 
 ### What's Changed
