@@ -1,6 +1,6 @@
 # ESPHome Package: Matrix Lamp Preset Manager
 Project Description
-This project is a package for ESPHome designed to manage presets and playlists in an LED lamp based on Neopixel (LED matrix). The package allows saving, loading, and automatically running custom settings for effects, brightness, intensity, speed, and scale for various lighting scenarios. It integrates with smart home systems (e.g., Home Assistant) and supports automation based on time, sun position, and day/night modes.
+This package extends LED matrix projects (e.g., [andrewjswan/matrix-lamp](https://github.com/andrewjswan/matrix-lamp)) with preset and playlist management. The package allows saving, loading, and automatically running custom settings for effects, brightness, intensity, speed, and scale for various lighting scenarios. It integrates with smart home systems (e.g., Home Assistant) and supports automation based on time, sun position, and day/night modes.
 
 The project is developed for ESPHome users who want to expand the functionality of their LED matrix (e.g., based on ESP32 or similar devices) without having to write all the code from scratch. The package uses global variables to store settings, ensuring they are preserved during device reboots.
 
@@ -56,7 +56,7 @@ This package is ideal for creating dynamic lighting: for example, morning sunris
 
 ## Функции проекта
 
-На основе предоставленного кода, пакет включает следующие возможности:
+Этот паккадж расширяет возможности проекта LED matrix projects (e.g., [andrewjswan/matrix-lamp](https://github.com/andrewjswan/matrix-lamp)) 
 
 ### 1. **Управление пресетами**
    - **5 индивидуальных пресетов (0-4)**: Каждый пресет хранит настройки эффекта (effect_name), яркости (brightness), интенсивности (intensity), скорости (speed) и масштаба (scale).
