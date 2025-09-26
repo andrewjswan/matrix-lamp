@@ -7,15 +7,15 @@ The project is developed for ESPHome users who want to expand the functionality 
 Project Features
 Based on the provided code, the package includes the following capabilities:
 
-1. Preset Management
+### 1. Preset Management
 5 individual presets (0-4): Each preset stores settings for effect (effect_name), brightness, intensity, speed, and scale.
 Preset saving: The "Save Preset" button saves the current LED parameters to the selected preset.
 Preset loading: Selecting a preset in the selector automatically applies the settings to the LED matrix.
-2. Playlist
+### 2. Playlist
 Combining presets: The playlist allows combining several presets (0-4) with individual durations (in MM:SS format).
 Automatic playback: The play_preset_playlist script sequentially runs effects from the playlist with delays.
 Including/excluding presets: "In playlist" and "out playlist" modes control which presets are included in the playlist.
-3. Start Modes and Automation
+### 3. Start Modes and Automation
 Start modes for each preset:
 "None": Manual start.
 "start on time": Start at a specified time (HH:MM).
@@ -27,7 +27,7 @@ Start modes for each preset:
 "out playlist": Remove from playlist.
 Sun corrections: Number element for setting elevation correction (in degrees) for sunrise/sunset.
 Automatic start: Intervals (30 sec and 300 sec) check conditions and automatically start presets/playlists.
-4. Interface and Sensors
+### 4. Interface and Sensors
 Select for preset selection: Options: "0"-"4", "Playlist", "None".
 Select for start mode: List of modes for the selected preset.
 Datetime picker: For setting start time or duration (MM:SS for playlist).
@@ -38,15 +38,14 @@ Text sensors:
 Current time (via SNTP and Home Assistant).
 Sun sensors: Elevation and azimuth for automation.
 Button for saving changes
-5. Additional Features
+### 5. Additional Features
 Time synchronization: Via SNTP and Home Assistant.
 Global variables: All settings are stored in globals with restore_value: yes for persistence.
 Logging: ESP_LOG for debugging (e.g., preset saving).
 Home Assistant integration: All elements (select, number, text_sensor) are available in the UI.
-6. Technical Details
-Dependencies: Requires basic ESPHome configuration with Neopixel LED (id: neopixel_led), numbers (matrix_intensity, matrix_speed, matrix_scale), and sun (sun:).
-Size: The package is compact, using ~100 globals for data storage.
-Compatibility: ESPHome 2021+ (check for updates).
+### 6. Technical Details
+Dependencies: Requires basic ESPHome configuration with Project matrix-lamp: Neopixel LED (id: neopixel_led), numbers (matrix_intensity, matrix_speed, matrix_scale)
+
 This package is ideal for creating dynamic lighting: for example, morning sunrise effects, evening sunset, nighttime playlists, or daytime scheduled modes.
 ###########################################       RU          ###############################################################################
 ## Описание проекта
@@ -101,8 +100,6 @@ This package is ideal for creating dynamic lighting: for example, morning sunris
    - **Интеграция с Home Assistant**: Все элементы (select, number, text_sensor) доступны в UI.
 
 ### 6. **Технические детали**
-   - **Зависимости**: Требует базовой конфигурации ESPHome с Neopixel LED (`id: neopixel_led`), числами (`matrix_intensity`, `matrix_speed`, `matrix_scale`) и солнцем (`sun:`).
-   - **Размер**: Пакет компактный, использует ~100 глобалок для хранения данных.
-   - **Совместимость**: ESPHome 2021+ (проверьте на актуальность).
+   - **Зависимости**: Требует базовой конфигурации ESPHome с проектом matrix-lamp:  Neopixel LED (`id: neopixel_led`), числами (`matrix_intensity`, `matrix_speed`, `matrix_scale`) 
 
 Этот пакет идеален для создания динамического освещения: например, утренний sunrise-эффект, вечерний sunset, ночной плейлист или дневной режим по расписанию.
