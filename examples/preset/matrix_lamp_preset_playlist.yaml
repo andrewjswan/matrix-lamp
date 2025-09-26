@@ -5,16 +5,13 @@ esphome:
     priority: -100
     then:
       - delay: 500ms
-# Установить актуальный пресет
       - select.set_index:
           id: preset_selector
           index: !lambda 'return id(preset_selected);'
       - delay: 500ms
-# Обновить текстовый сенсор пресетов
       - lambda: |-
           id(preset_info).update();
       - delay: 500ms
-# Обновить текстовый сенсор режимов старта
       - lambda: |-
           id(preset_start_settings).update();
 time:
@@ -83,7 +80,6 @@ globals:
     type: std::string
     restore_value: yes
     max_restore_data_length: 12
-# initial_value: '00:00:00'
   - id: preset0_sunrise_correction
     type: float
     restore_value: yes
@@ -103,10 +99,9 @@ globals:
   - id: preset0_duration_ms
     type: int
     restore_value: yes
-    initial_value: '60000'  # 60 секунд по умолчанию
+    initial_value: '60000'
     max_restore_data_length: 8
 
-# Пресет 1
   - id: preset1_effect_name
     type: std::string
     restore_value: yes
@@ -141,7 +136,6 @@ globals:
     type: std::string
     restore_value: yes
     max_restore_data_length: 12
-# initial_value: '00:00:00'
   - id: preset1_sunrise_correction
     type: float
     restore_value: yes
@@ -161,10 +155,9 @@ globals:
   - id: preset1_duration_ms
     type: int
     restore_value: yes
-    initial_value: '60000'  # 60 секунд по умолчанию
+    initial_value: '60000'
     max_restore_data_length: 8
 
-# Пресет 2
   - id: preset2_effect_name
     type: std::string
     initial_value: '""'
@@ -199,7 +192,6 @@ globals:
     type: std::string
     restore_value: yes
     max_restore_data_length: 12
-# initial_value: '00:00:00'
   - id: preset2_sunrise_correction
     type: float
     restore_value: yes
@@ -219,10 +211,9 @@ globals:
   - id: preset2_duration_ms
     type: int
     restore_value: yes
-    initial_value: '60000'  # 60 секунд по умолчанию
+    initial_value: '60000'
     max_restore_data_length: 8
 
-# Пресет 3
   - id: preset3_effect_name
     type: std::string
     initial_value: '""'
@@ -257,7 +248,6 @@ globals:
     type: std::string
     restore_value: yes
     max_restore_data_length: 12
-# initial_value: '00:00:00'
   - id: preset3_sunrise_correction
     type: float
     restore_value: yes
@@ -277,10 +267,9 @@ globals:
   - id: preset3_duration_ms
     type: int
     restore_value: yes
-    initial_value: '60000'  # 60 секунд по умолчанию
+    initial_value: '60000'
     max_restore_data_length: 8
 
-# Пресет 4
   - id: preset4_effect_name
     type: std::string
     initial_value: '""'
@@ -315,7 +304,6 @@ globals:
     type: std::string
     restore_value: yes
     max_restore_data_length: 12
-# initial_value: '00:00:00'
   - id: preset4_sunrise_correction
     type: float
     restore_value: yes
@@ -335,10 +323,9 @@ globals:
   - id: preset4_duration_ms
     type: int
     restore_value: yes
-    initial_value: '60000'  # 60 секунд по умолчанию
+    initial_value: '60000'
     max_restore_data_length: 8
 
-# Playlist
   - id: playlist_start_mode
     type: std::string
     restore_value: yes
@@ -348,7 +335,6 @@ globals:
     type: std::string
     restore_value: yes
     max_restore_data_length: 12
-# initial_value: '00:00:00'
   - id: playlist_sunrise_correction
     type: float
     restore_value: yes
@@ -378,7 +364,6 @@ button:
                 id(preset0_brightness) = bright_int;
                 ESP_LOGI("main", "Preset 0 saved");
                 break;
-
               case 1:
                 id(preset1_effect_name) = id(neopixel_led)->get_effect_name();
                 id(preset1_intensity) = (int)id(matrix_intensity).state;
@@ -387,7 +372,6 @@ button:
                 id(preset1_brightness) = bright_int;
                 ESP_LOGI("main", "Preset 1 saved");
                 break;
-
               case 2:
                 id(preset2_effect_name) = id(neopixel_led)->get_effect_name();
                 id(preset2_intensity) = (int)id(matrix_intensity).state;
@@ -396,7 +380,6 @@ button:
                 id(preset2_brightness) = bright_int;
                 ESP_LOGI("main", "Preset 2 saved");
                 break;
-
               case 3:
                 id(preset3_effect_name) = id(neopixel_led)->get_effect_name();
                 id(preset3_intensity) = (int)id(matrix_intensity).state;
@@ -405,7 +388,6 @@ button:
                 id(preset3_brightness) = bright_int;
                 ESP_LOGI("main", "Preset 3 saved");
                 break;
-
               case 4:
                 id(preset4_effect_name) = id(neopixel_led)->get_effect_name();
                 id(preset4_intensity) = (int)id(matrix_intensity).state;
@@ -414,13 +396,12 @@ button:
                 id(preset4_brightness) = bright_int;
                 ESP_LOGI("main", "Preset 4 saved");
                 break;
-
               default:
                 ESP_LOGW("main", "Unknown preset index %d", index);
                 break;
             }
 
-        # добавляем сохранение коррекции угла по режиму sunrise/sunset
+# добавляем сохранение коррекции угла по режиму sunrise/sunset
         - lambda: |-
             int preset = id(preset_selected);
             std::string start_mode = id(mode_selector).state;
@@ -844,21 +825,21 @@ select:
             - lambda: |-
                 id(preset_info).update();
 
-  # Select для выбора режима старта пресета (например, "None", "start on time", "start on sun", "day", "night", "in Playlist")
+# Select для выбора режима старта пресета (например, "None", "start on time", "start on sun", "day", "night", "in Playlist")
   - platform: template
-    name: "Preset Mode"          # Имя для UI
-    id: mode_selector           # ID для обращения из кода
+    name: "Preset Mode"
+    id: mode_selector
     options:
-      - "None"                 # Режим, при котором старт пресета не происходит автоматически
-      - "start on time"        # Запуск пресета по заданному времени
-      - "sunrise"              # Запуск пресета по восходу
-      - "sunset"               # Запуск пресета по закату
-      - "day"                  # Запуск пресета при дневном освещении (elevation солнца выше порога)
-      - "night"                # Запуск пресета при ночном освещении (elevation солнца ниже порога)
-      - "in playlist"          # Добавление пресета в плейлист и установка длительности
-      - "out playlist"          # Удаление пресета из плейлиста
-    optimistic: true            # Значение select считается установленным сразу, без подтверждения от устройства
-    initial_option: "None"      # Значение по умолчанию
+      - "None"одит автоматически
+      - "start on time"
+      - "sunrise"
+      - "sunset"
+      - "day"
+      - "night"
+      - "in playlist"
+      - "out playlist"
+    optimistic: true
+    initial_option: "None"
     on_value:
       - lambda: |-
           int preset = id(preset_selected);
@@ -954,7 +935,7 @@ select:
           }
 
 number:
-  # Number для поправки elevation солнца (обновляется при смене пресета)
+# Number для поправки elevation солнца (обновляется при смене пресета)
   - platform: template
     name: "Sun Elevation Correction"
     id: sun_elevation_correction
@@ -993,7 +974,7 @@ text_sensor:
       strftime(str, sizeof(str), "%Y-%m-%d %H:%M", localtime(&currTime));
       return  { str };
     update_interval: 60s
-  # Текстовый сенсор для отображения настроек старта (обновляется при смене пресета)
+# Текстовый сенсор для отображения настроек старта (обновляется при смене пресета)
   - platform: template
     name: "Preset Start Settings"
     id: preset_start_settings
@@ -1051,7 +1032,8 @@ text_sensor:
       snprintf(buf, sizeof(buf), "Index: %d, Mode: %s, Time: %s, Sun: %.1f° / %.1f°",
         preset_index, mode.c_str(), time.c_str(), sunrise_corr, sunset_corr);
       return std::string(buf);
-  - platform: template # Текстовый сенсор для отображения настроек пресетов
+# Текстовый сенсор для отображения настроек пресетов
+  - platform: template
     name: "Preset Info"
     id: preset_info
     lambda: |-
@@ -1164,7 +1146,6 @@ script:
       - logger.log: "Скрипт play_preset_playlist стартовал"
       - lambda: |-
           id(preset_info).update();
-      # Пресет 0
       - if:
           condition:
             - lambda: |-
@@ -1184,7 +1165,6 @@ script:
                 id: matrix_scale
                 value: !lambda 'return id(preset0_scale);'
             - delay: !lambda 'return id(preset0_duration_ms);'
-      # Пресет 1
       - if:
           condition:
             - lambda: |-
@@ -1199,7 +1179,6 @@ script:
                 id(matrix_speed).publish_state(id(preset1_speed));
                 id(matrix_scale).publish_state(id(preset1_scale));
             - delay: !lambda 'return id(preset1_duration_ms);'
-      # Пресет 2
       - if:
           condition:
             - lambda: |-
@@ -1213,8 +1192,7 @@ script:
                 id(matrix_intensity).publish_state(id(preset2_intensity));
                 id(matrix_speed).publish_state(id(preset2_speed));
                 id(matrix_scale).publish_state(id(preset2_scale));
-            - delay: !lambda 'return id(preset2_duration_ms);'
-      # Пресет 3
+            - delay: !lambda 'return id(preset2_duration_ms);'# Пресет 3
       - if:
           condition:
             - lambda: |-
@@ -1229,7 +1207,6 @@ script:
                 id(matrix_speed).publish_state(id(preset3_speed));
                 id(matrix_scale).publish_state(id(preset3_scale));
             - delay: !lambda 'return id(preset3_duration_ms);'
-      # Пресет 4
       - if:
           condition:
             - lambda: |-
@@ -1244,10 +1221,11 @@ script:
                 id(matrix_speed).publish_state(id(preset4_speed));
                 id(matrix_scale).publish_state(id(preset4_scale));
             - delay: !lambda 'return id(preset4_duration_ms);'
-            # Запуск скрипта заново
+# Запуск скрипта заново
       - script.execute: play_preset_playlist
 interval:
-  - interval: 30s  # Каждые 30 секунд выполняем проверку на установленное время включения пресетов
+  - interval: 30s
+# Каждые 30 секунд выполняем проверку на установленное время включения пресетов
     then:
       - if:
           condition:
@@ -1406,7 +1384,7 @@ interval:
             - delay: 500ms
             - lambda: |-
                 id(preset_info).update();
-     # Проверка запуска пресетов по закату с корректировкой
+# Проверка запуска пресетов по закату с корректировкой
       - if:
           condition:
             lambda: |-
@@ -1476,7 +1454,6 @@ interval:
                     id(play_preset_playlist).execute();
                     return;
                 }
-
                 id(neopixel_led)->turn_on().set_brightness(brightness).set_effect(effect_name).perform();
             - delay: 500ms
             - select.set_index:
