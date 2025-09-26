@@ -7846,8 +7846,7 @@ static void Firework() {
 
             if( (y > (uint16_t)(0x8000)) && (random8() < 32) && Flashing) {
               // boom
-              LEDS.showColor( CRGB::Gray);
-              LEDS.showColor( CRGB::Black);
+              ledsClear();
             }
 
             show = 0;
@@ -9257,12 +9256,12 @@ static void selectColor(uint8_t sc) {
   for (uint8_t y = 0; y < HEIGHT; y++) {
     for (uint8_t x = offset; x < (WIDTH - offset); x++) {
       CHSV curColor = CHSV(hue, (255U - sat * y), (240U - br * y));
-      if (curColor == getPixColorXY(x, y)) {
+      if (CRGB(curColor) == getPixColorXY(x, y)) {
         /* show srlect color */
-        drawRecCHSV(x, y, x + sc, y + sc, CHSV( hue, 64U, 255U));
+        drawRecCHSV(x, y, x + sc, y + sc, CHSV(hue, 64U, 255U));
         // ajs: FastLED.show();
         // ajs: delay(400);
-        drawRecCHSV(x, y, x + sc, y + sc, CHSV( hue, 255U, 255U));
+        drawRecCHSV(x, y, x + sc, y + sc, CHSV(hue, 255U, 255U));
         y = HEIGHT;
         x = WIDTH;
       }
@@ -9294,53 +9293,52 @@ static void WebTools() {
     posY = 0;
     drawPalette(posX, posY, STEP);
   }
+
   /* auto scenario */
-  //switch (step) {
-    if (step == 0){     /* restart ----------- */
-      nextX = 0;
-      FPSdelay = FPS_D;
-    }
-    else 
-    if (step == speed/16+1){    /* start move -------- 16*/
-      nextX = getRandomPos(STEP);
-      FPSdelay = FPS_D;
-    }
-    else
-    if (step == speed/10+1){    /* find --------------100 */
-      nextX = getRandomPos(STEP);
-      FPSdelay = FPS_D;
-    }
-    else
-    if (step == speed/7+1){    /* find 2 ----------- 150*/
-      nextX = getRandomPos(STEP);
-      FPSdelay = FPS_D;
-    }
-    else
-    if (step == speed/6+1){    /* find 3 -----------200 */
-      nextX = - STEP * random(4, 8);
-      // nextX = getRandomPos(STEP);
-      FPSdelay = FPS_D;
-    }
-    else
-    if (step == speed/5+1){   /* select color ------220 */
-      FPSdelay = 200U;
-      selectColor(STEP - 1);
-    }
-    else
-    if (step == speed/4+1){   /* show color -------- 222*/
-      FPSdelay = FPS_D;
-      nextX = WIDTH;
-    }
-    else
-    if (step == speed/4+3){
-      step = 252;
-    }
-    
-  //}
+  if (step == 0) {               /* restart ----------- */
+    nextX = 0;
+    FPSdelay = FPS_D;
+  }
+  else 
+  if (step == speed / 16 + 1){   /* start move -------- 16*/
+    nextX = getRandomPos(STEP);
+    FPSdelay = FPS_D;
+  }
+  else
+  if (step == speed / 10 + 1){   /* find --------------100 */
+    nextX = getRandomPos(STEP);
+    FPSdelay = FPS_D;
+  }
+  else
+  if (step == speed / 7 + 1){    /* find 2 ----------- 150*/
+    nextX = getRandomPos(STEP);
+    FPSdelay = FPS_D;
+  }
+  else
+  if (step == speed / 6 + 1){    /* find 3 -----------200 */
+    nextX = - STEP * random(4, 8);
+    // nextX = getRandomPos(STEP);
+    FPSdelay = FPS_D;
+  }
+  else
+  if (step == speed / 5 + 1){    /* select color ------220 */
+    FPSdelay = 200U;
+    selectColor(STEP - 1);
+  }
+  else
+  if (step == speed / 4 + 1){    /* show color -------- 222*/
+    FPSdelay = FPS_D;
+    nextX = WIDTH;
+  }
+  else
+  if (step == speed / 4 + 3){
+    step = 252;
+  }
+
   if (posX < nextX) posX++;
   if (posX > nextX) posX--;
 
-  if (stop_moving)   {
+  if (stop_moving) {
     FPSdelay = 80U;
     step++;
   } else {
@@ -9351,7 +9349,7 @@ static void WebTools() {
       if (posX > 1) {
         gradientHorizontal(0, 0, (posX - 1), HEIGHT, hue, hue, 255U, 96U, 255U);
       }
-      if (posX > 3) DrawLine(posX - 3, CENTER_Y_MINOR, posX - 3, CENTER_Y_MAJOR, CHSV( hue, 192U, 255U));
+      if (posX > 3) DrawLine(posX - 3, CENTER_Y_MINOR, posX - 3, CENTER_Y_MAJOR, CHSV(hue, 192U, 255U));
     }
   }
 
