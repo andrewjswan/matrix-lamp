@@ -1,5 +1,3 @@
-# Пакет для добавления пресетов, плейлиста  режимов старта пресетов и плейлиста(по времени, солнцу и день\ночь)
-# Подключите в основном YAML через: packages: { file: packages/matrix_lamp/matrix_lamp_preset.yaml }
 esphome:
   on_boot:
     priority: -100
@@ -573,7 +571,6 @@ select:
           id(sun_elevation_correction).publish_state(correction);
 
       - if:
-# Загрузка настроек для плейлиста
           condition:
             - lambda: 'return id(preset_selector).state == "Playlist";'
           then:
@@ -830,7 +827,7 @@ select:
     name: "Preset Mode"
     id: mode_selector
     options:
-      - "None"одит автоматически
+      - "None"
       - "start on time"
       - "sunrise"
       - "sunset"
@@ -935,7 +932,6 @@ select:
           }
 
 number:
-# Number для поправки elevation солнца (обновляется при смене пресета)
   - platform: template
     name: "Sun Elevation Correction"
     id: sun_elevation_correction
@@ -974,7 +970,6 @@ text_sensor:
       strftime(str, sizeof(str), "%Y-%m-%d %H:%M", localtime(&currTime));
       return  { str };
     update_interval: 60s
-# Текстовый сенсор для отображения настроек старта (обновляется при смене пресета)
   - platform: template
     name: "Preset Start Settings"
     id: preset_start_settings
@@ -1192,7 +1187,7 @@ script:
                 id(matrix_intensity).publish_state(id(preset2_intensity));
                 id(matrix_speed).publish_state(id(preset2_speed));
                 id(matrix_scale).publish_state(id(preset2_scale));
-            - delay: !lambda 'return id(preset2_duration_ms);'# Пресет 3
+            - delay: !lambda 'return id(preset2_duration_ms);'
       - if:
           condition:
             - lambda: |-
@@ -1221,11 +1216,9 @@ script:
                 id(matrix_speed).publish_state(id(preset4_speed));
                 id(matrix_scale).publish_state(id(preset4_scale));
             - delay: !lambda 'return id(preset4_duration_ms);'
-# Запуск скрипта заново
       - script.execute: play_preset_playlist
 interval:
   - interval: 30s
-# Каждые 30 секунд выполняем проверку на установленное время включения пресетов
     then:
       - if:
           condition:
@@ -1283,7 +1276,6 @@ interval:
                   id(play_preset_playlist).execute();
                 }
             - delay: 500ms
-# Устанавливаем актуальный пресет в селекторе
             - select.set_index:
                 id: preset_selector
                 index: !lambda 'return id(preset_selected);'
@@ -1466,7 +1458,6 @@ interval:
   - interval: 300s
     then:
       - if:
-# Если хоть одно условие совпадает - выполняем следующую лямбду.
           condition:
             lambda: |-
               // Определяем день и ночь по углу солнца
