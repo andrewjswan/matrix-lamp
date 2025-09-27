@@ -888,7 +888,7 @@ select:
             else corr_value = 0.0f;
           }
 
-          // Обновляем number 
+          // Обновляем number
           id(sun_elevation_correction).publish_state(corr_value);
           // Обновляем текстовый сенсор настроек
           id(preset_start_settings).update();
