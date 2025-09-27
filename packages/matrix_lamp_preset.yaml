@@ -402,3 +402,6 @@ text_sensor:
          scale,
          brightness_percent);
       return std::string(buf);
+      
+      
+      
