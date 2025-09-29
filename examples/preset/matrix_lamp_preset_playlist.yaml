@@ -15,17 +15,12 @@ esphome:
 time:
   - platform: sntp
     id: sntp_time
-    timezone: Europe/Moscow
-    servers:
-      - 0.ru.pool.ntp.org
-      - ntp0.ntp-servers.net
-      - 2.pool.ntp.org
-  - platform: homeassistant
-    id: homeassistant_time
+
 sun:
   latitude: 43.00
   longitude: 33.00
   id: sun_sun
+
 sensor:
   - platform: sun
     name: Sun Elevation
@@ -33,6 +28,7 @@ sensor:
   - platform: sun
     name: Sun Azimuth
     type: azimuth
+
 globals:
   - id: preset_selected
     type: int
@@ -958,15 +954,6 @@ text_sensor:
     id: current_sntp_time
     lambda: |-
       char str[17]; time_t currTime = id(sntp_time).now().timestamp;
-      strftime(str, sizeof(str), "%Y-%m-%d %H:%M", localtime(&currTime));
-      return  { str };
-    update_interval: 60s
-  - platform: template
-    name: "Current HA Time"
-    icon: mdi:clock
-    id: current_ha_time
-    lambda: |-
-      char str[17]; time_t currTime = id(homeassistant_time).now().timestamp;
       strftime(str, sizeof(str), "%Y-%m-%d %H:%M", localtime(&currTime));
       return  { str };
     update_interval: 60s
