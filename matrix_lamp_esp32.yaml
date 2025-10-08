@@ -6,6 +6,8 @@ substitutions:
 
 esp32:
   board: nodemcu-32s
+  framework:
+    type: arduino
 
 dashboard_import:
   package_import_url: github://andrewjswan/matrix-lamp/matrix_lamp_esp32.yaml@main

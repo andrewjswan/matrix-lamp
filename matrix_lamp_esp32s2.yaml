@@ -5,6 +5,8 @@ substitutions:
 
 esp32:
   board: esp32-s2-saola-1
+  framework:
+    type: arduino
 
 dashboard_import:
   package_import_url: github://andrewjswan/matrix-lamp/matrix_lamp_esp32s2.yaml@main
