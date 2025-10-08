@@ -7,7 +7,6 @@ esp32:
   board: esp32-s3-devkitc-1
   framework:
     type: arduino
-    version: latest
 
 dashboard_import:
   package_import_url: github://andrewjswan/matrix-lamp/matrix_lamp_esp32s3.yaml@main
