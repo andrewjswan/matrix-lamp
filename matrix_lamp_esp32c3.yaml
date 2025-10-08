@@ -14,7 +14,7 @@ packages:
   common: !include packages/common.yaml
   base: !include packages/matrix_lamp_base.yaml
   control: !include packages/matrix_lamp_control.yaml
-  light: !include packages/matrix_lamp_light.yaml
+  light: !include packages/matrix_lamp_light_rmt.yaml
   sunrise: !include packages/matrix_lamp_sunrise.yaml
   ddp: !include packages/matrix_lamp_ddp.yaml
   button: !include packages/matrix_lamp_button.yaml
