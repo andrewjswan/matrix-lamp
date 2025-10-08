@@ -7,7 +7,7 @@ namespace esphome {
 namespace matrix_lamp {
 
 static const char *const TAG = "matrix_lamp";
-static const char *const MATRIX_LAMP_VERSION = "2025.9.1";
+static const char *const MATRIX_LAMP_VERSION = "2025.10.1";
 
 #if defined(MATRIX_LAMP_TRIGGERS)
 class MatrixLampEffectStartTrigger;
