@@ -1,5 +1,33 @@
 # Changelog
 
+## v1.5.13.39 - 2025-10-09
+
+### What's Changed
+
+#### 🚀 Features
+
+- [matrix_lamp] Add preset and playlist management component @parus2024 (#67)
+
+#### 🐛 Bug Fixes
+
+- MatrixLamp: Rollback to FastLED 3.10.1 @andrewjswan (#69)
+
+#### 🧰 Maintenance
+
+- 2025.10: Add Test for ESPHome DEV @andrewjswan (#68)
+- Esp32-C3: Switch to RMT Light @andrewjswan (#70)
+- Add Arduino framework as Default @andrewjswan (#71)
+
+#### Sponsorship
+
+If you like this project, please consider supporting me:
+
+- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
+
+#### Changelog
+
+**Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.37...v1.5.13.39
+
 ## v1.5.13.37 - 2025-09-22
 
 ### What's Changed
