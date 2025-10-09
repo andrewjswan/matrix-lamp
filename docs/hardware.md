@@ -1,10 +1,11 @@
 ## Pin scheme
 
-|       |ESP32  |ESP32C3 |ESP32S2 | ESP32S3 | 
-|-------|-------|--------|--------|---------|
-|LED    |GPIO3  |GPIO3   |GPIO3   |GPIO3    |
-|Button |GPIO35 |GPIO10  |GPIO35  |GPIO35   |
-|Pullup |False  |True    |True    |True     |
+|         |ESP32       |ESP32C3             |ESP32S2             | ESP32S3    | 
+|---------|------------|--------------------|--------------------|------------|
+|LED      |GPIO3       |GPIO3               |GPIO3               |GPIO3       |
+|Button   |GPIO35      |GPIO10              |GPIO35              |GPIO35      |
+|Pullup   |False       |True                |True                |True        |
+|Platform |neopixelbus |esp32_rmt_led_strip |esp32_rmt_led_strip |neopixelbus |
 
 ## Settings override
 
