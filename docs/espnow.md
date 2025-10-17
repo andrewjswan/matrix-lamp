@@ -10,4 +10,4 @@ If you need to use a Matrix Lamp with sound-reactive effects without a built-in 
 On the [Music Leds](https://andrewjswan.github.io/esphome-components/music-leds/) side, turn on the `Master` switch, and on the Matrix Lamp side, turn on the `Slave` switch and select any music effect.
 
 !!! note
-The Matrix Lamp use the [ESPNow](https://esphome.io/components/espnow/) protocol for synchronization.
+    The Matrix Lamp use the [ESPNow](https://esphome.io/components/espnow/) protocol for synchronization.
