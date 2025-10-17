@@ -1,0 +1,104 @@
+substitutions:
+  group: "3"
+  sound: "83"
+  project_name: "ajs.Light - Music Leds ESPNow"
+  project_version: "1.5.5"
+
+globals:
+  - id: volume_smth
+    type: float
+    restore_value: no
+    initial_value: '0'
+  - id: volume_raw
+    type: int16_t
+    restore_value: no
+    initial_value: '0'
+  - id: fft_major_peak
+    type: float
+    restore_value: no
+    initial_value: '0'
+  - id: sample_peak
+    type: bool
+    restore_value: no
+    initial_value: 'false'
+
+web_server:
+  version: 3
+  sorting_groups:
+    - id: sorting_group_espnow_settings
+      name: "ESPNow Settings"
+      sorting_weight: 5
+
+espnow:
+  auto_add_peer: true
+  channel: 1
+  on_broadcast:
+    - logger.log:
+        format: "Broadcast from: %s = '%s'  RSSI: %d"
+        args:
+          - format_mac_address_pretty(info.src_addr).c_str()
+          - format_hex_pretty(data, size).c_str()
+          - info.rx_ctrl->rssi
+    - script.execute:
+        id: receive_state
+        data: !lambda return std::vector<uint8_t>(data, data + size);
+        size: !lambda return size;
+
+switch:
+  # ESPNow
+  - platform: template
+    name: "Slave"
+    id: slave
+    icon: mdi:shield-outline
+    optimistic: true
+    entity_category: config
+    web_server:
+      sorting_group_id: sorting_group_espnow_settings
+
+script:
+  # Receive Sound state
+  - id: receive_state
+    parameters:
+      data: uint8_t[]
+      size: int
+    then:
+      - if:
+          condition:
+            switch.is_on: slave
+          then:
+            - logger.log: "Recieve broadcast packet"
+            - lambda: |-
+                struct ESPNowData {
+                  uint8_t id;
+                  uint8_t group;
+                } PACKED;
+
+                struct ESPNowDataSound : ESPNowData {
+                  float volume_smth;
+                  int16_t volume_raw;
+                  float fft_major_peak;
+                  bool sample_peak;
+                } PACKED;
+
+                if (size < sizeof(ESPNowData)) {
+                  return;
+                }
+
+                ESPNowData base_data;
+                memcpy(&base_data, data.data(), sizeof(ESPNowData));
+                if (base_data.group != ${group}) {
+                  return;
+                }
+                if (base_data.id != ${sound} || size < sizeof(ESPNowDataSound)) {
+                  return;
+                }
+
+                ESPNowDataSound sound_data;
+                memcpy(&sound_data, data.data(), sizeof(ESPNowDataSound));
+
+                id(volume_smth) = sound_data.volume_smth;
+                id(volume_raw) = sound_data.volume_raw;
+                id(fft_major_peak) = sound_data.fft_major_peak;
+                id(sample_peak) = sound_data.sample_peak;
+            - logger.log: "Done"
+    mode: restart

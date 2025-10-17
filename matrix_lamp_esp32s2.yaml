@@ -21,3 +21,5 @@ packages:
   button: !include packages/matrix_lamp_button.yaml
   power: !include packages/matrix_lamp_power.yaml
   random: !include packages/matrix_lamp_random.yaml
+  # music: !include packages/matrix_lamp_music.yaml
+  # espnow: !include packages/matrix_lamp_espnow_music_leds_slave.yaml

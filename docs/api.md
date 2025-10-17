@@ -1,4 +1,4 @@
-### Home Assistant services
+## Home Assistant services
 
 There are services and parameters to use.
 
@@ -19,7 +19,7 @@ You can call this from, e.g., the developer tools service.
       reset_effect_settings
     ```
 
-### Lambda
+## Lambda
 
 You can use the above functions also in [lambdas](https://esphome.io/automations/actions#lambda-action) in your esphome YAML.
 
