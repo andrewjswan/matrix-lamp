@@ -21,7 +21,7 @@ interval:
             return;
           }
 
-          auto effects = id(neopixel_led)->get_effects();
+          const auto &effects = id(neopixel_led)->get_effects();
           uint8_t total = effects.size();
           std::string curr_effect = id(neopixel_led)->get_effect_name();
 
