@@ -86,6 +86,7 @@ nav:
       - Icons and Animations: icons-and-animations.md
       - API: api.md
       - Home Assistant: home-assistant.md
+  - ESPNow: espnow.md
   - Additionals: additionals.md
   - Firmware:
       - MatrixLamp - ESP Web Tools: firmware.html

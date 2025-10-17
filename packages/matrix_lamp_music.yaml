@@ -1,0 +1,46 @@
+substitutions:
+  project_name: "ajs.Light - Fast Led Music"
+  project_version: "1.5.5"
+
+light:
+  # Music Effects
+  - id: !extend neopixel_led
+    effects:
+      - addressable_lambda:
+          name: Noise Fire with Music
+          update_interval: 10ms
+          lambda: |-
+            static uint8_t speed = 128;
+            static uint8_t variant = 128;
+
+            if (initial_run)
+            {
+              ESP_LOGD("effect", "Noise Fire with Music");
+
+              it.all() = Color::BLACK;
+              fastled_helper::InitLeds(it.size());
+
+              speed = random8(50, 250);
+              variant = random8(50, 250);
+            }
+
+            // Fire palette definition. Lower value = darker.
+            CRGBPalette16 myPal =
+                CRGBPalette16(CHSV(0, 255, 2), CHSV(0, 255, 4), CHSV(0, 255, 8), CHSV(0, 255, 8), CHSV(0, 255, 16), CRGB::Red,
+                              CRGB::Red, CRGB::Red, CRGB::DarkOrange, CRGB::DarkOrange, CRGB::Orange, CRGB::Orange, CRGB::Yellow,
+                              CRGB::Orange, CRGB::Yellow, CRGB::Yellow);
+
+            for (unsigned i = 0; i < it.size(); i++) {
+              // X location is constant, but we move along the Y at the rate of millis(). By Andrew Tuline.
+              unsigned index = fastled_helper::perlin8(i * speed / 64, millis() * speed / 64 * it.size() / 255);
+              // Now we need to scale index so that it gets blacker as we get close to one of the ends.
+              // This is a simple y=mx+b equation that's been scaled. index/128 is another scaling.
+              index = (255 - i * 256 / it.size()) * index / (256 - variant);
+
+              fastled_helper::leds[i] = ColorFromPalette(myPal, index, id(volume_smth) * 2, LINEARBLEND);
+            }
+
+            for (int i = 0; i < it.size(); i++)
+            {
+              it[i] = Color(fastled_helper::leds[i].r, fastled_helper::leds[i].g, fastled_helper::leds[i].b);
+            }

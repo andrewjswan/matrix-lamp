@@ -9,6 +9,8 @@ substitutions:
 
 esp32:
   board: nodemcu-32s
+  framework:
+    type: arduino
 
 esphome:
   on_boot:

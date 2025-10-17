@@ -11,6 +11,13 @@ esphome:
           level: INFO
           tag: power
 
+web_server:
+  version: 3
+  sorting_groups:
+    - id: sorting_group_power
+      name: "Power"
+      sorting_weight: 5
+
 logger:
   logs:
     sensor: WARN
@@ -33,6 +40,7 @@ number:
     disabled_by_default: true
     web_server:
       sorting_weight: 15
+      sorting_group_id: sorting_group_power
 
 sensor:
   # Power
@@ -49,7 +57,8 @@ sensor:
     update_interval: 1s
     disabled_by_default: true
     web_server:
-      sorting_weight: 15
+      sorting_weight: 55
+      sorting_group_id: sorting_group_power
 
   # Current
   - platform: template
@@ -92,7 +101,8 @@ sensor:
     update_interval: 1s
     disabled_by_default: true
     web_server:
-      sorting_weight: 15
+      sorting_weight: 10
+      sorting_group_id: sorting_group_power
 
   # Energy
   - platform: integration
@@ -110,4 +120,5 @@ sensor:
       # Multiplication factor from W to kW is 0.001
       - multiply: 0.001
     web_server:
-      sorting_weight: 25
+      sorting_weight: 15
+      sorting_group_id: sorting_group_power

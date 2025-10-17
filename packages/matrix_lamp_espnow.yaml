@@ -1,46 +1,186 @@
+substitutions:
+  group: "1"
+  light_on: "69"
+  light_off: "79"
+  project_name: "ajs.Light - ESPNow"
+  project_version: "1.5.5"
+
+web_server:
+  version: 3
+  sorting_groups:
+    - id: sorting_group_espnow_settings
+      name: "ESPNow Settings"
+      sorting_weight: 5
+
 espnow:
+  auto_add_peer: true
+  channel: 1
   on_broadcast:
     - logger.log:
-        format: "ESPNow Broadcast from: %s = '%s' RSSI: %d"
+        format: "Broadcast from: %s = '%s'  RSSI: %d"
         args:
           - format_mac_address_pretty(info.src_addr).c_str()
           - format_hex_pretty(data, size).c_str()
           - info.rx_ctrl->rssi
-    - lambda: |-
-        if (size != 4) {
-          return;
-        }
+    - script.execute:
+        id: receive_state
+        data: !lambda return std::vector<uint8_t>(data, data + size);
+        size: !lambda return size;
 
-        auto effects = id(neopixel_led)->get_effects();
-        if (data[0] > effects.size()) {
-          return;
-        }
+light:
+  # ESPNow Automations
+  - id: !extend neopixel_led
+    on_turn_on:
+      - script.execute:
+          id: send_state
+          action: 1
+    on_state:
+      - if:
+          condition:
+            light.is_on: neopixel_led
+          then:
+            - script.execute:
+                id: send_state
+                action: 2
+    on_turn_off:
+      - script.execute:
+          id: send_state
+          action: 0
 
-        // Set parameters
-        id(matrix).set_effect_intensity(data[1]);
-        id(matrix).set_effect_speed(data[2]);
-        id(matrix).set_effect_scale(data[3]);
+switch:
+  # ESPNow
+  - platform: template
+    name: "Master"
+    id: master
+    icon: mdi:shield-crown-outline
+    optimistic: true
+    entity_category: config
+    turn_on_action:
+      - switch.turn_off: slave
+    web_server:
+      sorting_group_id: sorting_group_espnow_settings
 
-        // Turn on effect
-        auto call = id(neopixel_led)->turn_on();
-        call.set_effect(data[0]);
-        call.perform();
+  - platform: template
+    name: "Slave"
+    id: slave
+    icon: mdi:shield-outline
+    optimistic: true
+    entity_category: config
+    turn_on_action:
+      - switch.turn_off: master
+    web_server:
+      sorting_group_id: sorting_group_espnow_settings
 
-matrix_lamp:
-  id: matrix
-  on_effect_start:
-    - logger.log:
-        format: "${friendly_name} Effect start, %d %d %d %d"
-        args:
-          - effect
-          - intensity
-          - speed
-          - scale
-    - espnow.broadcast:
-        data: !lambda "return {effect, intensity, speed, scale};"
-        wait_for_sent: true
-        on_sent:
-          - logger.log: "ESPNow broadcast message sent successfully"
-        on_error:
-          - logger.log: "ESPNow broadcast  message failed to send"
-        continue_on_error: true
+script:
+  # Send Light state
+  - id: send_state
+    parameters:
+      action: int
+    then:
+      - if:
+          condition:
+            switch.is_on: master
+          then:
+            - logger.log: "Send broadcast packet"
+            - espnow.broadcast:
+                data: !lambda |-
+                  struct ESPNowData {
+                    uint8_t id;
+                    uint8_t group;
+                  } PACKED;
+
+                  struct ESPNowDataEffect : ESPNowData {
+                    uint32_t effect;
+                    uint32_t count;
+                    uint8_t r;
+                    uint8_t g;
+                    uint8_t b;
+                  } PACKED;
+
+                  if (action != 0) {
+                    ESPNowDataEffect data;
+                    data.id = ${light_on};
+                    data.group = ${group};
+                    data.effect = id(neopixel_led).get_current_effect_index();
+                    data.count = id(neopixel_led).get_effect_count();
+                    data.r = id(neopixel_led).remote_values.get_red() * 255;
+                    data.g = id(neopixel_led).remote_values.get_green() * 255;
+                    data.b = id(neopixel_led).remote_values.get_blue() * 255;
+
+                    std::vector<uint8_t> buffer(sizeof(ESPNowDataEffect));
+                    memcpy(buffer.data(), &data, sizeof(ESPNowDataEffect));
+                    return buffer;
+                  }
+
+                  ESPNowData data = {${light_off}, ${group}};
+                  std::vector<uint8_t> buffer(sizeof(ESPNowData));
+                  memcpy(buffer.data(), &data, sizeof(ESPNowData));
+                  return buffer;
+                on_sent:
+                  - logger.log: "ESPNow message sent successfully"
+                on_error:
+                  - logger.log: "ESPNow message failed to send"
+                wait_for_sent: true
+                continue_on_error: true
+            - logger.log: "Done"
+    mode: restart
+
+  # Receive Light state
+  - id: receive_state
+    parameters:
+      data: uint8_t[]
+      size: int
+    then:
+      - if:
+          condition:
+            switch.is_on: slave
+          then:
+            - logger.log: "Recieve broadcast packet"
+            - lambda: |-
+                struct ESPNowData {
+                  uint8_t id;
+                  uint8_t group;
+                } PACKED;
+
+                struct ESPNowDataEffect : ESPNowData {
+                  uint32_t effect;
+                  uint32_t count;
+                  uint8_t r;
+                  uint8_t g;
+                  uint8_t b;
+                } PACKED;
+
+                if (size < sizeof(ESPNowData)) {
+                  return;
+                }
+
+                ESPNowData base_data;
+                memcpy(&base_data, data.data(), sizeof(ESPNowData));
+                if (base_data.group != ${group}) {
+                  return;
+                }
+
+                if (base_data.id == ${light_off}) {
+                  auto call = id(neopixel_led).turn_off();
+                  call.set_transition_length(1000);
+                  call.perform();
+                  return;
+                }
+
+                if (base_data.id != ${light_on} || size < sizeof(ESPNowDataEffect)) {
+                  return;
+                }
+
+                ESPNowDataEffect effect_data;
+                memcpy(&effect_data, data.data(), sizeof(ESPNowDataEffect));
+
+                auto call = id(neopixel_led).turn_on();
+                if (effect_data.effect == 0) {
+                  call.set_transition_length(1000);
+                }
+                call.set_rgb(effect_data.r / 255, effect_data.g / 255, effect_data.b / 255);
+                call.set_effect(effect_data.effect);
+                call.set_brightness(1.0);
+                call.perform();
+            - logger.log: "Done"
+    mode: restart

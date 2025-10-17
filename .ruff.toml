@@ -1,6 +1,6 @@
-target-version = "py312"
+target-version = "py313"
 
-# Allow lines to be as long as 120.
+# Allow lines to be as long as 100.
 line-length = 100
 
 [lint]
