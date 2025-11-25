@@ -1,5 +1,31 @@
 # Changelog
 
+## v1.5.13.53 - 2025-11-25
+
+### What's Changed
+
+- Add permissions to Greeting action @andrewjswan (#78)
+
+### 🐛 Bug Fixes
+
+- Fix for ESPHome 2025.11.0 @andrewjswan (#80)
+
+### 🧰 Maintenance
+
+- DEP: Bump actions/checkout from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (#79)
+- DEP: Bump actions/download-artifact from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (#76)
+- DEP: Bump actions/upload-artifact from 4 to 5 @[dependabot[bot]](https://github.com/apps/dependabot) (#77)
+
+### Sponsorship
+
+If you like this project, please consider supporting me:
+
+- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
+
+### Changelog
+
+**Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.51...v1.5.13.53
+
 ## v1.5.13.51 - 2025-10-17
 
 ### What's Changed
