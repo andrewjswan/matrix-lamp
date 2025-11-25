@@ -30,23 +30,23 @@ interval:
           {
             rand = random(total) + 1;
           } while (
-                    effects[rand]->get_name() == "None" ||
-                    effects[rand]->get_name() == "Magic Lantern" ||
-                    effects[rand]->get_name() == "Cloud in a Jar" ||
-                    effects[rand]->get_name() == "Thunderstorm in a Jar" ||
-                    effects[rand]->get_name() == "Snowfall" ||
-                    effects[rand]->get_name() == "Arrows" ||
-                    effects[rand]->get_name() == "Lotus Flower" ||
-                    effects[rand]->get_name() == "Fountain" ||
-                    effects[rand]->get_name() == "Scanner" ||
-                    effects[rand]->get_name() == "Colors" ||
-                    effects[rand]->get_name() == "Strobe" ||
-                    effects[rand]->get_name() == "Strobe Police" ||
-                    effects[rand]->get_name() == "White light" ||
-                    effects[rand]->get_name() == "Sunrise" ||
-                    effects[rand]->get_name() == "Clock Full" ||
-                    effects[rand]->get_name() == "WLED / DDP" ||
-                    effects[rand]->get_name() == curr_effect
+                    (strcmp(effects[rand]->get_name(), "None") == 0) ||
+                    (strcmp(effects[rand]->get_name(), "Magic Lantern") == 0) ||
+                    (strcmp(effects[rand]->get_name(), "Cloud in a Jar") == 0) ||
+                    (strcmp(effects[rand]->get_name(), "Thunderstorm in a Jar") == 0) ||
+                    (strcmp(effects[rand]->get_name(), "Snowfall") == 0) ||
+                    (strcmp(effects[rand]->get_name(), "Arrows") == 0) ||
+                    (strcmp(effects[rand]->get_name(), "Lotus Flower") == 0) ||
+                    (strcmp(effects[rand]->get_name(), "Fountain") == 0) ||
+                    (strcmp(effects[rand]->get_name(), "Scanner") == 0) ||
+                    (strcmp(effects[rand]->get_name(), "Colors") == 0) ||
+                    (strcmp(effects[rand]->get_name(), "Strobe") == 0) ||
+                    (strcmp(effects[rand]->get_name(), "Strobe Police") == 0) ||
+                    (strcmp(effects[rand]->get_name(), "White light") == 0) ||
+                    (strcmp(effects[rand]->get_name(), "Sunrise") == 0) ||
+                    (strcmp(effects[rand]->get_name(), "Clock Full") == 0) ||
+                    (strcmp(effects[rand]->get_name(), "WLED / DDP") == 0) ||
+                    (strcmp(effects[rand]->get_name(), curr_effect.c_str()) == 0)
                   );
 
           // Set random effect
