@@ -7,10 +7,10 @@
 namespace esphome {
 namespace matrix_lamp {
 
-MatrixLampLightEffect::MatrixLampLightEffect(const std::string &name) : AddressableLightEffect(name) {}
+MatrixLampLightEffect::MatrixLampLightEffect(const char *name) : AddressableLightEffect(name) {}
 
 void MatrixLampLightEffect::start() {
-  ESP_LOGD(TAG, "Effect: %s", this->name_.c_str());
+  ESP_LOGD(TAG, "Effect: %s", this->get_name());
   
   AddressableLightEffect::start();
   if (this->matrix_lamp_) {

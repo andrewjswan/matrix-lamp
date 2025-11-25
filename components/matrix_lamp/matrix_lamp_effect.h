@@ -9,7 +9,7 @@ class MatrixLamp;
 
 class MatrixLampLightEffect : public light::AddressableLightEffect {
  public:
-  MatrixLampLightEffect(const std::string &name);
+  MatrixLampLightEffect(const char *name);
 
   void start() override;
   void stop() override;

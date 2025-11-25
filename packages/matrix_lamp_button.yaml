@@ -46,7 +46,7 @@ binary_sensor:
               for (auto *effect : id(neopixel_led)->get_effects())
               {
                 idx++;
-                if (strcasecmp(effect->get_name().c_str(), curr_effect.c_str()) == 0)
+                if (strcasecmp(effect->get_name(), curr_effect.c_str()) == 0)
                   break;
               }
 
@@ -87,7 +87,7 @@ binary_sensor:
               for (auto *effect : id(neopixel_led)->get_effects())
               {
                 idx++;
-                if (strcasecmp(effect->get_name().c_str(), curr_effect.c_str()) == 0)
+                if (strcasecmp(effect->get_name(), curr_effect.c_str()) == 0)
                   break;
               }
 
