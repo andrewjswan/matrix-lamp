@@ -516,12 +516,12 @@ select:
       - lambda: |-
           // Переводим строку в число для сохранения
           int val = -1;
-          if (id(preset_selector).state == "0") val = 0;
-          else if (id(preset_selector).state == "1") val = 1;
-          else if (id(preset_selector).state == "2") val = 2;
-          else if (id(preset_selector).state == "3") val = 3;
-          else if (id(preset_selector).state == "4") val = 4;
-          else if (id(preset_selector).state == "Playlist") val = 5;
+          if (std::string(id(preset_selector).current_option()) == "0") val = 0;
+          else if (std::string(id(preset_selector).current_option()) == "1") val = 1;
+          else if (std::string(id(preset_selector).current_option()) == "2") val = 2;
+          else if (std::string(id(preset_selector).current_option()) == "3") val = 3;
+          else if (std::string(id(preset_selector).current_option()) == "4") val = 4;
+          else if (std::string(id(preset_selector).current_option()) == "Playlist") val = 5;
           else val = 255;  // None или другое
 
           if (val >= 0) {
@@ -568,7 +568,7 @@ select:
 
       - if:
           condition:
-            - lambda: 'return id(preset_selector).state == "Playlist";'
+            - lambda: 'return std::string(id(preset_selector).current_option()) == "Playlist";'
           then:
             - script.execute: play_preset_playlist
             - lambda: |-
@@ -590,7 +590,7 @@ select:
             - script.stop: play_preset_playlist
       - if:
           condition:
-            - lambda: 'return id(preset_selector).state == "0";'
+            - lambda: 'return std::string(id(preset_selector).current_option()) == "0";'
           then:
             - script.stop: play_preset_playlist
             - lambda: |-
@@ -635,7 +635,7 @@ select:
                 id(preset_info).update();
       - if:
           condition:
-            - lambda: 'return id(preset_selector).state == "1";'
+            - lambda: 'return std::string(id(preset_selector).current_option()) == "1";'
           then:
             - script.stop: play_preset_playlist
             - lambda: |-
@@ -678,7 +678,7 @@ select:
                 id(preset_info).update();
       - if:
           condition:
-            - lambda: 'return id(preset_selector).state == "2";'
+            - lambda: 'return std::string(id(preset_selector).current_option()) == "2";'
           then:
             - script.stop: play_preset_playlist
             - lambda: |-
@@ -721,7 +721,7 @@ select:
                 id(preset_info).update();
       - if:
           condition:
-            - lambda: 'return id(preset_selector).state == "3";'
+            - lambda: 'return std::string(id(preset_selector).current_option()) == "3";'
           then:
             - script.stop: play_preset_playlist
             - lambda: |-
@@ -764,7 +764,7 @@ select:
                 id(preset_info).update();
       - if:
           condition:
-            - lambda: 'return id(preset_selector).state == "4";'
+            - lambda: 'return std::string(id(preset_selector).current_option()) == "4";'
           then:
             - script.stop: play_preset_playlist
             - lambda: |-
@@ -807,7 +807,7 @@ select:
                 id(preset_info).update();
       - if:
           condition:
-            - lambda: 'return id(preset_selector).state == "None";'
+            - lambda: 'return std::string(id(preset_selector).current_option()) == "None";'
           then:
             - script.stop: play_preset_playlist
             - light.turn_off:
@@ -961,7 +961,7 @@ text_sensor:
     name: "Preset Start Settings"
     id: preset_start_settings
     lambda: |-
-      std::string state = id(preset_selector).state;
+      std::string state = std::string(id(preset_selector).current_option());
       std::string mode = "None";
       std::string time = "00:00";
       float sunrise_corr = 0.0f;
@@ -1019,7 +1019,7 @@ text_sensor:
     name: "Preset Info"
     id: preset_info
     lambda: |-
-      std::string state = id(preset_selector).state;
+      std::string state = std::string(id(preset_selector).current_option());
       int intensity = 0;
       int speed = 0;
       int scale = 0;
@@ -1131,7 +1131,7 @@ script:
       - if:
           condition:
             - lambda: |-
-                return id(preset_selector).state == "Playlist" && id(preset0_check_playlist);
+                return std::string(id(preset_selector).current_option()) == "Playlist" && id(preset0_check_playlist);
           then:
             - lambda: |-
                 float brightness = (float)id(preset0_brightness) / 255.0f;
@@ -1150,7 +1150,7 @@ script:
       - if:
           condition:
             - lambda: |-
-                return id(preset_selector).state == "Playlist" && id(preset1_check_playlist);
+                return std::string(id(preset_selector).current_option()) == "Playlist" && id(preset1_check_playlist);
           then:
             - lambda: |-
                 float brightness = (float)id(preset1_brightness) / 255.0f;
@@ -1164,7 +1164,7 @@ script:
       - if:
           condition:
             - lambda: |-
-                return id(preset_selector).state == "Playlist" && id(preset2_check_playlist);
+                return std::string(id(preset_selector).current_option()) == "Playlist" && id(preset2_check_playlist);
           then:
             - lambda: |-
                 float brightness = (float)id(preset2_brightness) / 255.0f;
@@ -1178,7 +1178,7 @@ script:
       - if:
           condition:
             - lambda: |-
-                return id(preset_selector).state == "Playlist" && id(preset3_check_playlist);
+                return std::string(id(preset_selector).current_option()) == "Playlist" && id(preset3_check_playlist);
           then:
             - lambda: |-
                 float brightness = (float)id(preset3_brightness) / 255.0f;
@@ -1192,7 +1192,7 @@ script:
       - if:
           condition:
             - lambda: |-
-                return id(preset_selector).state == "Playlist" && id(preset4_check_playlist);
+                return std::string(id(preset_selector).current_option()) == "Playlist" && id(preset4_check_playlist);
           then:
             - lambda: |-
                 float brightness = (float)id(preset4_brightness) / 255.0f;
@@ -1285,7 +1285,7 @@ interval:
             - lambda: |-
                 float current_sun_angle = id(sun_sun).elevation();
                 int current_sun_rounded = (int)round(current_sun_angle);
-                std::string current_preset = id(preset_selector).state;
+                std::string current_preset = std::string(id(preset_selector).current_option());
 
                 int triggered_preset = -1; // -1 = не сработало
 
