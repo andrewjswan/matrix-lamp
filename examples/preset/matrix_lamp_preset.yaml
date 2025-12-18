@@ -151,9 +151,9 @@ select:
       - lambda: |-
           // Переводим строку в число для сохранения
           int val = -1;
-          if (id(preset_selector).state == "0") val = 0;
-          else if (id(preset_selector).state == "1") val = 1;
-          else if (id(preset_selector).state == "2") val = 2;
+          if (std::string(id(preset_selector).current_option()) == "0") val = 0;
+          else if (std::string(id(preset_selector).current_option()) == "1") val = 1;
+          else if (std::string(id(preset_selector).current_option()) == "2") val = 2;
           else val = -1;  // None или другое
 
           if (val >= 0) {
@@ -164,7 +164,7 @@ select:
           }
       - if:
           condition:
-            - lambda: 'return id(preset_selector).state == "0";'
+            - lambda: 'return std::string(id(preset_selector).current_option()) == "0";'
           then:
             - lambda: |-
                 float brightness = (float)id(preset0_brightness) / 255.0f;
@@ -183,7 +183,7 @@ select:
                 id(preset_info).update();
       - if:
           condition:
-            - lambda: 'return id(preset_selector).state == "1";'
+            - lambda: 'return std::string(id(preset_selector).current_option()) == "1";'
           then:
             - lambda: |-
                 float brightness = (float)id(preset1_brightness) / 255.0f;
@@ -202,7 +202,7 @@ select:
                 id(preset_info).update();
       - if:
           condition:
-            - lambda: 'return id(preset_selector).state == "2";'
+            - lambda: 'return std::string(id(preset_selector).current_option()) == "2";'
           then:
             - lambda: |-
                 float brightness = (float)id(preset2_brightness) / 255.0f;
@@ -221,7 +221,7 @@ select:
                 id(preset_info).update();
       - if:
           condition:
-            - lambda: 'return id(preset_selector).state == "None";'
+            - lambda: 'return std::string(id(preset_selector).current_option()) == "None";'
           then:
             - light.turn_off:
                 id: neopixel_led
@@ -236,7 +236,7 @@ text_sensor:
     name: "Preset Info"
     id: preset_info
     lambda: |-
-      std::string state = id(preset_selector).state;
+      std::string state = std::string(id(preset_selector).current_option());
       int intensity = 0;
       int speed = 0;
       int scale = 0;
