@@ -1,8 +1,16 @@
 #pragma once
 
-#define FASTLED_INTERNAL // remove annoying pragma messages
+#define FASTLED_INTERNAL
+#define FASTLED_NOSPI
+#define FASTLED_NO_PIN_INTERRUPTS
+#define FASTLED_STUB_IMPL
 
-#include "FastLED.h"
+#include <pixeltypes.h>     // Дает структуру CRGB и CHSV
+#include <lib8tion.h>       // Дает математику (beatsin8, random8, scale8 и т.д.)
+#include <colorutils.h>     // Дает функции работы с цветом и палитрами
+#include <noise.h>          // Дает генератор шума (inoise8)
+#include <colorpalettes.h>  // Дает стандартные палитры (Rainbow, Party и т.д.)
+
 #include "constants.h"
 
 namespace esphome {

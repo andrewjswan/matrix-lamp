@@ -1,8 +1,5 @@
 #pragma once
 
-#define FASTLED_INTERNAL // remove annoying pragma messages
-
-#include "FastLED.h"
 #include "esphome.h"
 #include "common.h"
 
@@ -522,3 +519,6 @@ static void setModeSettings(uint8_t Scale = 0U, uint8_t Speed = 0U){
 
 }  // namespace matrix_lamp
 }  // namespace esphome
+
+
+
