@@ -1,22 +1,17 @@
 #pragma once
 
-#include "esphome/core/defines.h"
-
 #define FASTLED_INTERNAL
 #define FASTLED_NOSPI
 #define FASTLED_NO_PIN_INTERRUPTS
 
-#define __INC_LIB8TION_H
+#include <led_sysdefs.h> 
+#include <platforms/esp/32/led_sysdefs_esp32.h>
 
 #include <pixeltypes.h>
-#include <lib8tion/scale8.h>
-#include <lib8tion/random8.h>
-#include <lib8tion/trig8.h>
+#include <lib8tion.h>
 #include <colorutils.h>
 #include <noise.h>
 #include <colorpalettes.h>
-
-#undef __INC_LIB8TION_H
 
 #include "constants.h"
 
