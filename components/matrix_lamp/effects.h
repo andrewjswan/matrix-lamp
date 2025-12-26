@@ -1,8 +1,5 @@
 #pragma once
 
-#define FASTLED_INTERNAL // remove annoying pragma messages
-
-#include "FastLED.h"
 #include "common.h"
 #include "constants.h"
 #include "effect_data.h"
@@ -12034,3 +12031,4 @@ static void IncrementalDriftRoutine() {
 
 }  // namespace matrix_lamp
 }  // namespace esphome
+
