@@ -12029,6 +12029,150 @@ static void IncrementalDriftRoutine() {
 }
 #endif
 
+#ifdef DEF_FIRE_2025
+// ======== Fire 2025 / Parus =========
+//            (с) Parus
+//        updated by andrewjswan
+//        matrix-lamp/issues/86
+// =====================================
+
+// Фиксированные параметры, можно менять или привязать к слайдерам
+const uint8_t COAL_ZONE_HEIGHT = 1;        // Высота зоны углей (строк снизу)
+const uint8_t SPARK_BRIGHT_MIN = 100;      // Мин. яркость искр было 150
+const uint8_t SPARK_BRIGHT_MAX = 225;      // Макс. яркость искр было 255
+const uint8_t spark_gap_probability = 20;  // Вероятность промежутка между искрами (0–100 %)
+
+static uint8_t COOLING_RAW;  // 0–255
+static uint8_t COOLING;      // минимум 20!
+static uint8_t SPARKING;     // 0–255
+static uint8_t FIRE_SPEED;   // 0–100
+
+// static uint8_t heat[WIDTH][HEIGHT]; --> noise3d[0][WIDTH][HEIGHT]
+
+static void fire2025Routine() {
+  if (loadingFlag) {
+    #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+    if (selectedSettings) {
+      //                         scale | speed
+      setModeSettings(1U + random8(100U), 195U+random8(40U));
+    }
+    #endif
+
+    for (int x = 0; x < WIDTH; x++) {
+      for (int y = 0; y < HEIGHT; y++) {
+        noise3d[0][x][y] = 0;
+      }
+    }
+
+    // Получаем значения со слайдеров (number)
+    COOLING_RAW = 255 - static_cast<uint8_t>(modes[currentMode].Brightness );  // 0–255
+    COOLING = std::max(static_cast<uint8_t>(20), COOLING_RAW);                 // минимум 20!
+    SPARKING = static_cast<uint8_t>(modes[currentMode].Speed);                 // 0–255
+    FIRE_SPEED = static_cast<uint8_t>(modes[currentMode].Scale);               // 0–100
+
+    loadingFlag = false;
+  }
+
+    // Остывание
+    for (int x = 0; x < WIDTH; x++) {
+      for (int y = 0; y < HEIGHT; y++) {
+        int extra_cooling = (FIRE_SPEED > 70) ? (FIRE_SPEED - 70) : 0;
+        // int cooling_factor = COOLING + (HEIGHT - y) * 2;  // Остывание более плавное, чем выше, тем медленнее остывает
+        int cooling_factor = (y < CENTER_Y) ? COOLING / 2 : COOLING; // Сделаем остывание нелинейным (сильнее остывает верх, слабее — низ) убрать, если это вызывает резкие перепады.
+        noise3d[0][x][y] = qsub8(noise3d[0][x][y], random8(0, ((cooling_factor * 10) / HEIGHT) + 2 + extra_cooling));
+        //noise3d[0][x][y] = qsub8(noise3d[0][x][y], random8(0, ((cooling_factor * 10) / HEIGHT) + 2));
+        //noise3d[0][x][y] = qsub8(noise3d[0][x][y], random8(0, ((COOLING * 10) / HEIGHT) + 2));
+        uint8_t spark_value = map(SPARKING, 0, 255, 10, 40); //ставим зависимость от matrix_speed
+        // Мягкое затухание кончиков языков (для плавности)
+        if (y > HEIGHT / 3 && noise3d[0][x][y] < 50) {  // порог тепла для затухания.Увеличьте → затухание начинается при более высокой температуре (например, heat[x][y] < 80).при более низкой температуре (например, heat[x][y] < 30).
+          // Только в верхней половине и для слабых языков.Увеличение → затухание начинается выше (например, y > H / 3).Уменьшите → затухание начинается ниже (например, y > H * 0.7).
+          noise3d[0][x][y] = qadd8(noise3d[0][x][y], random8(0, spark_value));  //  random8(0, 10) — Лёгкое поддержание тепла.Увеличьте → кончики затухают медленнее (например, random8(0, 20)).Уменьшите → кончики затухают быстрее (например, random8(0, 5)).
+        }
+      }
+    }
+
+    // Распространение тепла снизу вверх (с учётом FIRE_SPEED)
+    for (int x = 0; x < WIDTH; x++) {
+      for (int y = HEIGHT - 1; y > 0; y--) {
+        int new_heat = (noise3d[0][x][y] + noise3d[0][x][y - 1]) / 2;
+        if (FIRE_SPEED > 50) {
+          int boost = (FIRE_SPEED - 50) * 1;  // было *1.5 если *1 -меньше желтит
+          new_heat = min(220, new_heat + (boost * (HEIGHT - y)) / (HEIGHT * 2));  // делитель увеличен до 2, можно убрать
+        }
+        noise3d[0][x][y] = static_cast<uint8_t>(new_heat);
+      }
+    }
+
+    // Искры в зоне углей
+    for (int x = 0; x < WIDTH; x++) {
+      for (int y = 0; y < HEIGHT; y++) {
+        int natural_decay = (y * 10) / HEIGHT;  // выше → больше остывание, было *10 меньше-слишком высокое пламя
+        noise3d[0][x][y] = qsub8(noise3d[0][x][y], natural_decay);
+      }
+      if (random8() < SPARKING * 0.95) { // Снизим вероятность появления искр SPARKING * 0.95 вместо SPARKIN
+        int y = random8(COAL_ZONE_HEIGHT + (SPARKING / 100));  // Чем выше SPARKING, тем выше могут лететь искры/Не очень хорошо выглядит, как конфетти
+        if (random8() > spark_gap_probability) {
+          noise3d[0][x][y] = qadd8(noise3d[0][x][y], random8(SPARK_BRIGHT_MIN, SPARK_BRIGHT_MAX));
+        }
+      }
+      if (random8() < (SPARKING + (COOLING_RAW / 4))) {  // было /4 -больше искр при высоком COOLING_RAW (при matrix_intensity)
+        int y = random8(COAL_ZONE_HEIGHT);
+        noise3d[0][x][y] = qadd8(noise3d[0][x][y], random8(SPARK_BRIGHT_MIN, SPARK_BRIGHT_MAX));
+      }
+    }
+  
+    // Вывод 
+    for (int y = 0; y < HEIGHT; y++) {
+      for (int x = 0; x < WIDTH; x++) {
+        // Цвет из тепловой карты
+        uint8_t temp = noise3d[0][x][y];
+        uint8_t colorindex = scale8(temp, 240);
+
+        // Оригинальный градиент
+        uint8_t r = 0, g = 0, b = 0;
+
+        // Скорректируем градиент, чтобы белый цвет появлялся только при очень высоких значениях тепла
+        if (colorindex < 85) {
+          // Мягкие, разнообразные кончики
+          float flicker = 0.7 + (random8(50) / 300.0);  // Мерцание (0.7–1.2)
+          //y * 10 — вертикальная волна (чем больше число, тем чаще волны).Увеличьте → более частые и мелкие волны (например, y * 15).Уменьшите → более плавные и крупные волны (например, y * 5).
+          //x * 5 — горизонтальная волна.Увеличьте → более рваные края (например, x * 8).Уменьшите → более гладкие края (например, x * 3).
+          float shape = 0.8 + (sin8(y * 5 + x * 3) / 255.0);  // Разнообразная форма
+          r = static_cast<uint8_t>(colorindex * 2.5 * flicker * shape);  // Мягкий красный
+          g = static_cast<uint8_t>(colorindex * 0.1 * flicker);  // Немного оранжевого
+        } else if (colorindex < 200) {  // было 170
+          r = 255; //  более жёлтого пламени увеличить r в этой зоне: r = 240 + (colorindex - 85) / 2.
+          g = (colorindex - 85) * 2;    // было *3
+        } else {
+          r = 255;
+          g = 255;
+          b = (colorindex - 200) * 3;   // было *3 и 200, сдвинули порог
+        }
+        
+        // Добавляем тёмные промежутки в верхней части пламени
+        if (y > HEIGHT * 0.4) {  // В верхней части пламени 0.4 или 0.6; Чтобы промежутки были реже, уменьшить (dark_gaps_intensity / 2)
+          r = r * 0.7;  // Уменьшаем красный канал было 0.7
+          g = g * 0.3;  // Уменьшаем зелёный канал было 0.5
+        }
+
+        // Цвет угольков (плавный переход)
+        if (y < COAL_ZONE_HEIGHT) {
+          if (temp > 220) { r = 255; g = 230; b = 150; }     // Белый с желтизной
+          else if (temp > 180) { r = 255; g = 200; b = 50; } // Жёлтый
+          else if (temp > 100) { r = 255; g = 100; b = 0; }  // Оранжевый
+          else if (temp > 50) { r = 200; g = 50; b = 0; }    // Красный
+          else { r = temp * 1.5; g = temp * 0.3; b = 0; }    // Тёмно-красный
+        }
+
+        // Красный ореол вверху (фиксированный, или динамический)
+        float red_boost = 1.0 + 0.3 * (1.0 - (float)y / HEIGHT) * (1.0 + (FIRE_SPEED * 2/ 100.0)); //красный ореол делаем динамическим  в (FIRE_SPEED * 2) можно убрать*2
+        r = static_cast<uint8_t>(min(static_cast<int>(255), static_cast<int>(r * red_boost)));
+
+        drawPixelXY(x, y, CRGB(r, g, b));
+      }
+    }
+}
+#endif
+  
 }  // namespace matrix_lamp
 }  // namespace esphome
-
