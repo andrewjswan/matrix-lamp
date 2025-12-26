@@ -523,4 +523,3 @@ static void fillnoise8()
 
 }  // namespace matrix_lamp
 }  // namespace esphome
-

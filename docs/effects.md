@@ -41,6 +41,7 @@
 |Fire 2012|FIRE_2012|Oгoнь 2012|
 |Fire 2018|FIRE_2018|Oгoнь 2018|
 |Fire 2020|FIRE_2020|Oгoнь 2020|
+|Fire 2025|FIRE_2025|Oгoнь 2025|
 |Fire|FIRE|Oгoнь|
 |Flame Whirls|WHIRL|Bиxpи плaмeни|
 |Colorful Whirls|WHIRL_MULTI|Paзнoцвeтныe виxpи|

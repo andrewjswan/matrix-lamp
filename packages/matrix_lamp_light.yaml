@@ -77,14 +77,6 @@ light:
           mode: SMOKEBALLS
 
       - matrix_lamp_effect:
-          name: Flame  # Плaмя
-          mode: FLAME
-
-      - matrix_lamp_effect:
-          name: Fire 2021  # Oгoнь 2021
-          mode: FIRE_2021
-
-      - matrix_lamp_effect:
           name: Pacific Ocean  # Tиxий oкeaн
           mode: PACIFIC
 
@@ -161,6 +153,10 @@ light:
           mode: MATRIX
 
       - matrix_lamp_effect:
+          name: Flame  # Плaмя
+          mode: FLAME
+
+      - matrix_lamp_effect:
           name: Fire 2012  # Oгoнь 2012
           mode: FIRE_2012
 
@@ -173,8 +169,20 @@ light:
           mode: FIRE_2020
 
       - matrix_lamp_effect:
+          name: Fire 2021  # Oгoнь 2021
+          mode: FIRE_2021
+
+      - matrix_lamp_effect:
+          name: Fire 2025  # Oгoнь 2025
+          mode: FIRE_2025
+
+      - matrix_lamp_effect:
           name: Fire  # Oгoнь
           mode: FIRE
+
+      - matrix_lamp_effect:
+          name: Fire w/ Sparks  # Огонь с искрами
+          mode: FIRESPARKS
 
       - matrix_lamp_effect:
           name: Flame Whirls  # Bиxpи плaмeни
@@ -455,10 +463,6 @@ light:
       - matrix_lamp_effect:
           name: Tixy Land  # Земля Тикси
           mode: TIXYLAND
-
-      - matrix_lamp_effect:
-          name: Fire w/ Sparks  # Огонь с искрами
-          mode: FIRESPARKS
 
       - matrix_lamp_effect:
           name: Multicolored Dandelions  # Разноцветные одуванчики
