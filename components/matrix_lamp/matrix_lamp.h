@@ -1,6 +1,5 @@
 #pragma once
 
-#include "esphome.h"
 #include "esphome/components/template/number/template_number.h"
 
 namespace esphome {
