@@ -1,16 +1,22 @@
 #pragma once
 
-#include "esphome/core/defines.h" // Это определит ESP32/ESP8266
+#include "esphome/core/defines.h"
 
 #define FASTLED_INTERNAL
 #define FASTLED_NOSPI
 #define FASTLED_NO_PIN_INTERRUPTS
 
-#include <pixeltypes.h>     // Дает структуру CRGB и CHSV
-#include <lib8tion.h>       // Дает математику (beatsin8, random8, scale8 и т.д.)
-#include <colorutils.h>     // Дает функции работы с цветом и палитрами
-#include <noise.h>          // Дает генератор шума (inoise8)
-#include <colorpalettes.h>  // Дает стандартные палитры (Rainbow, Party и т.д.)
+#define __INC_LIB8TION_H
+
+#include <pixeltypes.h>
+#include <lib8tion/scale8.h>
+#include <lib8tion/random8.h>
+#include <lib8tion/trig8.h>
+#include <colorutils.h>
+#include <noise.h>
+#include <colorpalettes.h>
+
+#undef __INC_LIB8TION_H
 
 #include "constants.h"
 
