@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Arduino.h>
+
 #define FASTLED_INTERNAL
 #define FASTLED_NOSPI
 #define FASTLED_NO_PIN_INTERRUPTS
