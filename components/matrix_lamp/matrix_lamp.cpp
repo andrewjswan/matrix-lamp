@@ -1,4 +1,3 @@
-#include "esphome.h"
 #include "common.h"
 #include "constants.h"
 #include "utility.h"
