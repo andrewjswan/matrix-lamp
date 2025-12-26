@@ -420,8 +420,11 @@ static void effectsTick()
     #ifdef DEF_INCREMENTAL_DRIFT
     case EFF_INCREMENTALDRIFT:    DYNAMIC_DELAY_TICK { effTimer = millis(); IncrementalDriftRoutine();         }  break;  // (132U) Incremental Drift
     #endif
+    #ifdef DEF_FIRE_2025
+    case EFF_FIRE_2025:           DYNAMIC_DELAY_TICK { effTimer = millis(); fire2025Routine();                 }  break;  // (133U) Oгoнь 2025
+    #endif
     #ifdef DEF_UKRAINE
-    case EFF_UKRAINE:             DYNAMIC_DELAY_TICK { effTimer = millis(); Ukraine();                         }  break;  // (133U) Україна
+    case EFF_UKRAINE:             DYNAMIC_DELAY_TICK { effTimer = millis(); Ukraine();                         }  break;  // (134U) Україна
     #endif
   }
 }
