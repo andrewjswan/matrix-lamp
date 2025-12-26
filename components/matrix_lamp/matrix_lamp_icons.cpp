@@ -1,3 +1,5 @@
+#include "esphome.h"
+
 namespace esphome {
 namespace matrix_lamp {
 
