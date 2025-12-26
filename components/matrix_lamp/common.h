@@ -1,20 +1,17 @@
 #pragma once
 
-#include <Arduino.h>
-
 #define FASTLED_INTERNAL
+#define FASTLED_NO_DRIVERS
 #define FASTLED_NOSPI
 #define FASTLED_NO_PIN_INTERRUPTS
 
-#include <led_sysdefs.h> 
-#include <platforms/esp/32/led_sysdefs_esp32.h>
+#define __INC_FASTLED_H
 
 #include <pixeltypes.h>
 #include <lib8tion.h>
 #include <colorutils.h>
 #include <noise.h>
 #include <colorpalettes.h>
-
 #include "constants.h"
 
 namespace esphome {
