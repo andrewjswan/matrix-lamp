@@ -4,6 +4,7 @@
 #define FASTLED_NOSPI
 #define FASTLED_NO_PIN_INTERRUPTS
 #define FASTLED_STUB_IMPL
+#define FASTLED_NO_SENSORS 1
 
 #include <pixeltypes.h>     // Дает структуру CRGB и CHSV
 #include <lib8tion.h>       // Дает математику (beatsin8, random8, scale8 и т.д.)
