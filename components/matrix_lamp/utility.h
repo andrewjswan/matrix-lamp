@@ -1,5 +1,6 @@
 #pragma once
 
+#include "esphome.h"
 #include "common.h"
 
 #define WU_WEIGHT(a, b) ((uint8_t)(((a) * (b) + (a) + (b)) >> 8))
@@ -518,5 +519,6 @@ static void setModeSettings(uint8_t Scale = 0U, uint8_t Speed = 0U){
 
 }  // namespace matrix_lamp
 }  // namespace esphome
+
 
 
