@@ -1,5 +1,31 @@
 # Changelog
 
+## v1.5.13.55 - 2025-12-26
+
+### What's Changed
+
+### 🚀 Features
+
+- Remove deprecated `Select` properties (ESPHome 2025.11.0) @andrewjswan (#84)
+- Move to Fastled math @andrewjswan (#87)
+- Add `Fire 2025` effect by Parus @andrewjswan (#89)
+- Add `Fire Parus` effect to examples (In the firmware, it is called `Fire 2005`) @andrewjswan (#90)
+
+### 🧰 Maintenance
+
+- DEP: Bump actions/download-artifact from 6 to 7 @[dependabot[bot]](https://github.com/apps/dependabot) (#83)
+- DEP: Bump actions/upload-artifact from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (#82)
+
+### Sponsorship
+
+If you like this project, please consider supporting me:
+
+- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
+
+### Changelog
+
+**Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.53...v1.5.13.55
+
 ## v1.5.13.53 - 2025-11-25
 
 ### What's Changed
