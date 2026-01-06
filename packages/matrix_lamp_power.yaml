@@ -119,6 +119,8 @@ sensor:
     filters:
       # Multiplication factor from W to kW is 0.001
       - multiply: 0.001
+      - throttle: 60s
+      - round: 3
     web_server:
       sorting_weight: 15
       sorting_group_id: sorting_group_power
