@@ -31,16 +31,11 @@ static uint8_t shiftHue[HEIGHT];                          // свойство п
 static uint8_t shiftValue[HEIGHT];                        // свойство пикселей в размер столбца матрицы ещё одно
 static uint16_t ff_x, ff_y, ff_z;                         // большие счётчики
 
-#if defined(DEF_RAINBOW_RINGS) || defined(DEF_BUTTERFLY)
-static uint32_t lastUpdateTime;
-static uint32_t colorChangeTime;
-#endif
-
 static int8_t noise2[2][WIDTH + 1][HEIGHT + 1];
 
 static const uint8_t maxDim = max(WIDTH, HEIGHT);
 
-//массивы состояния объектов, которые могут использоваться в любом эффекте
+// массивы состояния объектов, которые могут использоваться в любом эффекте
 #define trackingOBJECT_MAX_COUNT                         (100U)              // максимальное количество отслеживаемых объектов (очень влияет на расход памяти)
 static float    trackingObjectPosX[trackingOBJECT_MAX_COUNT];
 static float    trackingObjectPosY[trackingOBJECT_MAX_COUNT];
@@ -69,6 +64,15 @@ static const uint8_t CENTER_X_MAJOR =   WIDTH / 2  + (WIDTH  % 2);          // �
 static const uint8_t CENTER_Y_MAJOR =  HEIGHT / 2  + (HEIGHT % 2);          // центр матрицы по ИГРЕКУ, сдвинутый в большую сторону, если высота чётная
 static const uint8_t CENTER_X =  WIDTH / 2;
 static const uint8_t CENTER_Y = HEIGHT / 2;
+
+// --------------------------------------------------------------------------------------
+
+#if defined(DEF_RAINBOW_RINGS) || defined(DEF_STARS_NIGHT)
+static uint32_t lastUpdateTime;
+#endif
+#if defined(DEF_RAINBOW_RINGS) || defined(DEF_BUTTERFLY)
+static uint32_t colorChangeTime;
+#endif
 
 // --------------------------------------------------------------------------------------
 
@@ -11837,6 +11841,7 @@ static void drawFrame(double t, double x, double y, float radius, uint8_t hueOff
 }
 
 #define MAX_ACTIVE_RINGS 5
+
 static void RainbowRings() {
   // static float ringRadii[MAX_ACTIVE_RINGS];  -> trackingObjectPosX[trackingOBJECT_MAX_COUNT];
   // static float ringFades[MAX_ACTIVE_RINGS];  -> trackingObjectPosY[trackingOBJECT_MAX_COUNT];
@@ -12197,7 +12202,7 @@ static void butterflyRoutine() {
       //                          scale | speed
       setModeSettings(10U + random8(90U), 100U + random8(100U));
     }
-    #endif
+    #endif // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
     loadingFlag = false;
 
@@ -12260,6 +12265,122 @@ static void butterflyRoutine() {
 }
 #endif
 
+#define DEF_STARS_NIGHT
+// ============= Stars Night ============
+//           (c) FieryLedLamp
+//          adopted by andrewjswan
+//              НОВЫЕ ЗВЁЗДЫ
+// ======================================
+
+#define MAX_STARS 30
+#define TWO_PI 6.28318530718
+
+static void StarsEffect() {
+  static struct Star {
+    float x, y;
+    uint8_t hue;
+    float brightness;
+    float speed;
+    float size;
+    bool active;
+    float lifetime;
+  } stars[MAX_STARS];
+
+  static uint8_t activeStars = 0;
+
+  if (loadingFlag) {
+    #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+    if (selectedSettings) {
+      //                          scale | speed
+      setModeSettings(10U + random8(90U), 100U + random8(100U));
+    }
+    #endif // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+
+    loadingFlag = false;
+
+    setCurrentPalette();
+    dimAll(0);
+    
+    lastUpdateTime = millis();
+    hue = map(modes[currentMode].Scale, 1U, 100U, 0U, 255U);
+    activeStars = 0;
+    for (uint8_t i = 0; i < MAX_STARS; i++) {
+      stars[i].active = false;
+    }
+  }
+
+  uint8_t dimValue = map(modes[currentMode].Scale, 1, 100, 225, 240);
+  dimAll(dimValue);
+
+  uint32_t currentTime = millis();
+  uint8_t desiredStars = map(modes[currentMode].Scale, 1, 100, 3, MAX_STARS);
+  float deltaTime = (currentTime - lastUpdateTime) / 1000.0;
+  float speedFactor = (float)modes[currentMode].Speed / 255.0;
+
+  for (uint8_t i = 0; i < MAX_STARS; i++) {
+    if (stars[i].active) {
+      stars[i].brightness += stars[i].speed * deltaTime * (0.8 + speedFactor * 2.5);
+      if (stars[i].brightness > TWO_PI) {
+        stars[i].brightness -= TWO_PI;
+      }
+      float bright = (sin(stars[i].brightness) * 0.5 + 0.5) * (sin(stars[i].brightness * 1.5) * 0.5 + 0.5);
+      bright = constrain(bright, 0.0, 1.0);
+      uint8_t pixelBright = (uint8_t)(bright * 200);
+
+      stars[i].lifetime -= deltaTime;
+
+      if (pixelBright > 5 && stars[i].lifetime > 0) {
+        CRGB color = CHSV(stars[i].hue, 200, pixelBright);
+        if (stars[i].size <= 1.0) {
+          drawPixelXY((uint8_t)stars[i].x, (uint8_t)stars[i].y, color);
+        } else {
+          uint8_t x = (uint8_t)stars[i].x;
+          uint8_t y = (uint8_t)stars[i].y;
+          drawPixelXY(x, y, color);
+          if (x + 1 < WIDTH) drawPixelXY(x + 1, y, color);
+          if (y + 1 < HEIGHT) drawPixelXY(x, y + 1, color);
+          if (x + 1 < WIDTH && y + 1 < HEIGHT) drawPixelXY(x + 1, y + 1, color);
+        }
+      } else {
+        if (stars[i].size <= 1.0) {
+          drawPixelXY((uint8_t)stars[i].x, (uint8_t)stars[i].y, CRGB::Black);
+        } else {
+          uint8_t x = (uint8_t)stars[i].x;
+          uint8_t y = (uint8_t)stars[i].y;
+          drawPixelXY(x, y, CRGB::Black);
+          if (x + 1 < WIDTH) drawPixelXY(x + 1, y, CRGB::Black);
+          if (y + 1 < HEIGHT) drawPixelXY(x, y + 1, CRGB::Black);
+          if (x + 1 < WIDTH && y + 1 < HEIGHT) drawPixelXY(x + 1, y + 1, CRGB::Black);
+        }
+        stars[i].active = false;
+        activeStars--;
+      }
+    }
+  }
+
+  if (activeStars < desiredStars) {
+    uint8_t spawnChance = 10 + (uint8_t)(speedFactor * 15);
+    if (random8(100) < spawnChance) {
+      for (uint8_t i = 0; i < MAX_STARS; i++) {
+        if (!stars[i].active) {
+          stars[i].x = random8(WIDTH);
+          stars[i].y = random8(HEIGHT);
+          stars[i].hue = hue + random8(32);
+          stars[i].brightness = random8() / 255.0 * TWO_PI;
+          stars[i].speed = random(600, 1800) / 1000.0;
+          stars[i].size = random8(100) < 20 ? 2.0 : 1.0;
+          stars[i].lifetime = random(2000, 5000) / 1000.0;
+          stars[i].active = true;
+          activeStars++;
+          break;
+        }
+      }
+    }
+  }
+
+  lastUpdateTime = currentTime;
+}
+#endif
+
 }  // namespace matrix_lamp
 }  // namespace esphome
-
