@@ -423,8 +423,11 @@ static void effectsTick()
     #ifdef DEF_INCREMENTAL_DRIFT
     case EFF_INCREMENTALDRIFT:    DYNAMIC_DELAY_TICK { effTimer = millis(); IncrementalDriftRoutine();         }  break;  // (133U) Incremental Drift
     #endif
+    #ifdef DEF_BUTTERFLY
+    case EFF_BUTTERFLY:           LOW_DELAY_TICK { effTimer = millis(); butterflyRoutine();                    }  break;  // (134U) Бабочка
+    #endif
     #ifdef DEF_UKRAINE
-    case EFF_UKRAINE:             DYNAMIC_DELAY_TICK { effTimer = millis(); Ukraine();                         }  break;  // (134U) Україна
+    case EFF_UKRAINE:             DYNAMIC_DELAY_TICK { effTimer = millis(); Ukraine();                         }  break;  // (135U) Україна
     #endif
   }
 }
