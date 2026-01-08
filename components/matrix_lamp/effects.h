@@ -12265,7 +12265,7 @@ static void butterflyRoutine() {
 }
 #endif
 
-#define DEF_STARS_NIGHT
+#ifdef DEF_STARS_NIGHT
 // ============= Stars Night ============
 //           (c) FieryLedLamp
 //          adopted by andrewjswan
@@ -12386,3 +12386,4 @@ static void StarsEffect() {
 
 }  // namespace matrix_lamp
 }  // namespace esphome
+
