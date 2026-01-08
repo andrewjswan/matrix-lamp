@@ -426,8 +426,11 @@ static void effectsTick()
     #ifdef DEF_BUTTERFLY
     case EFF_BUTTERFLY:           LOW_DELAY_TICK { effTimer = millis(); butterflyRoutine();                    }  break;  // (134U) Бабочка
     #endif
+    #ifdef DEF_STARS_NIGHT
+    case EFF_STARS_NIGHT:         LOW_DELAY_TICK { effTimer = millis(); StarsEffect();                         }  break;  // (135U) Звездная ночь
+    #endif
     #ifdef DEF_UKRAINE
-    case EFF_UKRAINE:             DYNAMIC_DELAY_TICK { effTimer = millis(); Ukraine();                         }  break;  // (135U) Україна
+    case EFF_UKRAINE:             DYNAMIC_DELAY_TICK { effTimer = millis(); Ukraine();                         }  break;  // (136U) Україна
     #endif
   }
 }

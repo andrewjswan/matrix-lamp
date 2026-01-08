@@ -162,9 +162,10 @@
 #define EFF_VYSHYVANKA          (132U)   // Вишиванка
 #define EFF_INCREMENTALDRIFT    (133U)   // Инкрементальный дрейф
 #define EFF_BUTTERFLY           (134U)   // Бабочка
-#define EFF_UKRAINE             (135U)   // Україна
+#define EFF_STARS_NIGHT         (135U)   // Звездная ночь
+#define EFF_UKRAINE             (136U)   // Україна
                                    
-#define MODE_AMOUNT             (136U)   // Количество режимов
+#define MODE_AMOUNT             (137U)   // Количество режимов
 
 namespace esphome {
 namespace matrix_lamp {
@@ -308,6 +309,7 @@ static const uint8_t defaultSettings[][3] PROGMEM = {
   { 150, 200,  85}, // Вишиванка
   { 200, 170,  30}, // Инкрементальный дрейф
   {  20,  11,   3}, // Бабочка
+  {  25,  18,  26}, // Звездная ночь
   {  15, 240,  50}  // Україна
 }; //             ^-- проверьте, чтобы у предыдущей строки не было запятой после скобки
 

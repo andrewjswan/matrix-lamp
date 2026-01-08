@@ -113,6 +113,7 @@
 |Bamboo|BAMBOO|Бамбук|
 |Wandering Cube|BALLROUTINE|Блуждающий кубик|
 |Stars|STARS|Звезды|
+|Stars Night|STARS_NIGHT|Звездная ночь|
 |Tixy Land|TIXYLAND|Земля Тикси|
 |Fire w/ Sparks|FIRESPARKS|Огонь с искрами|
 |Multicolored Dandelions|DANDELIONS|Разноцветные одуванчики|
