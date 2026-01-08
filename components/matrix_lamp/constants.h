@@ -162,7 +162,7 @@
 #define EFF_VYSHYVANKA          (132U)   // Вишиванка
 #define EFF_INCREMENTALDRIFT    (133U)   // Инкрементальный дрейф
 #define EFF_BUTTERFLY           (134U)   // Бабочка
-#define EFF_UKRAINE             (136U)   // Україна
+#define EFF_UKRAINE             (135U)   // Україна
                                    
 #define MODE_AMOUNT             (136U)   // Количество режимов
 
