@@ -1,7 +1,8 @@
+exclude: '(?i)\.(svg|png|jpg|jpeg)$'
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
-    exclude: '(?i)\.(svg|png|jpg|jpeg)$'
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
