@@ -1,5 +1,28 @@
 # Changelog
 
+## v1.5.13.57 - 2026-01-08
+
+### What's Changed
+
+- Documentation: Move all `Fire` in one place @andrewjswan (#92)
+
+### 🚀 Features
+
+- Add `Stars Night` effect @andrewjswan (#96)
+- Add `Butterfly` effect @andrewjswan (#95)
+- Effect: `Rainbow Rings` rework @andrewjswan (#94)
+- Change `integration` filter to `throttle` @andrewjswan (#93)
+
+### Sponsorship
+
+If you like this project, please consider supporting me:
+
+- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
+
+### Changelog
+
+**Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.55...v1.5.13.57
+
 ## v1.5.13.55 - 2025-12-26
 
 ### What's Changed
