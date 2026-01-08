@@ -97,6 +97,10 @@ light:
           mode: FLOCK_N_PR
 
       - matrix_lamp_effect:
+          name: Butterfly  # Бабочка
+          mode: BUTTERFLY
+
+      - matrix_lamp_effect:
           name: Butterflys  # Moтыльки
           mode: BUTTERFLYS
 
