@@ -12273,7 +12273,9 @@ static void butterflyRoutine() {
 // ======================================
 
 #define MAX_STARS 30
-#define TWO_PI 6.28318530718
+#ifndef TWO_PI
+  #define TWO_PI 6.28318530718
+#endif
 
 static void StarsEffect() {
   static struct Star {
