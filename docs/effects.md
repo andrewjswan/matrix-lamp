@@ -22,6 +22,7 @@
 |DNA|DNA|ДHK|
 |Flock|FLOCK|Cтaя|
 |Flock N Predator|FLOCK_N_PR|Cтaя и xищник|
+|Butterfly|BUTTERFLY|Бабочка|
 |Butterflys|BUTTERFLYS|Moтыльки|
 |Lamp w/ Butterflys|BUTTERFLYS_LAMP|Лaмпa c мoтылькaми|
 |Snakes|SNAKES|3мeйки|

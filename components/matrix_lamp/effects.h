@@ -31,6 +31,11 @@ static uint8_t shiftHue[HEIGHT];                          // свойство п
 static uint8_t shiftValue[HEIGHT];                        // свойство пикселей в размер столбца матрицы ещё одно
 static uint16_t ff_x, ff_y, ff_z;                         // большие счётчики
 
+#if defined(DEF_RAINBOW_RINGS) || defined(DEF_BUTTERFLY)
+static uint32_t lastUpdateTime;
+static uint32_t colorChangeTime;
+#endif
+
 static int8_t noise2[2][WIDTH + 1][HEIGHT + 1];
 
 static const uint8_t maxDim = max(WIDTH, HEIGHT);
@@ -11833,9 +11838,6 @@ static void drawFrame(double t, double x, double y, float radius, uint8_t hueOff
 
 #define MAX_ACTIVE_RINGS 5
 static void RainbowRings() {
-  static uint32_t lastUpdateTime = 0;
-  static uint32_t colorChangeTime = 0;
-
   // static float ringRadii[MAX_ACTIVE_RINGS];  -> trackingObjectPosX[trackingOBJECT_MAX_COUNT];
   // static float ringFades[MAX_ACTIVE_RINGS];  -> trackingObjectPosY[trackingOBJECT_MAX_COUNT];
   // static uint8_t ringHues[MAX_ACTIVE_RINGS]; -> trackingObjectHue[trackingOBJECT_MAX_COUNT];
@@ -12061,7 +12063,7 @@ static void fire2025Routine() {
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      //                         scale | speed
+      //                          scale | speed
       setModeSettings(1U + random8(100U), 195U+random8(40U));
     }
     #endif // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
@@ -12181,7 +12183,83 @@ static void fire2025Routine() {
     }
 }
 #endif
-  
+
+#ifdef DEF_BUTTERFLY
+// ============= Butterfly ============
+//           (c) FieryLedLamp
+//         adopted by andrewjswan
+//                БАБОЧКА
+// =====================================
+static void butterflyRoutine() {
+  if (loadingFlag) {
+    #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+    if (selectedSettings) {
+      //                          scale | speed
+      setModeSettings(10U + random8(90U), 100U + random8(100U));
+    }
+    #endif
+
+    loadingFlag = false;
+
+    setCurrentPalette();
+    dimAll(0);
+
+    colorChangeTime = 0;
+    enlargedObjectNUM = map(modes[currentMode].Scale, 1U, 100U, 1U, min(static_cast<uint8_t>(enlargedOBJECT_MAX_COUNT), static_cast<uint8_t>(5)));
+    hue = map(modes[currentMode].Scale, 1U, 100U, 0U, 255U);
+    for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
+      trackingObjectPosX[i] = random8(WIDTH);
+      trackingObjectPosY[i] = random8(HEIGHT);
+      trackingObjectSpeedX[i] = (float)random8(10, 20) / 10.0 * (random8(2) ? 1 : -1);
+      trackingObjectSpeedY[i] = (float)random8(10, 20) / 10.0 * (random8(2) ? 1 : -1);
+      trackingObjectHue[i] = hue + (i * (256 / enlargedObjectNUM));
+      trackingObjectState[i] = 0;
+      trackingObjectIsShift[i] = true;
+      enlargedObjectTime[i] = millis();
+    }
+  }
+
+  float speedFactor = (float)modes[currentMode].Speed / 255.0;
+  uint32_t colorInterval = 300 - (uint32_t)(speedFactor * 200);
+  if (millis() - colorChangeTime > colorInterval) {
+    hue += 2 + (uint8_t)(speedFactor * 5);
+    for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
+      trackingObjectHue[i] = hue + (i * (256 / enlargedObjectNUM));
+    }
+    colorChangeTime = millis();
+  }
+
+  dimAll(230);
+
+  for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
+    if (!trackingObjectIsShift[i]) continue;
+
+    trackingObjectPosX[i] += trackingObjectSpeedX[i] * speedFactor;
+    trackingObjectPosY[i] += trackingObjectSpeedY[i] * speedFactor;
+
+    if (trackingObjectPosX[i] < 0 || trackingObjectPosX[i] >= WIDTH) {
+      trackingObjectSpeedX[i] = -trackingObjectSpeedX[i];
+      trackingObjectPosX[i] = constrain(trackingObjectPosX[i], 0, WIDTH - 1);
+    }
+    if (trackingObjectPosY[i] < 0 || trackingObjectPosY[i] >= HEIGHT) {
+      trackingObjectSpeedY[i] = -trackingObjectSpeedY[i];
+      trackingObjectPosY[i] = constrain(trackingObjectPosY[i], 0, HEIGHT - 1);
+    }
+
+    uint8_t wingPhase = (millis() - enlargedObjectTime[i]) / 100;
+    float wingSize = 1.0 + 0.5 * sin((float)wingPhase * PI / 8.0);
+
+    CRGB color = ColorFromPalette(*curPalette, trackingObjectHue[i]);
+
+    drawPixelXYF(trackingObjectPosX[i], trackingObjectPosY[i], color);
+    drawPixelXYF(trackingObjectPosX[i] + wingSize, trackingObjectPosY[i] + wingSize, makeDarker(color, 50));
+    drawPixelXYF(trackingObjectPosX[i] - wingSize, trackingObjectPosY[i] + wingSize, makeDarker(color, 50));
+    drawPixelXYF(trackingObjectPosX[i] + wingSize, trackingObjectPosY[i] - wingSize, makeDarker(color, 50));
+    drawPixelXYF(trackingObjectPosX[i] - wingSize, trackingObjectPosY[i] - wingSize, makeDarker(color, 50));
+  }
+}
+#endif
+
 }  // namespace matrix_lamp
 }  // namespace esphome
 
