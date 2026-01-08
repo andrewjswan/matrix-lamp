@@ -12190,7 +12190,7 @@ static void fire2025Routine() {
 //         adopted by andrewjswan
 //                БАБОЧКА
 // =====================================
-void butterflyRoutine() {
+static void butterflyRoutine() {
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
@@ -12262,3 +12262,4 @@ void butterflyRoutine() {
 
 }  // namespace matrix_lamp
 }  // namespace esphome
+
