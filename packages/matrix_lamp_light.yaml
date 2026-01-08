@@ -465,6 +465,10 @@ light:
           mode: STARS
 
       - matrix_lamp_effect:
+          name: Stars Night  # Звездная ночь
+          mode: STARS_NIGHT
+
+      - matrix_lamp_effect:
           name: Tixy Land  # Земля Тикси
           mode: TIXYLAND
 
