@@ -500,7 +500,7 @@ static void fillNoiseLED()
       {
         bri = dim8_raw( bri * 2);
       }
-      CRGB color = ColorFromPalette(currentPalette, index, bri);      
+      CRGB color = ColorFromPalette(currentPalette, index, bri);
       drawPixelXY(i, j, color);                             //leds[XY(i, j)] = color;
     }
   }

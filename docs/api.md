@@ -31,7 +31,7 @@ You can use the above functions also in [lambdas](https://esphome.io/automations
       void show_bitmap(std::string bitmap);
       void hide_icon();
 
-      // Reset the current effect, for example when changing the lamp state. 
+      // Reset the current effect, for example when changing the lamp state.
       void reset_current_effect();
 
     #ifndef ORIENTATION

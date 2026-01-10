@@ -37,7 +37,7 @@ class MatrixLamp : public Component {
     void set_scale(template_::TemplateNumber *scale);
     void set_speed(template_::TemplateNumber *speed);
 
-    // Reset the current effect, for example when changing the lamp state. 
+    // Reset the current effect, for example when changing the lamp state.
     void reset_current_effect();
 
 #ifndef ORIENTATION
@@ -146,9 +146,9 @@ class MatrixLamp_Icon : public animation::Animation
     bool counting_up;
 
   public:
-    MatrixLamp_Icon(const uint8_t *data_start, uint32_t width, uint32_t height, 
-                    uint32_t animation_frame_count, 
-                    esphome::image::ImageType type, std::string icon_name, 
+    MatrixLamp_Icon(const uint8_t *data_start, uint32_t width, uint32_t height,
+                    uint32_t animation_frame_count,
+                    esphome::image::ImageType type, std::string icon_name,
                     bool revers, uint16_t frame_duration, esphome::image::Transparency transparency);
     PROGMEM std::string name;
     uint16_t frame_duration;
@@ -163,7 +163,7 @@ class MatrixLampEffectStartTrigger : public Trigger<uint8_t, uint8_t, uint8_t, u
   public:
     explicit MatrixLampEffectStartTrigger(MatrixLamp *parent) { parent->add_on_effect_start_trigger(this); }
     void process(uint8_t, uint8_t, uint8_t, uint8_t);
-}; // class 
+}; // class
 #endif
 
 }  // namespace matrix_lamp

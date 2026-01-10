@@ -131,7 +131,7 @@ This trigger is called whenever one of the component's Matrix Lamp effects is tu
       on_effect_start:
         - logger.log:
             format: "${friendly_name} Effect start, %d %d %d %d"
-            args: 
+            args:
               - effect
               - intensity
               - speed

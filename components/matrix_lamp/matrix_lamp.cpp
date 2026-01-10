@@ -35,7 +35,7 @@ void MatrixLamp::setup() {
   register_service(&MatrixLamp::hide_icon, "hide_icon");
   #endif
   #endif
-  
+
   #ifdef USE_API_SERVICES
   // Set brightness for current effect
   register_service(&MatrixLamp::set_effect_intensity, "set_effect_intensity", {"value"});
@@ -46,7 +46,7 @@ void MatrixLamp::setup() {
   // Reset brightness, speed, scale to default for current effect
   register_service(&MatrixLamp::reset_effect_settings, "reset_effect_settings");
   #endif // #ifdef USE_API_SERVICES
-  
+
 }  // setup()
 
 void MatrixLamp::dump_config() {
@@ -227,7 +227,7 @@ void MatrixLamp::reset_effect_settings()
   if (currentMode >= MODE_AMOUNT) {
     return;
   }
-  
+
   modes[currentMode].Brightness = pgm_read_byte(&defaultSettings[currentMode][0]);
   modes[currentMode].Speed      = pgm_read_byte(&defaultSettings[currentMode][1]);
   modes[currentMode].Scale      = pgm_read_byte(&defaultSettings[currentMode][2]);
@@ -415,7 +415,7 @@ void MatrixLamp::show_icon(std::string iconname)
     ESP_LOGD(TAG, "Icon %d/%s not found => skip!", this->current_icon, iconname.c_str());
     return;
   }
-  this->show_icon_by_index(icon);    
+  this->show_icon_by_index(icon);
 }
 
 void MatrixLamp::show_icon_by_index(int32_t icon)

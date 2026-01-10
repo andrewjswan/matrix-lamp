@@ -11,7 +11,7 @@ MatrixLampLightEffect::MatrixLampLightEffect(const char *name) : AddressableLigh
 
 void MatrixLampLightEffect::start() {
   ESP_LOGD(TAG, "Effect: %s", this->get_name());
-  
+
   AddressableLightEffect::start();
   if (this->matrix_lamp_) {
     this->matrix_lamp_->reset_current_effect();

@@ -42,7 +42,7 @@
 -->
 
 - This PR fixes or closes issue: fixes #
-- This PR is related to issue: 
+- This PR is related to issue:
 
 ## Checklist
 <!--
