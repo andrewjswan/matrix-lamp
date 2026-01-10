@@ -18,10 +18,10 @@ static uint16_t XY(uint8_t x, uint8_t y)
   uint8_t THIS_X;
   uint8_t THIS_Y;
   uint8_t _WIDTH = WIDTH;
- 
+
   switch (ORIENTATION)
   {
-    case 0: 
+    case 0:
       THIS_X = x;
       THIS_Y =y;
       break;
@@ -62,10 +62,10 @@ static uint16_t XY(uint8_t x, uint8_t y)
       THIS_Y =y;                                      // !! такого сочетания CONNECTION_ANGLE и STRIP_DIRECTION не бывает
       break;
    }
- 
+
    if (!(THIS_Y & 0x01) || MATRIX_TYPE)               // Even rows run forwards
      return (THIS_Y * _WIDTH + THIS_X);
-   else                                                  
+   else
      return (THIS_Y * _WIDTH + _WIDTH - THIS_X - 1);  // Odd rows run backwards
 }
 
@@ -221,7 +221,7 @@ static void blurScreen(fract8 blur_amount)
 
 static void dimAll(uint8_t value, CRGB *LEDarray = leds) {
   nscale8(LEDarray, NUM_LEDS, value);
-  // fadeToBlackBy(LEDarray, NUM_LEDS, 255U - value); // эквивалент  
+  // fadeToBlackBy(LEDarray, NUM_LEDS, 255U - value); // эквивалент
 }
 
 // kostyamat добавил

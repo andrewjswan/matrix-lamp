@@ -1,7 +1,7 @@
 ﻿## A group of synchronized Matrix Lamps
 
 To use `Matrix Lamps` in a group, you need to include the [matrix_lamp_espnow.yaml](https://github.com/andrewjswan/matrix-lamp/blob/main/packages/matrix_lamp_espnow.yaml) package in each lamp.
-The `Master` and `Slave` switches will become available in the interface. 
+The `Master` and `Slave` switches will become available in the interface.
 Turn on the `Master` switch for one lamp and the `Slave` switch for all others, and it should work.
 
 ## Sound reactive on Matrix Lamp

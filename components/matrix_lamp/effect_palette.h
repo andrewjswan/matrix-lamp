@@ -70,13 +70,13 @@ static const TProgmemRGBPalette16 pacifica_palette_3 FL_PROGMEM =
 // добавлено изменение текущей палитры (используется во многих эффектах ниже для бегунка Масштаб)
 static const TProgmemRGBPalette16 *palette_arr[] = {
     &PartyColors_p,
-    &OceanColors_p, 
-    &LavaColors_p, 
-    &HeatColors_p, 
-    &WaterfallColors_p, 
-    &CloudColors_p, 
-    &ForestColors_p, 
-    &RainbowColors_p, 
+    &OceanColors_p,
+    &LavaColors_p,
+    &HeatColors_p,
+    &WaterfallColors_p,
+    &CloudColors_p,
+    &ForestColors_p,
+    &RainbowColors_p,
     &RainbowStripeColors_p};
 
 static const TProgmemRGBPalette16 *curPalette = palette_arr[0];

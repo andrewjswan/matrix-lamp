@@ -7,7 +7,7 @@
 
 ## Функции проекта
 
-Этот паккадж расширяет возможности проекта LED matrix projects (e.g., [andrewjswan/matrix-lamp](https://github.com/andrewjswan/matrix-lamp)) 
+Этот паккадж расширяет возможности проекта LED matrix projects (e.g., [andrewjswan/matrix-lamp](https://github.com/andrewjswan/matrix-lamp))
 
 ### 1. **Управление пресетами**
    - **5 индивидуальных пресетов (0-4)**: Каждый пресет хранит настройки эффекта (effect_name), яркости (brightness), интенсивности (intensity), скорости (speed) и масштаба (scale).
@@ -51,6 +51,6 @@
    - **Интеграция с Home Assistant**: Все элементы (select, number, text_sensor) доступны в UI.
 
 ### 6. **Технические детали**
-   - **Зависимости**: Требует базовой конфигурации ESPHome с проектом matrix-lamp:  Neopixel LED (`id: neopixel_led`), числами (`matrix_intensity`, `matrix_speed`, `matrix_scale`) 
+   - **Зависимости**: Требует базовой конфигурации ESPHome с проектом matrix-lamp:  Neopixel LED (`id: neopixel_led`), числами (`matrix_intensity`, `matrix_speed`, `matrix_scale`)
 
 Этот пакет идеален для создания динамического освещения: например, утренний sunrise-эффект, вечерний sunset, ночной плейлист или дневной режим по расписанию.

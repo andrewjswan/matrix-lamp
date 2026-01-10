@@ -7,7 +7,7 @@ You can also specify a URL to directly download the image file. The URLs will on
 All other solutions provide ready-made icons, especially **Lametric** has a big database of [icons](https://developer.lametric.com/icons). If you find an icon, you can use it with its ID. e.g., `lameid: 1234`.
 
 !!! note
-    Please, check the copyright of the icons you use. 
+    Please, check the copyright of the icons you use.
 
 !!! note
     The maximum number of icons is limited to **100** in the code and also by the flash space and the RAM of your board.
@@ -17,11 +17,11 @@ All other solutions provide ready-made icons, especially **Lametric** has a big 
     ``` { .yaml .copy .annotate }
     matrix_lamp:
       display: ...
-      icons: 
-        - id: boot 
+      icons:
+        - id: boot
           file: icons/rocket.GIF
-          duration: 75     
-        - id: temp 
+          duration: 75    
+        - id: temp
           lameid: 1234
         - id: yoga
           file: icons/yoga-bridge.GIF
@@ -38,7 +38,7 @@ All other solutions provide ready-made icons, especially **Lametric** has a big 
 
 ## Parameters reference
 
-The ID of the icons is used later to icon display. So, you should name them wisely. 
+The ID of the icons is used later to icon display. So, you should name them wisely.
 
 !!! tip
     If you like to group icons, you should prefix them, e.g., with `weather_`.
