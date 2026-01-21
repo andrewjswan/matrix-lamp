@@ -10,3 +10,7 @@ jobs:
     uses: "andrewjswan/actions/.github/workflows/validate.yml@main"
     with:
       exclude: "['cpp']"
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
