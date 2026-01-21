@@ -41,7 +41,7 @@ globals:
 
   # Пресет 0
   - id: preset0_effect_name
-    type: std::string
+    type: StringRef
     restore_value: yes
     initial_value: '""'
     max_restore_data_length: 24
@@ -97,7 +97,7 @@ globals:
     max_restore_data_length: 8
 
   - id: preset1_effect_name
-    type: std::string
+    type: StringRef
     restore_value: yes
     initial_value: '""'
     max_restore_data_length: 24
@@ -153,7 +153,7 @@ globals:
     max_restore_data_length: 8
 
   - id: preset2_effect_name
-    type: std::string
+    type: StringRef
     initial_value: '""'
     restore_value: yes
     max_restore_data_length: 24
@@ -209,7 +209,7 @@ globals:
     max_restore_data_length: 8
 
   - id: preset3_effect_name
-    type: std::string
+    type: StringRef
     initial_value: '""'
     restore_value: yes
     max_restore_data_length: 24
@@ -265,7 +265,7 @@ globals:
     max_restore_data_length: 8
 
   - id: preset4_effect_name
-    type: std::string
+    type: StringRef
     initial_value: '""'
     restore_value: yes
     max_restore_data_length: 24
@@ -1073,35 +1073,35 @@ text_sensor:
         intensity = id(preset0_intensity);
         speed = id(preset0_speed);
         scale = id(preset0_scale);
-        effect_name = id(preset0_effect_name);
+        effect_name = std::string(id(preset0_effect_name).c_str(), id(preset0_effect_name).size()));
         brightness = (uint8_t)(id(preset0_brightness));
         in_playlist = id(preset0_check_playlist);
       } else if (preset_index == 1) {
         intensity = id(preset1_intensity);
         speed = id(preset1_speed);
         scale = id(preset1_scale);
-        effect_name = id(preset1_effect_name);
+        effect_name = std::string(id(preset1_effect_name).c_str(), id(preset1_effect_name).size()));
         brightness = (uint8_t)(id(preset1_brightness));
         in_playlist = id(preset1_check_playlist);
       } else if (preset_index == 2) {
         intensity = id(preset2_intensity);
         speed = id(preset2_speed);
         scale = id(preset2_scale);
-        effect_name = id(preset2_effect_name);
+        effect_name = std::string(id(preset2_effect_name).c_str(), id(preset2_effect_name).size()));
         brightness = (uint8_t)(id(preset2_brightness));
         in_playlist = id(preset2_check_playlist);
       } else if (preset_index == 3) {
         intensity = id(preset3_intensity);
         speed = id(preset3_speed);
         scale = id(preset3_scale);
-        effect_name = id(preset3_effect_name);
+        effect_name = std::string(id(preset3_effect_name).c_str(), id(preset3_effect_name).size()));
         brightness = (uint8_t)(id(preset3_brightness));
         in_playlist = id(preset3_check_playlist);
       } else if (preset_index == 4) {
         intensity = id(preset4_intensity);
         speed = id(preset4_speed);
         scale = id(preset4_scale);
-        effect_name = id(preset4_effect_name);
+        effect_name = std::string(id(preset4_effect_name).c_str(), id(preset4_effect_name).size()));
         brightness = (uint8_t)(id(preset4_brightness));
         in_playlist = id(preset4_check_playlist);
       } else {
