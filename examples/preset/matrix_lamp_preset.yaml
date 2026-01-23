@@ -17,7 +17,7 @@ globals:
     initial_value: '0'
   # Пресет 0
   - id: preset0_effect_name
-    type: std::string
+    type: StringRef
     restore_value: yes
     initial_value: '""'
   - id: preset0_intensity
@@ -42,7 +42,7 @@ globals:
     restore_value: yes
   # Пресет 1
   - id: preset1_effect_name
-    type: std::string
+    type: StringRef
     restore_value: yes
     initial_value: '""'
   - id: preset1_intensity
@@ -67,7 +67,7 @@ globals:
     restore_value: yes
   # Пресет 2
   - id: preset2_effect_name
-    type: std::string
+    type: StringRef
     initial_value: '""'
     restore_value: yes
   - id: preset2_intensity

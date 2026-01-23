@@ -31,12 +31,12 @@ binary_sensor:
           - lambda: |-
               uint8_t total = id(neopixel_led)->get_effects().size();
               uint8_t idx = 0;
-              std::string curr_effect = id(neopixel_led)->get_effect_name();
+              StringRef curr_effect = id(neopixel_led)->get_effect_name();
 
               auto call = id(neopixel_led)->turn_on();
 
               // Set random effect
-              if (strcasecmp(curr_effect.c_str(), "None") == 0)
+              if (curr_effect == "None")
               {
                 call.set_effect(random(total) + 1);
                 call.perform();
@@ -46,7 +46,7 @@ binary_sensor:
               for (auto *effect : id(neopixel_led)->get_effects())
               {
                 idx++;
-                if (strcasecmp(effect->get_name(), curr_effect.c_str()) == 0)
+                if (effect->get_name() == curr_effect)
                   break;
               }
 
@@ -72,12 +72,12 @@ binary_sensor:
           - lambda: |-
               uint8_t total = id(neopixel_led)->get_effects().size();
               uint8_t idx = 0;
-              std::string curr_effect = id(neopixel_led)->get_effect_name();
+              StringRef curr_effect = id(neopixel_led)->get_effect_name();
 
               auto call = id(neopixel_led)->turn_on();
 
               // Set random effect
-              if (strcasecmp(curr_effect.c_str(), "None") == 0)
+              if (curr_effect == "None")
               {
                 call.set_effect(random(total) + 1);
                 call.perform();
@@ -87,7 +87,7 @@ binary_sensor:
               for (auto *effect : id(neopixel_led)->get_effects())
               {
                 idx++;
-                if (strcasecmp(effect->get_name(), curr_effect.c_str()) == 0)
+                if (effect->get_name() == curr_effect)
                   break;
               }
 
