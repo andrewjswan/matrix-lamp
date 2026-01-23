@@ -1,5 +1,25 @@
 # Changelog
 
+## v1.5.13.59 - 2026-01-23
+
+### What's Changed
+
+- ESPHome 2026.1 - Lambda API Changes @andrewjswan (#99)
+
+### 🧰 Maintenance
+
+- Add .pre-commit-config.yaml @andrewjswan (#97)
+
+### Sponsorship
+
+If you like this project, please consider supporting me:
+
+- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
+
+### Changelog
+
+**Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.57...v1.5.13.59
+
 ## v1.5.13.57 - 2026-01-08
 
 ### What's Changed
