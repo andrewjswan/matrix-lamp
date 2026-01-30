@@ -69,7 +69,7 @@ button:
     disabled_by_default: true
 
 text_sensor:
-  - platform: version
+  - platform: template
     name: ESPHome Version
     icon: mdi:new-box
     entity_category: diagnostic
