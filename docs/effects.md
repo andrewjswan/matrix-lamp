@@ -1,3 +1,13 @@
+<style>
+.md-typeset__table {
+    min-width: 100%;
+}
+.md-typeset__table table:not([class]) {
+    display: table;
+    width: 100%;
+}
+</style>
+
 ## Effect list
 
 |Name|Mode|Friendly name|
