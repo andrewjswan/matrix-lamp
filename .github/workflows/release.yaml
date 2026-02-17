@@ -122,9 +122,6 @@ jobs:
           mkdir output
           cp -R release-files/*/* site/
 
-      - name: 💅 Copy website files
-        run: cp -R static/* site/
-
       - name: 👀 Check site output
         run: |
           ls -l
