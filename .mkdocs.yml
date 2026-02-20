@@ -19,6 +19,7 @@ theme:
   favicon: img/favicon.png
   icon:
     logo: material/lava-lamp
+  custom_dir: docs/overrides
   features:
     - navigation.tabs
     - navigation.features
