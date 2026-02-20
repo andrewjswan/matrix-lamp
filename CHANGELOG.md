@@ -1,5 +1,24 @@
 # Changelog
 
+## v1.5.13.61 - 2026-02-20
+
+### What's Changed
+
+### 🚀 Features
+
+- Rework `firmware` page @andrewjswan (#103)
+- Rework `ESPHome Version` sensor @andrewjswan (#102)
+
+### Sponsorship
+
+If you like this project, please consider supporting me:
+
+- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
+
+### Changelog
+
+**Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.59...v1.5.13.61
+
 ## v1.5.13.59 - 2026-01-23
 
 ### What's Changed
