@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.5.13.61 - 2026-02-20
+## [v1.5.13.61](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.59...v1.5.13.61) - 2026-02-20
 
 ### What's Changed
 
@@ -19,7 +19,7 @@ If you like this project, please consider supporting me:
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.59...v1.5.13.61
 
-## v1.5.13.59 - 2026-01-23
+## [v1.5.13.59](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.57...v1.5.13.59) - 2026-01-23
 
 ### What's Changed
 
@@ -39,7 +39,7 @@ If you like this project, please consider supporting me:
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.57...v1.5.13.59
 
-## v1.5.13.57 - 2026-01-08
+## [v1.5.13.57](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.55...v1.5.13.57) - 2026-01-08
 
 ### What's Changed
 
@@ -62,7 +62,7 @@ If you like this project, please consider supporting me:
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.55...v1.5.13.57
 
-## v1.5.13.55 - 2025-12-26
+## [v1.5.13.55](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.53...v1.5.13.55) - 2025-12-26
 
 ### What's Changed
 
@@ -88,7 +88,7 @@ If you like this project, please consider supporting me:
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.53...v1.5.13.55
 
-## v1.5.13.53 - 2025-11-25
+## [v1.5.13.53](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.51...v1.5.13.53) - 2025-11-25
 
 ### What's Changed
 
@@ -114,7 +114,7 @@ If you like this project, please consider supporting me:
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.51...v1.5.13.53
 
-## v1.5.13.51 - 2025-10-17
+## [v1.5.13.51](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.39...v1.5.13.51) - 2025-10-17
 
 ### What's Changed
 
@@ -134,7 +134,7 @@ If you like this project, please consider supporting me:
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.39...v1.5.13.51
 
-## v1.5.13.39 - 2025-10-09
+## [v1.5.13.39](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.37...v1.5.13.39) - 2025-10-09
 
 ### What's Changed
 
@@ -162,7 +162,7 @@ If you like this project, please consider supporting me:
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.37...v1.5.13.39
 
-## v1.5.13.37 - 2025-09-22
+## [v1.5.13.37](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.35...v1.5.13.37) - 2025-09-22
 
 ### What's Changed
 
@@ -185,7 +185,7 @@ If you like this project, please consider supporting me:
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.35...v1.5.13.37
 
-## v1.5.13.35 - 2025-09-13
+## [v1.5.13.35](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.33...v1.5.13.35) - 2025-09-13
 
 ### What's Changed
 
@@ -205,7 +205,7 @@ If you like this project, please consider supporting me:
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.33...v1.5.13.35
 
-## v1.5.13.33 - 2025-09-06
+## [v1.5.13.33](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.31...v1.5.13.33) - 2025-09-06
 
 ### What's Changed
 
@@ -221,7 +221,7 @@ If you like this project, please consider supporting me:
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.31...v1.5.13.33
 
-## v1.5.13.31 - 2025-09-05
+## [v1.5.13.31](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.29...v1.5.13.31) - 2025-09-05
 
 ### What's Changed
 
@@ -244,7 +244,7 @@ If you like this project, please consider supporting me:
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.29...v1.5.13.31
 
-## v1.5.13.29 - 2025-09-03
+## [v1.5.13.29](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.27...v1.5.13.29) - 2025-09-03
 
 ### What's Changed
 
@@ -263,7 +263,7 @@ If you like this project, please consider supporting me:
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.27...v1.5.13.29
 
-## v1.5.13.27 - 2025-08-26
+## [v1.5.13.27](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.25...v1.5.13.27) - 2025-08-26
 
 ### What's Changed
 
@@ -279,7 +279,7 @@ If you like this project, please consider supporting me:
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.25...v1.5.13.27
 
-## v1.5.13.25 - 2025-08-26
+## [v1.5.13.25](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.23..v1.5.13.25) - 2025-08-26
 
 ### What's Changed
 
@@ -305,7 +305,7 @@ If you like this project, please consider supporting me:
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.23..v1.5.13.25
 
-## v1.5.13.23 - 2025-07-17
+## [v1.5.13.23](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.21...v1.5.13.23) - 2025-07-17
 
 ### What's Changed
 
@@ -335,7 +335,7 @@ If you like this project, please consider supporting me:
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.21...v1.5.13.23
 
-## v1.5.13.21 - 2025-04-28
+## [v1.5.13.21](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.19...v1.5.13.21) - 2025-04-28
 
 ### What's Changed
 
@@ -353,7 +353,7 @@ If you like this project, please consider supporting me:
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.19...v1.5.13.21
 
-## v1.5.13.19 - 2025-04-15
+## [v1.5.13.19](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.17...v1.5.13.19) - 2025-04-15
 
 ### What's Changed
 
@@ -371,7 +371,7 @@ If you like this project, please consider supporting me:
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.17...v1.5.13.19
 
-## v1.5.13.17 - 2025-03-31
+## [v1.5.13.17](https://github.com/andrewjswan/matrix-lamp/compare/v1.1.5...v1.5.13.17) - 2025-03-31
 
 ### What's Changed
 
@@ -387,4 +387,4 @@ If you like this project, please consider supporting me:
 
 ### Changelog
 
-**Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.15...v1.5.13.17
+**Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.1.5...v1.5.13.17
