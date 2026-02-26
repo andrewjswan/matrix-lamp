@@ -9,13 +9,13 @@
 - Rework `firmware` page @andrewjswan (#103)
 - Rework `ESPHome Version` sensor @andrewjswan (#102)
 
-### Sponsorship
+### 🤝 Support
 
-If you like this project, please consider supporting me:
+If you like the project, you can support it with a star ⭐ on GitHub.
 
-- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
 
-### Changelog
+
+### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.59...v1.5.13.61
 
@@ -29,13 +29,13 @@ If you like this project, please consider supporting me:
 
 - Add .pre-commit-config.yaml @andrewjswan (#97)
 
-### Sponsorship
+### 🤝 Support
 
-If you like this project, please consider supporting me:
+If you like the project, you can support it with a star ⭐ on GitHub.
 
-- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
 
-### Changelog
+
+### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.57...v1.5.13.59
 
@@ -52,13 +52,13 @@ If you like this project, please consider supporting me:
 - Effect: `Rainbow Rings` rework @andrewjswan (#94)
 - Change `integration` filter to `throttle` @andrewjswan (#93)
 
-### Sponsorship
+### 🤝 Support
 
-If you like this project, please consider supporting me:
+If you like the project, you can support it with a star ⭐ on GitHub.
 
-- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
 
-### Changelog
+
+### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.55...v1.5.13.57
 
@@ -78,13 +78,13 @@ If you like this project, please consider supporting me:
 - DEP: Bump actions/download-artifact from 6 to 7 @[dependabot[bot]](https://github.com/apps/dependabot) (#83)
 - DEP: Bump actions/upload-artifact from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (#82)
 
-### Sponsorship
+### 🤝 Support
 
-If you like this project, please consider supporting me:
+If you like the project, you can support it with a star ⭐ on GitHub.
 
-- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
 
-### Changelog
+
+### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.53...v1.5.13.55
 
@@ -104,13 +104,13 @@ If you like this project, please consider supporting me:
 - DEP: Bump actions/download-artifact from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (#76)
 - DEP: Bump actions/upload-artifact from 4 to 5 @[dependabot[bot]](https://github.com/apps/dependabot) (#77)
 
-### Sponsorship
+### 🤝 Support
 
-If you like this project, please consider supporting me:
+If you like the project, you can support it with a star ⭐ on GitHub.
 
-- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
 
-### Changelog
+
+### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.51...v1.5.13.53
 
@@ -124,13 +124,13 @@ If you like this project, please consider supporting me:
 
 - DEP: Bump stefanzweifel/git-auto-commit-action from 6 to 7 @[dependabot[bot]](https://github.com/apps/dependabot) (#73)
 
-### Sponsorship
+### 🤝 Support
 
-If you like this project, please consider supporting me:
+If you like the project, you can support it with a star ⭐ on GitHub.
 
-- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
 
-### Changelog
+
+### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.39...v1.5.13.51
 
@@ -152,13 +152,13 @@ If you like this project, please consider supporting me:
 - Esp32-C3: Switch to RMT Light @andrewjswan (#70)
 - Add Arduino framework as Default @andrewjswan (#71)
 
-#### Sponsorship
+#### 🤝 Support
 
-If you like this project, please consider supporting me:
+If you like the project, you can support it with a star ⭐ on GitHub.
 
-- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
 
-#### Changelog
+
+#### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.37...v1.5.13.39
 
@@ -175,13 +175,13 @@ If you like this project, please consider supporting me:
 
 - Bump FastLED to 3.10.3 @andrewjswan (#65)
 
-### Sponsorship
+### 🤝 Support
 
-If you like this project, please consider supporting me:
+If you like the project, you can support it with a star ⭐ on GitHub.
 
-- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
 
-### Changelog
+
+### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.35...v1.5.13.37
 
@@ -195,13 +195,13 @@ If you like this project, please consider supporting me:
 
 - DEP: Bump actions/setup-python from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (#61)
 
-### Sponsorship
+### 🤝 Support
 
-If you like this project, please consider supporting me:
+If you like the project, you can support it with a star ⭐ on GitHub.
 
-- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
 
-### Changelog
+
+### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.33...v1.5.13.35
 
@@ -211,13 +211,13 @@ If you like this project, please consider supporting me:
 
 - Update documentation @andrewjswan (#59)
 
-### Sponsorship
+### 🤝 Support
 
-If you like this project, please consider supporting me:
+If you like the project, you can support it with a star ⭐ on GitHub.
 
-- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
 
-### Changelog
+
+### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.31...v1.5.13.33
 
@@ -234,13 +234,13 @@ If you like this project, please consider supporting me:
 
 - Effect: Incremental Drift reborn @andrewjswan (#56)
 
-### Sponsorship
+### 🤝 Support
 
-If you like this project, please consider supporting me:
+If you like the project, you can support it with a star ⭐ on GitHub.
 
-- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
 
-### Changelog
+
+### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.29...v1.5.13.31
 
@@ -253,13 +253,13 @@ If you like this project, please consider supporting me:
 - Add Incremental Drift effect @andrewjswan (#51)
 - Add Effects to Documentation @andrewjswan (#52)
 
-### Sponsorship
+### 🤝 Support
 
-If you like this project, please consider supporting me:
+If you like the project, you can support it with a star ⭐ on GitHub.
 
-- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
 
-### Changelog
+
+### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.27...v1.5.13.29
 
@@ -269,13 +269,13 @@ If you like this project, please consider supporting me:
 
 - Documentation @andrewjswan (#48)
 
-### Sponsorship
+### 🤝 Support
 
-If you like this project, please consider supporting me:
+If you like the project, you can support it with a star ⭐ on GitHub.
 
-- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
 
-### Changelog
+
+### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.25...v1.5.13.27
 
@@ -295,13 +295,13 @@ If you like this project, please consider supporting me:
 - DEP: Bump actions/checkout from 4 to 5 @[dependabot[bot]](https://github.com/apps/dependabot) (#43)
 - DEP: Bump actions/first-interaction from 1 to 2 @[dependabot[bot]](https://github.com/apps/dependabot) (#41)
 
-### Sponsorship
+### 🤝 Support
 
-If you like this project, please consider supporting me:
+If you like the project, you can support it with a star ⭐ on GitHub.
 
-- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
 
-### Changelog
+
+### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.23..v1.5.13.25
 
@@ -325,13 +325,13 @@ If you like this project, please consider supporting me:
 - DEP: Bump stefanzweifel/git-auto-commit-action from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (#36)
 - DEP: Bump esphome/build-action from 6 to 7 @[dependabot[bot]](https://github.com/apps/dependabot) (#35)
 
-### Sponsorship
+### 🤝 Support
 
-If you like this project, please consider supporting me:
+If you like the project, you can support it with a star ⭐ on GitHub.
 
-- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
 
-### Changelog
+
+### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.21...v1.5.13.23
 
@@ -343,13 +343,13 @@ If you like this project, please consider supporting me:
 
 - Internal tuning of methods @andrewjswan
 
-### Sponsorship
+### 🤝 Support
 
-If you like this project, please consider supporting me:
+If you like the project, you can support it with a star ⭐ on GitHub.
 
-- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
 
-### Changelog
+
+### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.19...v1.5.13.21
 
@@ -361,13 +361,13 @@ If you like this project, please consider supporting me:
 
 - Breaking: Internal reorganization of methods @andrewjswan (#33)
 
-### Sponsorship
+### 🤝 Support
 
-If you like this project, please consider supporting me:
+If you like the project, you can support it with a star ⭐ on GitHub.
 
-- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
 
-### Changelog
+
+### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.17...v1.5.13.19
 
@@ -379,12 +379,12 @@ If you like this project, please consider supporting me:
 
 - Add Intensity control @andrewjswan (#32)
 
-### Sponsorship
+### 🤝 Support
 
-If you like this project, please consider supporting me:
+If you like the project, you can support it with a star ⭐ on GitHub.
 
-- 💖 [Sponsor on GitHub](https://github.com/sponsors/andrewjswan)
 
-### Changelog
+
+### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.1.5...v1.5.13.17
