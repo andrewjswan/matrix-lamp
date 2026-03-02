@@ -48,7 +48,7 @@ jobs:
 
     steps:
       - name: 📦 Download Artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: MatrixLamp
           path: release-files
@@ -117,7 +117,7 @@ jobs:
         run: mkdocs build --config-file .mkdocs.yml
 
       - name: 📦 Download Artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: MatrixLamp
           path: release-files
