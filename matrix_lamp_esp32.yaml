@@ -5,7 +5,7 @@ substitutions:
   pin_pullup: "false"
 
 esp32:
-  board: nodemcu-32s
+  variant: esp32
   framework:
     type: arduino
 
