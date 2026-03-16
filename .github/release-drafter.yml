@@ -20,7 +20,7 @@ categories:
       - bug
       - bugfix
   - title: 🧰 Maintenance
-    label:
+    labels:
       - chore
       - cosmetic
       - dependencies
