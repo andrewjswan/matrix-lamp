@@ -7279,12 +7279,12 @@ static void Contacts() {
     ledsClear(); // esphome: FastLED.clear();
   }
 
-  int a = millis() / floor((255 - modes[currentMode].Speed) / 10);
+  int a = millis() / map(modes[currentMode].Speed, 0, 255, 32, 1);
   hue = floor(modes[currentMode].Scale / 14);
   for (int x = 0; x < WIDTH; x++) {
     for (int y = 0; y < HEIGHT; y++) {
       int index = XY(x, y);
-      uint8_t color1 = pgm_read_byte(&exp_gamma[sin8(cos8((x * 7 +a/5)) - cos8((y * 10) + a / 3) / 4 + a)]);
+      uint8_t color1 = pgm_read_byte(&exp_gamma[sin8(cos8((x * 7 + a / 5)) - cos8((y * 10) + a / 3) / 4 + a)]);
       uint8_t color2 = pgm_read_byte(&exp_gamma[(sin8(x * 16 + a / 3) + cos8(y * 8 + a / 2)) / 2]);
       uint8_t color3 = pgm_read_byte(&exp_gamma[sin8(cos8(x * 8 + a / 3) + sin8(y * 8 + a / 4) + a)]);
       if (hue == 0) {
