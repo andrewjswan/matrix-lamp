@@ -12,7 +12,7 @@ import esphome.config_validation as cv
 import requests
 from esphome import automation, core
 from esphome.components import display
-from esphome.components.image import CONF_ALPHA_CHANNEL, IMAGE_TYPE
+from esphome.components.image import CONF_CHROMA_KEY, IMAGE_TYPE
 from esphome.components.light.effects import register_addressable_effect
 from esphome.components.light.types import AddressableLightEffect
 from esphome.components.template.number import TemplateNumber
@@ -187,7 +187,7 @@ async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
 
             elif CONF_LAMEID in conf:
                 path = CORE.relative_config_path(".cache/icons/lameid/" + conf[CONF_LAMEID])
-                if config[CONF_CACHE] and Path(path).is_file():
+                if config[CONF_CACHE] and Path(path).is_file():  # noqa: ASYNC240
                     try:
                         image = Image.open(path)
                         logging.info(" Icons: Load %s from cache.", conf[CONF_LAMEID])
@@ -213,7 +213,7 @@ async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
                     image = Image.open(io.BytesIO(r.content))
 
                     if config[CONF_CACHE]:
-                        Path(Path(path).parent).mkdir(parents=True, exist_ok=True)
+                        Path(Path(path).parent).mkdir(parents=True, exist_ok=True)  # noqa: ASYNC240
                         with Path(path).open(mode="wb") as f:
                             f.write(r.content)
                             f.close()
@@ -222,7 +222,7 @@ async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
             elif CONF_URL in conf:
                 a = urlparse(conf[CONF_URL])
                 path = CORE.relative_config_path(".cache/icons/url/" + Path(a.path).name)
-                if config[CONF_CACHE] and Path(path).is_file():
+                if config[CONF_CACHE] and Path(path).is_file():  # noqa: ASYNC240
                     try:
                         image = Image.open(path)
                         logging.info(" Icons: Load %s from cache.", conf[CONF_URL])
@@ -247,7 +247,7 @@ async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
                     image = Image.open(io.BytesIO(r.content))
 
                     if config[CONF_CACHE]:
-                        Path(Path(path).parent).mkdir(parents=True, exist_ok=True)
+                        Path(Path(path).parent).mkdir(parents=True, exist_ok=True)  # noqa: ASYNC240
                         with Path(path).open(mode="wb") as f:
                             f.write(r.content)
                             f.close()
@@ -289,7 +289,7 @@ async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
                 icon_count += 1
 
                 dither = Image.Dither.NONE
-                transparency = CONF_ALPHA_CHANNEL
+                transparency = CONF_CHROMA_KEY
                 invert_alpha = False
 
                 total_rows = height * frame_count
@@ -300,6 +300,8 @@ async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
                     dither,
                     invert_alpha,
                 )
+                if hasattr(encoder, "set_big_endian"):
+                    encoder.set_big_endian(True)
                 for frame_index in range(frame_count):
                     image.seek(frame_index)
                     pixels = encoder.convert(image.resize((width, height)), path).getdata()
