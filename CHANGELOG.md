@@ -1,5 +1,39 @@
 # Changelog
 
+## [v1.5.13.63](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.61...v1.5.13.63) - 2026-04-19
+
+### What's Changed
+
+### 🚀 Features
+
+- Switch `esp32` from `board` to `variant` @andrewjswan (#108)
+
+### 🐛 Bug Fixes
+
+- Fix distorted animated icons on ESPHome 2026.4.0 @andrewjswan (#115)
+
+### 🧰 Maintenance
+
+- Fix distorted animated icons on ESPHome 2026.4.0 @andrewjswan (#115)
+- DEP: Bump softprops/action-gh-release from 2 to 3 @[dependabot[bot]](https://github.com/apps/dependabot) (#114)
+- Add `Social` background @andrewjswan (#113)
+- DEP: Bump actions/deploy-pages from 4 to 5 @[dependabot[bot]](https://github.com/apps/dependabot) (#112)
+- DEP: Bump actions/configure-pages from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (#111)
+- DEP: Bump release-drafter/release-drafter from 6 to 7 @[dependabot[bot]](https://github.com/apps/dependabot) (#109)
+- DEP: Bump geekyeggo/delete-artifact from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (#110)
+- Switch `esp32` from `board` to `variant` @andrewjswan (#108)
+- DEP: Bump actions/download-artifact from 7 to 8 @[dependabot[bot]](https://github.com/apps/dependabot) (#106)
+- DEP: Bump actions/upload-artifact from 6 to 7 @[dependabot[bot]](https://github.com/apps/dependabot) (#107)
+- Add `social` cards to documentation @andrewjswan (#105)
+
+### 🤝 Support
+
+If you like the project, you can support it with a star ⭐ on GitHub.
+
+### 📝 Changelog
+
+**Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.61...v1.5.13.63
+
 ## [v1.5.13.61](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.59...v1.5.13.61) - 2026-02-20
 
 ### What's Changed
@@ -12,8 +46,6 @@
 ### 🤝 Support
 
 If you like the project, you can support it with a star ⭐ on GitHub.
-
-
 
 ### 📝 Changelog
 
@@ -32,8 +64,6 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 ### 🤝 Support
 
 If you like the project, you can support it with a star ⭐ on GitHub.
-
-
 
 ### 📝 Changelog
 
@@ -55,8 +85,6 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 ### 🤝 Support
 
 If you like the project, you can support it with a star ⭐ on GitHub.
-
-
 
 ### 📝 Changelog
 
@@ -82,8 +110,6 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 If you like the project, you can support it with a star ⭐ on GitHub.
 
-
-
 ### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.53...v1.5.13.55
@@ -108,8 +134,6 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 If you like the project, you can support it with a star ⭐ on GitHub.
 
-
-
 ### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.51...v1.5.13.53
@@ -127,8 +151,6 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 ### 🤝 Support
 
 If you like the project, you can support it with a star ⭐ on GitHub.
-
-
 
 ### 📝 Changelog
 
@@ -156,8 +178,6 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 If you like the project, you can support it with a star ⭐ on GitHub.
 
-
-
 #### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.37...v1.5.13.39
@@ -179,8 +199,6 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 If you like the project, you can support it with a star ⭐ on GitHub.
 
-
-
 ### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.35...v1.5.13.37
@@ -199,8 +217,6 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 If you like the project, you can support it with a star ⭐ on GitHub.
 
-
-
 ### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.33...v1.5.13.35
@@ -214,8 +230,6 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 ### 🤝 Support
 
 If you like the project, you can support it with a star ⭐ on GitHub.
-
-
 
 ### 📝 Changelog
 
@@ -238,8 +252,6 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 If you like the project, you can support it with a star ⭐ on GitHub.
 
-
-
 ### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.29...v1.5.13.31
@@ -257,8 +269,6 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 If you like the project, you can support it with a star ⭐ on GitHub.
 
-
-
 ### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.27...v1.5.13.29
@@ -272,8 +282,6 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 ### 🤝 Support
 
 If you like the project, you can support it with a star ⭐ on GitHub.
-
-
 
 ### 📝 Changelog
 
@@ -298,8 +306,6 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 ### 🤝 Support
 
 If you like the project, you can support it with a star ⭐ on GitHub.
-
-
 
 ### 📝 Changelog
 
@@ -329,8 +335,6 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 If you like the project, you can support it with a star ⭐ on GitHub.
 
-
-
 ### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.21...v1.5.13.23
@@ -346,8 +350,6 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 ### 🤝 Support
 
 If you like the project, you can support it with a star ⭐ on GitHub.
-
-
 
 ### 📝 Changelog
 
@@ -365,8 +367,6 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 If you like the project, you can support it with a star ⭐ on GitHub.
 
-
-
 ### 📝 Changelog
 
 **Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.17...v1.5.13.19
@@ -382,8 +382,6 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 ### 🤝 Support
 
 If you like the project, you can support it with a star ⭐ on GitHub.
-
-
 
 ### 📝 Changelog
 
