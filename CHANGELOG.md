@@ -1,5 +1,26 @@
 # Changelog
 
+## [v1.5.13.65](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.63...v1.5.13.65) - 2026-04-21
+
+### What's Changed
+
+### 🐛 Bug Fixes
+
+- ESPHome 2026.4.1: `little-endian` byte order for images @andrewjswan (#118)
+
+### 🧰 Maintenance
+
+- ESPHome 2026.4.1: `little-endian` byte order for images @andrewjswan (#118)
+- DEP: Bump actions/upload-pages-artifact from 4 to 5 @[dependabot[bot]](https://github.com/apps/dependabot) (#117)
+
+### 🤝 Support
+
+If you like the project, you can support it with a star ⭐ on GitHub.
+
+### 📝 Changelog
+
+**Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.63...v1.5.13.65
+
 ## [v1.5.13.63](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.61...v1.5.13.63) - 2026-04-19
 
 ### What's Changed
