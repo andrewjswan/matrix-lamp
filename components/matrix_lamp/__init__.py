@@ -300,8 +300,8 @@ async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
                     dither,
                     invert_alpha,
                 )
-                if hasattr(encoder, "set_big_endian"):
-                    encoder.set_big_endian(True)
+                encoder.set_big_endian(False)
+
                 for frame_index in range(frame_count):
                     image.seek(frame_index)
                     pixels = encoder.convert(image.resize((width, height)), path).getdata()
