@@ -2,8 +2,7 @@
 
 #include "esphome/components/light/addressable_light_effect.h"
 
-namespace esphome {
-namespace matrix_lamp {
+namespace esphome::matrix_lamp {
 
 class MatrixLamp;
 
@@ -22,5 +21,4 @@ class MatrixLampLightEffect : public light::AddressableLightEffect {
   MatrixLamp *matrix_lamp_{nullptr};
 };
 
-}  // namespace matrix_lamp
-}  // namespace esphome
+}  // namespace esphome::matrix_lamp
