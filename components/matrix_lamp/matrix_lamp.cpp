@@ -4,8 +4,7 @@
 #include "utility.h"
 #include "effect_ticker.h"
 
-namespace esphome {
-namespace matrix_lamp {
+namespace esphome::matrix_lamp {
 
 using namespace fastled_helper;
 
@@ -541,5 +540,4 @@ void MatrixLampEffectStartTrigger::process(uint8_t effect, uint8_t intensity, ui
 }
 #endif
 
-}  // namespace matrix_lamp
-}  // namespace esphome
+}  // namespace esphome::matrix_lamp
