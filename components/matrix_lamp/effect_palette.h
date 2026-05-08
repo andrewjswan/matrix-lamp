@@ -2,8 +2,7 @@
 
 #include "common.h"
 
-namespace esphome {
-namespace matrix_lamp {
+namespace esphome::matrix_lamp {
 
 // палитра для типа реалистичного водопада (если ползунок Масштаб выставить на 100)
 static const TProgmemRGBPalette16 WaterfallColors_p FL_PROGMEM = {0x000000, 0x060707, 0x101110, 0x151717, 0x1C1D22, 0x242A28, 0x363B3A, 0x313634, 0x505552, 0x6B6C70, 0x98A4A1, 0xC1C2C1, 0xCACECF, 0xCDDEDD, 0xDEDFE0, 0xB2BAB9};
@@ -92,5 +91,4 @@ static void setCurrentPalette()
 // значения от 1 до 11 = ((modes[currentMode].Scale - 1U) % 11U + 1U)
 // а 100е значение Масштаба можно использовать для белого цвета
 
-}  // namespace matrix_lamp
-}  // namespace esphome
+}  // namespace esphome::matrix_lamp
