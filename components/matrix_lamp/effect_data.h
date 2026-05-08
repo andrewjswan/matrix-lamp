@@ -1,7 +1,6 @@
 #pragma once
 
-namespace esphome {
-namespace matrix_lamp {
+namespace esphome::matrix_lamp {
 
 // =============== Fure =================
 //                 Огонь
@@ -4298,5 +4297,4 @@ static const uint8_t aquariumGIF[25][32][32] PROGMEM =
   }
 };
 
-}  // namespace matrix_lamp
-}  // namespace esphome
+}  // namespace esphome::matrix_lamp
