@@ -125,7 +125,7 @@ async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
     """Code generation entry point."""
     var = cg.new_Pvariable(config[CONF_ID])
 
-    cg.add_library("fastled/FastLED", "3.10.1")
+    cg.add_library("fastled/FastLED", "3.10.3")
 
     cg.add_define("WIDTH", config[CONF_WIDTH])
     cg.add_define("HEIGHT", config[CONF_HEIGHT])
