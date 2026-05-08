@@ -6,8 +6,7 @@
 
 #include "esphome/components/fastled_helper/utils.h"
 
-namespace esphome {
-namespace matrix_lamp {
+namespace esphome::matrix_lamp {
 
 // ************* НАСТРОЙКИ *************
 /*
@@ -521,5 +520,4 @@ static void fillnoise8()
   z += speed;
 }
 
-}  // namespace matrix_lamp
-}  // namespace esphome
+}  // namespace esphome::matrix_lamp
