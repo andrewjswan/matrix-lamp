@@ -1,7 +1,6 @@
 #include "esphome.h"
 
-namespace esphome {
-namespace matrix_lamp {
+namespace esphome::matrix_lamp {
 
 #if defined(MATRIX_LAMP_USE_DISPLAY)
 MatrixLamp_Icon::MatrixLamp_Icon(const uint8_t *data_start, uint32_t width, uint32_t height, uint32_t animation_frame_count, esphome::image::ImageType type, std::string icon_name, bool revers, uint16_t frame_duration, esphome::image::Transparency transparency)
@@ -37,5 +36,4 @@ void MatrixLamp_Icon::next_frame()
 }
 #endif // #if defined(MATRIX_LAMP_USE_DISPLAY)
 
-}  // namespace matrix_lamp
-}  // namespace esphome
+}  // namespace esphome::matrix_lamp

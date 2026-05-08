@@ -3,8 +3,7 @@
 #include "esphome.h"
 #include "esphome/components/template/number/template_number.h"
 
-namespace esphome {
-namespace matrix_lamp {
+namespace esphome::matrix_lamp {
 
 static const char *const TAG = "matrix_lamp";
 static const char *const MATRIX_LAMP_VERSION = "2025.12.1";
@@ -166,5 +165,4 @@ class MatrixLampEffectStartTrigger : public Trigger<uint8_t, uint8_t, uint8_t, u
 }; // class
 #endif
 
-}  // namespace matrix_lamp
-}  // namespace esphome
+}  // namespace esphome::matrix_lamp

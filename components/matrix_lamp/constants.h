@@ -167,8 +167,7 @@
 
 #define MODE_AMOUNT             (137U)   // Количество режимов
 
-namespace esphome {
-namespace matrix_lamp {
+namespace esphome::matrix_lamp {
 
 // ============= МАССИВ НАСТРОЕК ЭФФЕКТОВ ПО УМОЛЧАНИЮ ===================
 // формат записи:
@@ -315,5 +314,4 @@ static const uint8_t defaultSettings[][3] PROGMEM = {
 
 // ============= КОНЕЦ МАССИВА =====
 
-}  // namespace matrix_lamp
-}  // namespace esphome
+}  // namespace esphome::matrix_lamp

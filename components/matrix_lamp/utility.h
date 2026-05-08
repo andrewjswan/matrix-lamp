@@ -5,8 +5,7 @@
 
 #define WU_WEIGHT(a, b) ((uint8_t)(((a) * (b) + (a) + (b)) >> 8))
 
-namespace esphome {
-namespace matrix_lamp {
+namespace esphome::matrix_lamp {
 
 using namespace fastled_helper;
 
@@ -517,5 +516,4 @@ static void setModeSettings(uint8_t Scale = 0U, uint8_t Speed = 0U){
 }
 #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-}  // namespace matrix_lamp
-}  // namespace esphome
+}  // namespace esphome::matrix_lamp

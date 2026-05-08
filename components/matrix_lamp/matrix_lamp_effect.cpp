@@ -4,8 +4,7 @@
 #include "esphome/core/log.h"
 #include "esphome/core/helpers.h"
 
-namespace esphome {
-namespace matrix_lamp {
+namespace esphome::matrix_lamp {
 
 MatrixLampLightEffect::MatrixLampLightEffect(const char *name) : AddressableLightEffect(name) {}
 
@@ -32,5 +31,4 @@ void MatrixLampLightEffect::apply(light::AddressableLight &it, const Color &curr
   }
 }
 
-}  // namespace matrix_lamp
-}  // namespace esphome
+}  // namespace esphome::matrix_lamp

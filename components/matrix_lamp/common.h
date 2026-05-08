@@ -13,8 +13,7 @@
 
 #include "constants.h"
 
-namespace esphome {
-namespace matrix_lamp {
+namespace esphome::matrix_lamp {
 
 // --- МАТРИЦА ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -65,5 +64,4 @@ static uint8_t selectedSettings = 0U;
 static uint16_t speed = 20; // speed is set dynamically once we've started up
 static uint16_t scale = 30; // scale is set dynamically once we've started up
 
-}  // namespace matrix_lamp
-}  // namespace esphome
+}  // namespace esphome::matrix_lamp
