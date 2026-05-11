@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 #include "common.h"
 #include "constants.h"
 #include "utility.h"
@@ -8,21 +10,6 @@
 
 namespace esphome::matrix_lamp {
 
-// ************* НАСТРОЙКИ *************
-/*
-// "масштаб" эффектов. Чем меньше, тем крупнее!
-#define MADNESS_SCALE 100
-#define CLOUD_SCALE 30
-#define LAVA_SCALE 50
-#define PLASMA_SCALE 30
-#define RAINBOW_SCALE 30
-#define RAINBOW_S_SCALE 20
-#define ZEBRA_SCALE 30
-#define FOREST_SCALE 120
-#define OCEAN_SCALE 90
-*/
-
-
 // ************* ДЛЯ РАЗРАБОТЧИКОВ *****
 // The 16 bit version of our coordinates
 static uint16_t x;
@@ -30,7 +17,8 @@ static uint16_t y;
 static uint16_t z;
 
 // This is the array that we keep our computed noise values in
-#define MAX_DIMENSION (max(WIDTH, HEIGHT))
+constexpr uint8_t MAX_SIDE = static_cast<uint8_t>(std::max(WIDTH, HEIGHT));
+
 #if (WIDTH > HEIGHT)
 static uint8_t noise[WIDTH][WIDTH];
 #else
@@ -52,21 +40,23 @@ static void madnessNoiseRoutine()
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
         uint8_t tmp = random8(9U);
-        setModeSettings(30U+tmp*tmp, 20U+random8(41U));
+        setModeSettings(30U + tmp * tmp, 20U + random8(41U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
     loadingFlag = false;
+
     scale = modes[currentMode].Scale;
     speed = modes[currentMode].Speed;
   }
+
   fillnoise8();
   for (uint8_t i = 0; i < WIDTH; i++)
   {
     for (uint8_t j = 0; j < HEIGHT; j++)
     {
       CRGB thisColor = CHSV(noise[j][i], 255, noise[i][j]);
-      drawPixelXY(i, j, thisColor);                         //leds[XY(i, j)] = CHSV(noise[j][i], 255, noise[i][j]);
+      drawPixelXY(i, j, thisColor);
     }
   }
   ihue += 1;
@@ -81,16 +71,18 @@ static void rainbowNoiseRoutine()
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
         uint8_t tmp = random8(10U);
-        setModeSettings(20U+tmp*tmp, 1U+random8(23U));
+        setModeSettings(20U + tmp * tmp, 1U + random8(23U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
     loadingFlag = false;
+
     currentPalette = RainbowColors_p;
     scale = modes[currentMode].Scale;
     speed = modes[currentMode].Speed;
     colorLoop = 1;
   }
+
   fillNoiseLED();
 }
 #endif
@@ -102,11 +94,12 @@ static void rainbowStripeNoiseRoutine()
   {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
-        setModeSettings(8U+random8(17U), 1U+random8(9U));
+        setModeSettings(8U + random8(17U), 1U + random8(9U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
     loadingFlag = false;
+
     currentPalette = RainbowStripeColors_p;
     scale = modes[currentMode].Scale;
     speed = modes[currentMode].Speed;
@@ -123,11 +116,12 @@ static void zebraNoiseRoutine()
   {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
-        setModeSettings(12U+random8(16U), 1U+random8(9U));
+        setModeSettings(12U + random8(16U), 1U + random8(9U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
     loadingFlag = false;
+
     // 'black out' all 16 palette entries...
     fill_solid(currentPalette, 16, CRGB::Black);
     // and set every fourth one to white.
@@ -135,6 +129,7 @@ static void zebraNoiseRoutine()
     currentPalette[ 4] = CRGB::White;
     currentPalette[ 8] = CRGB::White;
     currentPalette[12] = CRGB::White;
+
     scale = modes[currentMode].Scale;
     speed = modes[currentMode].Speed;
     colorLoop = 1;
@@ -148,12 +143,13 @@ static void forestNoiseRoutine()
 {
   if (loadingFlag)
   {
-    loadingFlag = false;
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
-        setModeSettings(70U+random8(31U), 2U+random8(24U));
+        setModeSettings(70U + random8(31U), 2U + random8(24U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+
+    loadingFlag = false;
 
     currentPalette = ForestColors_p;
     scale = modes[currentMode].Scale;
@@ -171,11 +167,12 @@ static void oceanNoiseRoutine()
   {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
-        setModeSettings(6U+random8(25U), 4U+random8(8U));
+        setModeSettings(6U + random8(25U), 4U + random8(8U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
     loadingFlag = false;
+
     currentPalette = OceanColors_p;
     scale = modes[currentMode].Scale;
     speed = modes[currentMode].Speed;
@@ -194,11 +191,12 @@ static void plasmaNoiseRoutine()
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
         uint8_t tmp = random8(10U);
-        setModeSettings(20U+tmp*tmp, 1U+random8(27U));
+        setModeSettings(20U + tmp * tmp, 1U + random8(27U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
     loadingFlag = false;
+
     currentPalette = PartyColors_p;
     scale = modes[currentMode].Scale;
     speed = modes[currentMode].Speed;
@@ -215,11 +213,12 @@ static void cloudsNoiseRoutine()
   {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
-        setModeSettings(15U+random8(36U), 1U+random8(10U));
+        setModeSettings(15U + random8(36U), 1U + random8(10U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
     loadingFlag = false;
+
     currentPalette = CloudColors_p;
     scale = modes[currentMode].Scale;
     speed = modes[currentMode].Speed;
@@ -237,11 +236,12 @@ static void lavaNoiseRoutine()
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
         uint8_t tmp = random8(9U);
-        setModeSettings(10U+tmp*tmp, 5U+random8(16U));
+        setModeSettings(10U + tmp * tmp, 5U + random8(16U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
     loadingFlag = false;
+
     currentPalette = LavaColors_p;
     scale = modes[currentMode].Scale;
     speed = modes[currentMode].Speed;
@@ -260,7 +260,7 @@ static void lavaNoiseRoutine()
 // --------------------------------------
 
 static void TasteHoney() {
-  byte index;
+  uint8_t index;
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
@@ -270,8 +270,10 @@ static void TasteHoney() {
     #endif
 
     loadingFlag = false;
-    hue = modes[currentMode].Scale * 2.55;
-    index = modes[currentMode].Scale / 10;
+
+    hue = modes[currentMode].Scale * 2.55f;
+    index = modes[currentMode].Scale / 10U;
+
     clearNoiseArr();
     switch (index) {
       case 0:
@@ -301,10 +303,13 @@ static void TasteHoney() {
       uint8_t n0 = noise2[0][x][y];
       uint8_t n1 = noise2[0][x + 1][y];
       uint8_t n2 = noise2[0][x][y + 1];
+
       int8_t xl = n0 - n1;
       int8_t yl = n0 - n2;
+
       int16_t xa = (x * 255) + ((xl * ((n0 + n1) << 1)) >> 3);
       int16_t ya = (y * 255) + ((yl * ((n0 + n2) << 1)) >> 3);
+
       CRGB col = CHSV(hue, 255U, 255U);
       wu_pixel(xa, ya, &col);
     }
@@ -319,13 +324,13 @@ static void TasteHoney() {
 //                Попурі
 // =====================================
 static void Popuri() {
-  const byte PADDING = HEIGHT * 0.25;
-  const byte step1 = WIDTH;
-  const double freq = 3000;
+  constexpr uint8_t PADDING = HEIGHT * 0.25f;
+  constexpr double freq = 3000;
+
   static int64_t frameCount;
   static byte index;
-  // ---------------------
 
+  // ---------------------
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
@@ -334,6 +339,7 @@ static void Popuri() {
     #endif
 
     loadingFlag = false;
+
     hue = 0;
     frameCount = 0;
     currentPalette = LavaColors_p;
@@ -359,6 +365,7 @@ static void Popuri() {
   uint8_t t1 = cos8((42 * frameCount) / 30);
   uint8_t t2 = cos8((35 * frameCount) / 30);
   uint8_t t3 = cos8((38 * frameCount) / 30);
+
   uint8_t r = 0;
   uint8_t g = 0;
   uint8_t b = 0;
@@ -373,7 +380,7 @@ static void Popuri() {
     fillNoiseLED();
     memset8(&noise2[1][0][0], 255, (WIDTH + 1) * (HEIGHT + 1));
   } else {
-    fadeToBlackBy(leds, NUM_LEDS, step1);
+    fadeToBlackBy(leds, NUM_LEDS, WIDTH);
   }
   // body if big height matrix ---------
   for (uint16_t y = 0; y < HEIGHT; y++) {
@@ -419,7 +426,7 @@ static void Popuri() {
           wu_pixel(xa, ya, &col);
           // ---------------------
         } else {
-          uint32_t xx = beatsin16(step1, 0, (HEIGHT - PADDING * 2 - 1) * 256, 0, x * freq);
+          uint32_t xx = beatsin16(WIDTH, 0, (HEIGHT - PADDING * 2 - 1) * 256, 0, x * freq);
           uint32_t yy = x * 256;
 
           if (hue < 80) {
@@ -446,15 +453,15 @@ static void Popuri() {
 static void fillNoiseLED()
 {
   uint8_t dataSmoothing = 0;
-  if (speed < 50)
-  {
+
+  if (speed < 50) {
     dataSmoothing = 200 - (speed * 4);
   }
-  for (uint8_t i = 0; i < MAX_DIMENSION; i++)
-  {
+
+  for (uint8_t i = 0; i < MAX_SIDE; i++) {
     int32_t ioffset = scale * i;
-    for (uint8_t j = 0; j < MAX_DIMENSION; j++)
-    {
+
+    for (uint8_t j = 0; j < MAX_SIDE; j++) {
       int32_t joffset = scale * j;
 
       uint8_t data = fastled_helper::perlin8(x + ioffset, y + joffset, z);
@@ -462,10 +469,9 @@ static void fillNoiseLED()
       data = qsub8(data, 16);
       data = qadd8(data, scale8(data, 39));
 
-      if (dataSmoothing)
-      {
+      if (dataSmoothing) {
         uint8_t olddata = noise[i][j];
-        uint8_t newdata = scale8( olddata, dataSmoothing) + scale8( data, 256 - dataSmoothing);
+        uint8_t newdata = scale8(olddata, dataSmoothing) + scale8(data, 256 - dataSmoothing);
         data = newdata;
       }
 
@@ -475,28 +481,22 @@ static void fillNoiseLED()
   z += speed;
 
   // apply slow drift to X and Y, just for visual variation.
-  x += speed / 8;
-  y -= speed / 16;
+  x += speed / 8U;
+  y -= speed / 16U;
 
-  for (uint8_t i = 0; i < WIDTH; i++)
-  {
-    for (uint8_t j = 0; j < HEIGHT; j++)
-    {
+  for (uint8_t i = 0; i < WIDTH; i++) {
+    for (uint8_t j = 0; j < HEIGHT; j++) {
       uint8_t index = noise[j][i];
       uint8_t bri   = noise[i][j];
       // if this palette is a 'loop', add a slowly-changing base value
-      if ( colorLoop)
-      {
+      if (colorLoop) {
         index += ihue;
       }
       // brighten up, as the color palette itself often contains the
       // light/dark dynamic range desired
-      if ( bri > 127 )
-      {
+      if (bri > 127) {
         bri = 255;
-      }
-      else
-      {
+      } else {
         bri = dim8_raw( bri * 2);
       }
       CRGB color = ColorFromPalette(currentPalette, index, bri);
@@ -508,11 +508,9 @@ static void fillNoiseLED()
 
 static void fillnoise8()
 {
-  for (uint8_t i = 0; i < MAX_DIMENSION; i++)
-  {
+  for (uint8_t i = 0; i < MAX_SIDE; i++) {
     int32_t ioffset = scale * i;
-    for (uint8_t j = 0; j < MAX_DIMENSION; j++)
-    {
+    for (uint8_t j = 0; j < MAX_SIDE; j++) {
       int32_t joffset = scale * j;
       noise[i][j] = fastled_helper::perlin8(x + ioffset, y + joffset, z);
     }

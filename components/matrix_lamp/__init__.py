@@ -68,6 +68,7 @@ DEPENDENCIES = ["light", "fastled_helper"]
 AUTO_LOAD = ["matrix_lamp", "image", "animation", "display"]
 
 logging.info("Load Matrix Lamp component https://github.com/andrewjswan/matrix-lamp")
+logging.info("If you like the Matrix Lamp, you can support it with a star ⭐ on GitHub.")
 
 matrix_lamp_ns = cg.esphome_ns.namespace("matrix_lamp")
 MATRIX_LAMP = matrix_lamp_ns.class_("MatrixLamp", cg.Component)
