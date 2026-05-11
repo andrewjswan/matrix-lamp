@@ -1,7 +1,5 @@
 #pragma once
 
-#include <algorithm>
-
 #include "common.h"
 #include "constants.h"
 #include "effect_data.h"
@@ -34,8 +32,6 @@ static uint16_t ff_x, ff_y, ff_z;                         // большие сч
 
 static int8_t noise2[2][WIDTH + 1][HEIGHT + 1];
 
-constexpr uint8_t maxDim = std::max(WIDTH, HEIGHT);
-
 // массивы состояния объектов, которые могут использоваться в любом эффекте
 #define trackingOBJECT_MAX_COUNT  (100U)                                        // максимальное количество отслеживаемых объектов (очень влияет на расход памяти)
 static float    trackingObjectPosX[trackingOBJECT_MAX_COUNT];
@@ -59,8 +55,6 @@ static unsigned  liquidLampTR[enlargedOBJECT_MAX_COUNT];
 static uint8_t custom_eff = 0;
 
 // Константы размера матрицы вычисляется только здесь и не меняется в эффектах
-constexpr uint8_t MIN_SIDE = static_cast<uint8_t>(std::min(WIDTH, HEIGHT));
-
 constexpr uint8_t CENTER_X = WIDTH / 2;
 constexpr uint8_t CENTER_Y = HEIGHT / 2;
 
@@ -201,11 +195,11 @@ static void fire2012WithPalette() {
 #define SPARKLES              (1U)                       // вылетающие угольки вкл выкл
 #define UNIVERSE_FIRE                                    // универсальный огонь 2-в-1 Цветной+Белый
 
-//uint8_t pcnt = 0U;                                     // внутренний делитель кадров для поднимающегося пламени - переменная вынесена в общий пул, чтобы использовать повторно
-//uint8_t deltaHue = 16U;                                // текущее смещение пламени (hueMask) - переменная вынесена в общий пул, чтобы использовать повторно
-//uint8_t shiftHue[HEIGHT];                              // массив дороожки горизонтального смещения пламени (hueMask) - вынесен в общий пул массивов переменных
-//uint8_t deltaValue = 16U;                              // текущее смещение пламени (hueValue) - переменная вынесена в общий пул, чтобы использовать повторно
-//uint8_t shiftValue[HEIGHT];                            // массив дороожки горизонтального смещения пламени (hueValue) - вынесен в общий пул массивов переменных
+// uint8_t pcnt = 0U;                                    // внутренний делитель кадров для поднимающегося пламени - переменная вынесена в общий пул, чтобы использовать повторно
+// uint8_t deltaHue = 16U;                               // текущее смещение пламени (hueMask) - переменная вынесена в общий пул, чтобы использовать повторно
+// uint8_t shiftHue[HEIGHT];                             // массив дороожки горизонтального смещения пламени (hueMask) - вынесен в общий пул массивов переменных
+// uint8_t deltaValue = 16U;                             // текущее смещение пламени (hueValue) - переменная вынесена в общий пул, чтобы использовать повторно
+// uint8_t shiftValue[HEIGHT];                           // массив дороожки горизонтального смещения пламени (hueValue) - вынесен в общий пул массивов переменных
 
 // these values are substracetd from the generated values to give a shape to the animation
 // static const uint8_t valueMask[8][16] PROGMEM =
@@ -214,7 +208,7 @@ static void fire2012WithPalette() {
 // should be between 0 (red) to about 25 (yellow)
 // static const uint8_t hueMask[8][16] PROGMEM =
 
-static unsigned char matrixValue[8][16];                 // это массив для эффекта Огонь
+static unsigned char matrixValue[HEIGHT][WIDTH];          // это массив для эффекта Огонь
 
 static void generateLine();
 static void shiftUp();
@@ -224,6 +218,7 @@ static void fireRoutine(bool isColored)
 {
   if (loadingFlag) {
     memset(matrixValue, 0, sizeof(matrixValue));          // это массив для эффекта Огонь. странно, что его нужно залить нулями
+
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
         setModeSettings(random8(30U) ? 1U + random8(100U) : 100U, 200U + random8(35U));
@@ -231,6 +226,7 @@ static void fireRoutine(bool isColored)
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
     loadingFlag = false;
+
     generateLine();
     pcnt = 0;
   }
@@ -390,7 +386,7 @@ static void rainbowRoutine() {
       for (uint8_t j = 0U; j < HEIGHT; j++)
       {
         float twirlFactor = 9.0F * ((modes[currentMode].Scale-33) / 100.0F); // на сколько оборотов будет закручена матрица, [0..3]
-        CRGB thisColor = CHSV((uint8_t)(hue + ((float)WIDTH / (float)HEIGHT * i + j * twirlFactor) * ((float)255 / (float)maxDim)), 255U, 255U);
+        CRGB thisColor = CHSV((uint8_t)(hue + ((float)WIDTH / (float)HEIGHT * i + j * twirlFactor) * ((float)255 / (float)MAX_SIDE)), 255U, 255U);
         drawPixelXY(i, j, thisColor);
       }
 }
@@ -9848,7 +9844,7 @@ static void ballRoutine() {
       vectorB[i] = random(8, 20);
     }
     // ballSize;
-    deltaValue = map(modes[currentMode].Scale * 2.55, 0U, 255U, 2U, max((uint8_t)min(WIDTH, HEIGHT) / 3, 4));
+    deltaValue = map(modes[currentMode].Scale * 2.55, 0U, 255U, 2U, max(MIN_SIDE / 3, 4));
     ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
     _pulse_color = CHSV(random(0, 9) * 28, 255U, 255U);
   }
@@ -12069,11 +12065,11 @@ static uint8_t flip = 0;
 static uint8_t generation = 0;
 static uint8_t rnd = 4; // 1-8
 static uint8_t mic[2];
-static uint8_t minDimLocal = max(WIDTH, HEIGHT) > 32 ? 32 : 16;
+static uint8_t minDimLocal = MAX_SIDE > 32 ? 32 : 16;
 
-const uint8_t width_adj = (WIDTH < HEIGHT ? (HEIGHT - WIDTH) / 2 : 0);
-const uint8_t height_adj = (HEIGHT < WIDTH ? (WIDTH - HEIGHT) / 2 : 0);
-const uint8_t maxDim_steps = 256 / max(WIDTH, HEIGHT);
+// const uint8_t width_adj = (WIDTH < HEIGHT ? (HEIGHT - WIDTH) / 2 : 0);
+// const uint8_t height_adj = (HEIGHT < WIDTH ? (WIDTH - HEIGHT) / 2 : 0);
+// const uint8_t maxDim_steps = 256 / MAX_SIDE;
 
 static void munchRoutine() {
   if (loadingFlag) {
@@ -12085,6 +12081,7 @@ static void munchRoutine() {
     #endif // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
     loadingFlag = false;
+
     setCurrentPalette();
 
     generation = 0;

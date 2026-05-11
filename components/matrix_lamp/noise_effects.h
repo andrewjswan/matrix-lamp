@@ -1,7 +1,5 @@
 #pragma once
 
-#include <algorithm>
-
 #include "common.h"
 #include "constants.h"
 #include "utility.h"
@@ -17,8 +15,6 @@ static uint16_t y;
 static uint16_t z;
 
 // This is the array that we keep our computed noise values in
-constexpr uint8_t MAX_SIDE = static_cast<uint8_t>(std::max(WIDTH, HEIGHT));
-
 #if (WIDTH > HEIGHT)
 static uint8_t noise[WIDTH][WIDTH];
 #else

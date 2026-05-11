@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 #include "esphome.h"
 
 // --- Common -------------------------------------------------------------------------------------------------------------------------------------------
@@ -11,6 +13,9 @@
 // #define HEIGHT                (16U)                      // высота матрицы
 
 constexpr uint16_t NUM_LEDS = WIDTH * HEIGHT;
+
+constexpr uint8_t MIN_SIDE  = static_cast<uint8_t>(std::min(WIDTH, HEIGHT));
+constexpr uint8_t MAX_SIDE  = static_cast<uint8_t>(std::max(WIDTH, HEIGHT));
 
 // --- ЭФФЕКТЫ ------------------------------------------------------------------------------------------------------------------------------------------
 #define DYNAMIC               ( 0U)                         // динамическая задержка для кадров ( будет использоваться бегунок Скорость )
