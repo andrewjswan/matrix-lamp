@@ -1810,7 +1810,7 @@ static uint8_t spirotheta2 = 0;
 
 // Радиусы (четверть размера)
 constexpr uint8_t spiroradiusx = QUARTER_X;  // - 1;
-constexpr uint8_t spiroradiusy = QUARTER_Y; // - 1;
+constexpr uint8_t spiroradiusy = QUARTER_Y;  // - 1;
 
 // Используем ранее созданные центры
 constexpr uint8_t spirocenterX = CENTER_X;
@@ -4945,7 +4945,7 @@ static float InQuad(float t, float b, float c, float d) {
 }
 
 static float OutQuart(float t, float b, float c, float d) {
-  t = t / d - 1; 
+  t = t / d - 1;
   return -c * (t * t * t * t - 1) + b;
 }
 
@@ -5059,16 +5059,15 @@ static void LiquidLampPhysic() {
       if (trackingObjectPosY[j] < BOUNDARY_MARGIN || trackingObjectPosY[j] > HEIGHT - 1 - BOUNDARY_MARGIN) {
         continue;
       }
-      
+
       // Радиус взаимодействия масштабируется с размером матрицы
       float radius = (trackingObjectShift[i] + trackingObjectShift[j]) * 0.5f;
 
       // Быстрая проверка коллизий
       if (std::abs(trackingObjectPosX[i] - trackingObjectPosX[j]) > radius * 2 ||
           std::abs(trackingObjectPosY[i] - trackingObjectPosY[j]) > radius * 2) continue;
-          
       // Бесшовное расстояние по X
-      float dx = min((float)std::abs(trackingObjectPosX[i] - trackingObjectPosX[j]), 
+      float dx = min((float)std::abs(trackingObjectPosX[i] - trackingObjectPosX[j]),
                      (float)WIDTH - (float)std::abs(trackingObjectPosX[i] - trackingObjectPosX[j]));
       float dy = (float)std::abs(trackingObjectPosY[i] - trackingObjectPosY[j]);
       float dist = SQRT_VARIANT(dx * dx + dy * dy);
@@ -5076,14 +5075,14 @@ static void LiquidLampPhysic() {
       if (dist <= radius && dist > 0.01f) {
         float nx = (trackingObjectPosX[j] - trackingObjectPosX[i]) / dist;
         float ny = (trackingObjectPosY[j] - trackingObjectPosY[i]) / dist;
-        
+
         // Импульс с учётом массы
-        float p = 2 * (trackingObjectSpeedX[i] * nx + trackingObjectSpeedY[i] * ny - 
-                       trackingObjectSpeedX[j] * nx - trackingObjectSpeedY[j] * ny) / 
+        float p = 2 * (trackingObjectSpeedX[i] * nx + trackingObjectSpeedY[i] * ny -
+                       trackingObjectSpeedX[j] * nx - trackingObjectSpeedY[j] * ny) /
                   (trackingObjectState[i] + trackingObjectState[j]);
-                  
+
         float pnx = p * nx, pny = p * ny;
-        
+
         trackingObjectSpeedX[i] -= pnx * trackingObjectState[i];
         trackingObjectSpeedY[i] -= pny * trackingObjectState[i];
         trackingObjectSpeedX[j] += pnx * trackingObjectState[j];
@@ -5166,7 +5165,7 @@ static void LiquidLampRoutine(bool isColored){
 
       // Количество объектов пропорционально площади матрицы
       enlargedObjectNUM = (uint8_t)(NUM_LEDS / 2U) - 2U;
-      // enlargedObjectNUM = (uint8_t)(WIDTH * 7 / 8); 
+      // enlargedObjectNUM = (uint8_t)(WIDTH * 7 / 8);
       // enlargedObjectNUM = (uint8_t)(1.5f * WIDTH - 10);
     } else {
       hue = random8();
@@ -5187,7 +5186,7 @@ static void LiquidLampRoutine(bool isColored){
 
       // Скорость плавучести: обратно пропорциональна массе, с учётом масштаба
       liquidLampSpf[i] = remap(trackingObjectState[i],
-                               (uint8_t)MASS_MIN, (uint8_t)MASS_MAX, 
+                               (uint8_t)MASS_MIN, (uint8_t)MASS_MAX,
                                0.0015f / SCALE, 0.0005f / SCALE);
 
       // Радиус пузыря: в диапазоне BASE_RADIUS_MIN..BASE_RADIUS_MAX
@@ -5197,12 +5196,12 @@ static void LiquidLampRoutine(bool isColored){
 
       // Сила возмущения поля в диапазоне BASE_FORCE_MIN..BASE_FORCE_MAX
       liquidLampMX[i] = (unsigned)remap(trackingObjectState[i],
-                                        (uint8_t)MASS_MIN, (uint8_t)MASS_MAX, 
+                                        (uint8_t)MASS_MIN, (uint8_t)MASS_MAX,
                                         BASE_FORCE_MIN, BASE_FORCE_MAX);
 
       // Радиус возмущения в диапазоне BASE_DISTURB_MIN..BASE_DISTURB_MAX
       liquidLampSC[i] = (unsigned)remap(trackingObjectState[i],
-                                        (uint8_t)MASS_MIN, (uint8_t)MASS_MAX, 
+                                        (uint8_t)MASS_MIN, (uint8_t)MASS_MAX,
                                         BASE_DISTURB_MIN, BASE_DISTURB_MAX);
 
       // Порог оптимизации (2/3 от радиуса возмущения)
@@ -5226,14 +5225,13 @@ static void LiquidLampRoutine(bool isColored){
   for (uint8_t x = 0; x < WIDTH; x++) {
     for (uint8_t y = 0; y < HEIGHT; y++) {
       float sum = 0;
-      
+
       for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
         // Быстрое отсечение: если пиксель далеко от пузыря — пропускаем
         if (std::abs(x - trackingObjectPosX[i]) > liquidLampTR[i] ||
             std::abs(y - trackingObjectPosY[i]) > liquidLampTR[i]) continue;
-            
         // Бесшовное расстояние по X
-        float dx = min(std::abs(trackingObjectPosX[i] - (float)x), 
+        float dx = min(std::abs(trackingObjectPosX[i] - (float)x),
                        WIDTH - std::abs(trackingObjectPosX[i] - (float)x));
         float dy = std::abs(trackingObjectPosY[i] - (float)y);
         float d = SQRT_VARIANT(dx * dx + dy * dy);
@@ -5245,16 +5243,15 @@ static void LiquidLampRoutine(bool isColored){
           // В зоне возмущения: яркость спадает к краям
           sum += mapcurve(d, trackingObjectShift[i], liquidLampSC[i], liquidLampMX[i], 0, OutQuart);
         }
-        
+
         if (sum >= 255) {
           sum = 255;
           break;
         }
       }
-      
+
       // Минимальная яркость для избежания артефактов палитры
       if (sum < 16) sum = 16;
-      
       CRGB color = ColorFromPalette(myPal, (uint8_t)sum);
       drawPixelXY(x, y, color);
     }
@@ -7562,7 +7559,7 @@ static void FeatherCandleRoutine() {
     for (uint8_t dx = 0; dx < drawW; dx++) {
       uint8_t sx = (dx * w) / drawW;
       uint8_t brightness = img[sy * w + sx];
-      
+
       if (brightness > 0) {
         uint8_t px = offsetX + dx;
         uint8_t py = offsetY + dy;
@@ -7588,21 +7585,21 @@ static void FeatherCandleRoutine() {
     case 1:
       if (trackingObjectState[0] > low_level + 3) trackingObjectState[0] -= 3;
       else trackingObjectState[0] = low_level;
-      
+
       if (trackingObjectState[1] + 3 < level) trackingObjectState[1] += 3;
       else trackingObjectState[1] = level;
       break;
     case 2:
       if (trackingObjectState[1] > low_level + 3) trackingObjectState[1] -= 3;
       else trackingObjectState[1] = low_level;
-      
+
       if (trackingObjectState[2] + 3 < level) trackingObjectState[2] += 3;
       else trackingObjectState[2] = level;
       break;
     case 3:
       if (trackingObjectState[2] > low_level + 3) trackingObjectState[2] -= 3;
       else trackingObjectState[2] = low_level;
-      
+
       if (trackingObjectState[2] == low_level) {
         hue++;
         // set random position drop of wax
@@ -8128,7 +8125,7 @@ static void Hourglass() {
   // constexpr uint8_t topPos  = HEIGHT - h;
   constexpr uint8_t route = HEIGHT - h - 1U;
   constexpr uint8_t STEP = 18U;
-  
+
   uint8_t posX = 0;
 
   if (loadingFlag) {
