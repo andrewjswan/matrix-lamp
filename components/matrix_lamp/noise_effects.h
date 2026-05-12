@@ -6,6 +6,7 @@
 #include "constants.h"
 #include "utility.h"
 
+#include "esphome/core/defines.h"
 #include "esphome/components/fastled_helper/utils.h"
 
 namespace esphome::matrix_lamp {

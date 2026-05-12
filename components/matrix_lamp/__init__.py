@@ -84,8 +84,8 @@ MATRIX_LAMP_SCHEMA = cv.Schema(
     {
         cv.GenerateID(CONF_ID): cv.declare_id(MATRIX_LAMP),
         cv.Optional(CONF_DISPLAY): cv.use_id(display),
-        cv.Optional(CONF_WIDTH, default="16"): cv.templatable(cv.positive_int),
-        cv.Optional(CONF_HEIGHT, default="16"): cv.templatable(cv.positive_int),
+        cv.Optional(CONF_WIDTH, default="16"): cv.templatable(cv.int_range(min=8, max=200)),
+        cv.Optional(CONF_HEIGHT, default="16"): cv.templatable(cv.int_range(min=8, max=200)),
         cv.Optional(CONF_RANDOM, default=False): cv.templatable(cv.boolean),
         cv.Optional(CONF_ORIENTATION): cv.templatable(cv.int_range(min=0, max=7)),
         cv.Optional(CONF_MATRIX_TYPE): cv.templatable(cv.int_range(min=0, max=1)),

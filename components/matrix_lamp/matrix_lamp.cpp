@@ -1,8 +1,10 @@
-#include "esphome.h"
 #include "common.h"
 #include "constants.h"
-#include "utility.h"
 #include "effect_ticker.h"
+#include "matrix_lamp.h"
+#include "utility.h"
+
+#include "esphome/core/defines.h"
 
 namespace esphome::matrix_lamp {
 
