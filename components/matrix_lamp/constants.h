@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "esphome.h"
+#include "esphome/core/defines.h"
 
 // --- Common -------------------------------------------------------------------------------------------------------------------------------------------
 // #define RANDOM_SETTINGS_IN_CYCLE_MODE     (1U)           // с этой строчкой в режиме Цикл эффекты будут включаться на случайных (но удачных) настройках Скорости и Масштаба
@@ -12,10 +12,34 @@
 // #define WIDTH                 (16U)                      // ширина матрицы
 // #define HEIGHT                (16U)                      // высота матрицы
 
-constexpr uint16_t NUM_LEDS = WIDTH * HEIGHT;
+inline constexpr uint16_t NUM_LEDS = WIDTH * HEIGHT;
 
-constexpr uint8_t MIN_SIDE  = static_cast<uint8_t>(std::min(WIDTH, HEIGHT));
-constexpr uint8_t MAX_SIDE  = static_cast<uint8_t>(std::max(WIDTH, HEIGHT));
+inline constexpr uint8_t MIN_SIDE  = static_cast<uint8_t>(std::min(WIDTH, HEIGHT));
+inline constexpr uint8_t MAX_SIDE  = static_cast<uint8_t>(std::max(WIDTH, HEIGHT));
+
+// Константы размера матрицы вычисляется только здесь и не меняется в эффектах
+inline constexpr uint8_t CENTER_X = WIDTH / 2;
+inline constexpr uint8_t CENTER_Y = HEIGHT / 2;
+
+inline constexpr float CENTER_X_F = WIDTH / 2.0f;
+inline constexpr float CENTER_Y_F = HEIGHT / 2.0f;
+
+inline constexpr uint8_t THIRD_X = WIDTH / 3;
+inline constexpr uint8_t THIRD_Y = HEIGHT / 3;
+
+inline constexpr uint8_t QUARTER_X = WIDTH / 4;
+inline constexpr uint8_t QUARTER_Y = HEIGHT / 4;
+
+inline constexpr uint8_t OCTANT_X = WIDTH / 8;
+inline constexpr uint8_t OCTANT_Y = HEIGHT / 8;
+
+// Центр со сдвигом в меньшую сторону, если ширина чётная
+inline constexpr uint8_t CENTER_X_MINOR = CENTER_X - ((WIDTH - 1) & 0x01);
+inline constexpr uint8_t CENTER_Y_MINOR = CENTER_Y - ((HEIGHT - 1) & 0x01);
+
+// Центр со сдвигом в большую сторону, если ширина чётная
+inline constexpr uint8_t CENTER_X_MAJOR = CENTER_X + (WIDTH % 2);
+inline constexpr uint8_t CENTER_Y_MAJOR = CENTER_Y + (HEIGHT % 2);
 
 // --- ЭФФЕКТЫ ------------------------------------------------------------------------------------------------------------------------------------------
 #define DYNAMIC               ( 0U)                         // динамическая задержка для кадров ( будет использоваться бегунок Скорость )

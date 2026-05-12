@@ -5,6 +5,12 @@
 #define FASTLED_NO_PIN_INTERRUPTS
 #define FASTLED_STUB_IMPL
 
+#include "esphome/core/defines.h"
+
+class StubSPIOutput {};
+
+#include <FastLED.h>
+
 #include <pixeltypes.h>     // Дает структуру CRGB и CHSV
 #include <lib8tion.h>       // Дает математику (beatsin8, random8, scale8 и т.д.)
 #include <colorutils.h>     // Дает функции работы с цветом и палитрами
