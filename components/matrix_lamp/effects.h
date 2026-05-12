@@ -3186,7 +3186,7 @@ static void Fire2018_2() {
   for (uint8_t y = 0; y < HEIGHT - 1; y++) {
     for (uint8_t x = 0; x < WIDTH; x++) {
       uint8_t dim = noise3d[0][x][y];
-      
+
       // high value = high flames
       dim = ((uint16_t)dim * 150) >> 8; // dim / 1.7 : Умножаем на 150 и сдвигаем на 8 (аналог умножения на 0.585)
       dim = 255 - dim;
@@ -6912,7 +6912,7 @@ static void Fire2021Routine(){
 
     for (uint8_t x = 0; x < WIDTH; x++) {
       int16_t Bri = fastled_helper::perlin8(x * deltaValue, yOffset, ff_z) - yFade;
-      uint8_t Col = (uint8_t)Bri; 
+      uint8_t Col = (uint8_t)Bri;
       uint8_t finalBri = 0;
 
       if (Bri > 0) {
@@ -7626,10 +7626,10 @@ static void VirtualExplosion(uint8_t f_type, int8_t timeline) {
   constexpr uint8_t DELAY_SECOND_EXPLOSION = QUARTER_Y;
   constexpr uint8_t horizont = 1U;  // HEIGHT * 0.2f;
   constexpr int8_t STEP = 255 / HEIGHT;
-  
+
   constexpr uint8_t ACTION_TIME = ((uint16_t)HEIGHT * 7) / 4;  //  HEIGHT * 1.75
   constexpr uint8_t SECOND_EXPLOSION = ((uint16_t)(HEIGHT - DELAY_SECOND_EXPLOSION) * 7) / 4;  // ((HEIGHT - DELAY_SECOND_EXPLOSION) * 1.75)
-  
+
 
   uint8_t firstColor = random8(255);
   uint8_t secondColor = 0;
@@ -10370,8 +10370,8 @@ class Spark {
 
     void draw() {
       // color.fadeLightBy(256 / (HEIGHT * 0.75f));
-      // 0.75 это 3/4. 
-      // Чтобы получить (256 / (HEIGHT * 3/4)), 
+      // 0.75 это 3/4.
+      // Чтобы получить (256 / (HEIGHT * 3/4)),
       // переворачиваем дробь: (256 * 4) / (HEIGHT * 3)
       // 256 * 4 = 1024
       color.fadeLightBy(1024 / (HEIGHT * 3));
@@ -11343,7 +11343,7 @@ static void Fountain() {
 
         if ((x % 4) == 0) {
           hue = gamma[deltaValue];
-        
+
           // Предварительный расчет границ (ceil без использования float библиотек)
           // ceil(emitterY - radius) -> (int16_t)(emitterY - radius + 0.99f)
           int16_t boundaryLow = (int16_t)(emitterY - radius + 0.99f);

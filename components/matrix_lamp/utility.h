@@ -109,16 +109,16 @@ static void blur1d(uint16_t numLeds, fract8 blur_amount) {
     uint8_t keep = 255 - blur_amount;
     uint8_t seep = blur_amount >> 1;
     CRGB carryover = CRGB::Black;
-    
+
     for(uint16_t i = 0; i < numLeds; ++i) {
         CRGB cur = leds[i];
         CRGB part = cur;
         part.nscale8(seep);
         cur.nscale8(keep);
-        
+
         cur += carryover;
-        if(i > 0) leds[i-1] += part; 
-        
+        if(i > 0) leds[i-1] += part;
+
         leds[i] = cur;
         carryover = part;
     }
@@ -281,7 +281,7 @@ static void DrawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, CRGB color)
 
   for (;;) {
     drawPixelXY(x1, y1, color);
-    
+
     if (x1 == x2 && y1 == y2) break;  // Линия закончена
 
     int16_t error2 = error << 1;      // То же самое, что error * 2
@@ -320,7 +320,7 @@ static void DrawLineF(float x1f, float y1f, float x2f, float y2f, CRGB color) {
 
     int32_t dx = x2 - x1;
     int32_t dy = y2 - y1;
-    
+
     // Градиент в фиксированной точке
     // Используем 64-битное деление, чтобы избежать переполнения при расчете шага
     int32_t gradient = (int32_t)(((int64_t)dy << 16) / (dx >> 16));
@@ -351,7 +351,7 @@ static void DrawLineF(float x1f, float y1f, float x2f, float y2f, CRGB color) {
         // Пиксель 2 (соседний по Y или X)
         int16_t px2 = steep ? px + 1 : px;
         int16_t py2 = steep ? py : py + 1;
-        
+
         CRGB bg2 = getPixColorXY(px2, py2);
         drawPixelXY(px2, py2, CRGB(qadd8(bg2.r, (color.r * weight2) >> 8),
                                    qadd8(bg2.g, (color.g * weight2) >> 8),
@@ -375,7 +375,7 @@ static void drawCircleF(float x0, float y0, float radius, CRGB color) {
   int16_t cy0 = static_cast<int16_t>(y0);
 
   while (y >= 0) {
-    // Используем wrapX для бесшовности по горизонтали 
+    // Используем wrapX для бесшовности по горизонтали
     // и обычный y для защиты по вертикали внутри drawPixelXY
     drawPixelXY(wrapX(cx0 + x), cy0 + y, color);
     drawPixelXY(wrapX(cx0 + x), cy0 - y, color);
@@ -425,7 +425,7 @@ static void drawRecCHSV(uint8_t startX, uint8_t startY, uint8_t endX, uint8_t en
 static uint8_t validMinMax(float val, uint8_t minV, uint8_t maxV) {
   if (val <= (float)minV) return minV;
   if (val >= (float)maxV) return maxV;
-  
+
   // ceil вручную, приведение к int и добавление 1, если была дробная часть
   uint8_t iVal = static_cast<uint8_t>(val);
   return (val > (float)iVal) ? (iVal + 1U) : iVal;
@@ -435,10 +435,10 @@ static uint8_t validMinMax(float val, uint8_t minV, uint8_t maxV) {
 // ------------------------------------------------
 // альтернативный градиент для ламп собраных из лент с вертикальной компоновкой
 // gradientHorizontal | gradientVertical менее производительный но работает на всех видах ламп
-static void gradientHorizontal(uint8_t startX, uint8_t startY, uint8_t endX, uint8_t endY, 
-                               uint8_t start_color, uint8_t end_color, 
+static void gradientHorizontal(uint8_t startX, uint8_t startY, uint8_t endX, uint8_t endY,
+                               uint8_t start_color, uint8_t end_color,
                                uint8_t start_br, uint8_t end_br, uint8_t saturate) {
-  
+
   // Определяем фактические границы для циклов (всегда от меньшего к большему)
   uint8_t xMin = startX < endX ? startX : endX;
   uint8_t xMax = startX < endX ? endX : startX;
@@ -452,11 +452,11 @@ static void gradientHorizontal(uint8_t startX, uint8_t startY, uint8_t endX, uin
   for (uint8_t x = xMin; x < xMax; x++) {
     // Вычисляем положение текущего X относительно НАЧАЛЬНОЙ точки startX
     int16_t offset = (int16_t)x - (int16_t)startX;
-    
+
     // Формула сохраняет направление: если dx отрицательный, градиент пойдет вспять
     uint8_t this_hue = start_color + (int32_t)(end_color - start_color) * offset / dx;
     uint8_t this_br  = start_br + (int32_t)(end_br - start_br) * offset / dx;
-    
+
     CHSV col = CHSV(this_hue, saturate, this_br);
 
     for (uint8_t y = yMin; y < yMax; y++) {
@@ -467,10 +467,10 @@ static void gradientHorizontal(uint8_t startX, uint8_t startY, uint8_t endX, uin
 
 
 // ------------------------------------------------
-static void gradientVertical(uint8_t startX, uint8_t startY, uint8_t endX, uint8_t endY, 
-                             uint8_t start_color, uint8_t end_color, 
+static void gradientVertical(uint8_t startX, uint8_t startY, uint8_t endX, uint8_t endY,
+                             uint8_t start_color, uint8_t end_color,
                              uint8_t start_br, uint8_t end_br, uint8_t saturate) {
-  
+
   // Определяем физические границы для циклов
   uint8_t xMin = startX < endX ? startX : endX;
   uint8_t xMax = startX < endX ? endX : startX;
@@ -488,7 +488,7 @@ static void gradientVertical(uint8_t startX, uint8_t startY, uint8_t endX, uint8
     // Целочисленный расчет цвета и яркости (сохраняет направление)
     uint8_t this_hue = start_color + (int32_t)(end_color - start_color) * offset / dy;
     uint8_t this_br  = start_br + (int32_t)(end_br - start_br) * offset / dy;
-    
+
     CHSV col = CHSV(this_hue, saturate, this_br);
 
     // Заполняем горизонтальную линию этим цветом
@@ -532,7 +532,7 @@ static void fadePixel(uint8_t i, uint8_t j, uint8_t step) {
   CRGB& pixel = leds[pixelNum]; // Ссылка на пиксель, чтобы не копировать его
 
   // Если пиксель уже черный — выходим
-  if (!pixel) return; 
+  if (!pixel) return;
 
   // Если хотя бы один канал выше порога, гасим плавно
   if (pixel.r > 30U || pixel.g > 30U || pixel.b > 30U) {

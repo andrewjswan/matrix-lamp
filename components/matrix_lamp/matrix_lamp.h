@@ -2,11 +2,14 @@
 
 #include "esphome/core/defines.h"
 #include "esphome/core/color.h"
+#ifdef MATRIX_LAMP_USE_DISPLAY
 #include "esphome/components/addressable_light/addressable_light_display.h"
+#endif
+#include "esphome/components/animation/animation.h"
 #ifdef USE_API
 #include "esphome/components/api/custom_api_device.h"
 #endif
-#include "esphome/components/animation/animation.h"
+#include "esphome/components/light/addressable_light.h"
 #include "esphome/components/template/number/template_number.h"
 
 namespace esphome::matrix_lamp {

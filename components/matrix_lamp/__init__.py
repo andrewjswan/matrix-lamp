@@ -63,9 +63,9 @@ _LOGGER = logging.getLogger(__name__)
 
 CODEOWNERS = ["@andrewjswan"]
 
-DEPENDENCIES = ["light", "fastled_helper"]
+DEPENDENCIES = ["fastled_helper", "light"]
 
-AUTO_LOAD = ["matrix_lamp", "image", "animation", "display"]
+AUTO_LOAD = ["animation", "display", "image", "matrix_lamp"]
 
 logging.info("Load Matrix Lamp component https://github.com/andrewjswan/matrix-lamp")
 logging.info("If you like the Matrix Lamp, you can support it with a star ⭐ on GitHub.")
