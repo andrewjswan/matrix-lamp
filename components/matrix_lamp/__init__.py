@@ -130,13 +130,13 @@ async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
 
     cg.add_global(
         cg.RawExpression(
-            f"inline constexpr uint8_t WIDTH = {config[CONF_WIDTH]};"
-        )
+            f"inline constexpr uint8_t WIDTH = {config[CONF_WIDTH]};",
+        ),
     )
     cg.add_global(
         cg.RawExpression(
-            f"inline constexpr uint8_t HEIGHT = {config[CONF_HEIGHT]};"
-        )
+            f"inline constexpr uint8_t HEIGHT = {config[CONF_HEIGHT]};",
+        ),
     )
 
     if CONF_INTENSITY_ID in config:
@@ -171,8 +171,8 @@ async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
     if CONF_DISPLAY in config:
         cg.add_global(
             cg.RawExpression(
-                f"inline constexpr uint8_t MAXICONS = {MAXICONS};"
-            )
+                f"inline constexpr uint8_t MAXICONS = {MAXICONS};",
+            ),
         )
 
         from PIL import Image  # noqa: PLC0415
