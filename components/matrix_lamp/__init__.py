@@ -132,10 +132,12 @@ async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
         cg.RawExpression(
             f"inline constexpr uint8_t WIDTH = {config[CONF_WIDTH]}"
         )
+    )
     cg.add_global(
         cg.RawExpression(
             f"inline constexpr uint8_t HEIGHT = {config[CONF_HEIGHT]}"
         )
+    )
 
     if CONF_INTENSITY_ID in config:
         intensity_number = await cg.get_variable(config[CONF_INTENSITY_ID])
