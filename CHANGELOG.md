@@ -6,12 +6,12 @@
 
 ### 🐛 Bug Fixes
 
-- ESPHome 2026.4.1: `little-endian` byte order for images @andrewjswan (#118)
+- ESPHome 2026.4.1: `little-endian` byte order for images @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/118)
 
 ### 🧰 Maintenance
 
-- ESPHome 2026.4.1: `little-endian` byte order for images @andrewjswan (#118)
-- DEP: Bump actions/upload-pages-artifact from 4 to 5 @[dependabot[bot]](https://github.com/apps/dependabot) (#117)
+- ESPHome 2026.4.1: `little-endian` byte order for images @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/118)
+- DEP: Bump actions/upload-pages-artifact from 4 to 5 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/117)
 
 ### 🤝 Support
 
@@ -27,25 +27,25 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 ### 🚀 Features
 
-- Switch `esp32` from `board` to `variant` @andrewjswan (#108)
+- Switch `esp32` from `board` to `variant` @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/108)
 
 ### 🐛 Bug Fixes
 
-- Fix distorted animated icons on ESPHome 2026.4.0 @andrewjswan (#115)
+- Fix distorted animated icons on ESPHome 2026.4.0 @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/115)
 
 ### 🧰 Maintenance
 
-- Fix distorted animated icons on ESPHome 2026.4.0 @andrewjswan (#115)
-- DEP: Bump softprops/action-gh-release from 2 to 3 @[dependabot[bot]](https://github.com/apps/dependabot) (#114)
-- Add `Social` background @andrewjswan (#113)
-- DEP: Bump actions/deploy-pages from 4 to 5 @[dependabot[bot]](https://github.com/apps/dependabot) (#112)
-- DEP: Bump actions/configure-pages from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (#111)
-- DEP: Bump release-drafter/release-drafter from 6 to 7 @[dependabot[bot]](https://github.com/apps/dependabot) (#109)
-- DEP: Bump geekyeggo/delete-artifact from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (#110)
-- Switch `esp32` from `board` to `variant` @andrewjswan (#108)
-- DEP: Bump actions/download-artifact from 7 to 8 @[dependabot[bot]](https://github.com/apps/dependabot) (#106)
-- DEP: Bump actions/upload-artifact from 6 to 7 @[dependabot[bot]](https://github.com/apps/dependabot) (#107)
-- Add `social` cards to documentation @andrewjswan (#105)
+- Fix distorted animated icons on ESPHome 2026.4.0 @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/115)
+- DEP: Bump softprops/action-gh-release from 2 to 3 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/114)
+- Add `Social` background @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/113)
+- DEP: Bump actions/deploy-pages from 4 to 5 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/112)
+- DEP: Bump actions/configure-pages from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/111)
+- DEP: Bump release-drafter/release-drafter from 6 to 7 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/109)
+- DEP: Bump geekyeggo/delete-artifact from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/110)
+- Switch `esp32` from `board` to `variant` @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/108)
+- DEP: Bump actions/download-artifact from 7 to 8 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/106)
+- DEP: Bump actions/upload-artifact from 6 to 7 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/107)
+- Add `social` cards to documentation @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/105)
 
 ### 🤝 Support
 
@@ -61,8 +61,8 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 ### 🚀 Features
 
-- Rework `firmware` page @andrewjswan (#103)
-- Rework `ESPHome Version` sensor @andrewjswan (#102)
+- Rework `firmware` page @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/103)
+- Rework `ESPHome Version` sensor @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/102)
 
 ### 🤝 Support
 
@@ -76,11 +76,11 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 ### What's Changed
 
-- ESPHome 2026.1 - Lambda API Changes @andrewjswan (#99)
+- ESPHome 2026.1 - Lambda API Changes @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/99)
 
 ### 🧰 Maintenance
 
-- Add .pre-commit-config.yaml @andrewjswan (#97)
+- Add .pre-commit-config.yaml @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/97)
 
 ### 🤝 Support
 
@@ -94,14 +94,14 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 ### What's Changed
 
-- Documentation: Move all `Fire` in one place @andrewjswan (#92)
+- Documentation: Move all `Fire` in one place @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/92)
 
 ### 🚀 Features
 
-- Add `Stars Night` effect @andrewjswan (#96)
-- Add `Butterfly` effect @andrewjswan (#95)
-- Effect: `Rainbow Rings` rework @andrewjswan (#94)
-- Change `integration` filter to `throttle` @andrewjswan (#93)
+- Add `Stars Night` effect @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/96)
+- Add `Butterfly` effect @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/95)
+- Effect: `Rainbow Rings` rework @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/94)
+- Change `integration` filter to `throttle` @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/93)
 
 ### 🤝 Support
 
@@ -117,15 +117,15 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 ### 🚀 Features
 
-- Remove deprecated `Select` properties (ESPHome 2025.11.0) @andrewjswan (#84)
-- Move to Fastled math @andrewjswan (#87)
-- Add `Fire 2025` effect by Parus @andrewjswan (#89)
-- Add `Fire Parus` effect to examples (In the firmware, it is called `Fire 2005`) @andrewjswan (#90)
+- Remove deprecated `Select` properties (ESPHome 2025.11.0) @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/84)
+- Move to Fastled math @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/87)
+- Add `Fire 2025` effect by Parus @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/89)
+- Add `Fire Parus` effect to examples (In the firmware, it is called `Fire 2005`) @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/90)
 
 ### 🧰 Maintenance
 
-- DEP: Bump actions/download-artifact from 6 to 7 @[dependabot[bot]](https://github.com/apps/dependabot) (#83)
-- DEP: Bump actions/upload-artifact from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (#82)
+- DEP: Bump actions/download-artifact from 6 to 7 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/83)
+- DEP: Bump actions/upload-artifact from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/82)
 
 ### 🤝 Support
 
@@ -139,17 +139,17 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 ### What's Changed
 
-- Add permissions to Greeting action @andrewjswan (#78)
+- Add permissions to Greeting action @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/78)
 
 ### 🐛 Bug Fixes
 
-- Fix for ESPHome 2025.11.0 @andrewjswan (#80)
+- Fix for ESPHome 2025.11.0 @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/80)
 
 ### 🧰 Maintenance
 
-- DEP: Bump actions/checkout from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (#79)
-- DEP: Bump actions/download-artifact from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (#76)
-- DEP: Bump actions/upload-artifact from 4 to 5 @[dependabot[bot]](https://github.com/apps/dependabot) (#77)
+- DEP: Bump actions/checkout from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/79)
+- DEP: Bump actions/download-artifact from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/76)
+- DEP: Bump actions/upload-artifact from 4 to 5 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/77)
 
 ### 🤝 Support
 
@@ -163,11 +163,11 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 ### What's Changed
 
-- ESPNow, Matrix Lamp sync and external Sound Reactive @andrewjswan (#74)
+- ESPNow, Matrix Lamp sync and external Sound Reactive @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/74)
 
 ### 🧰 Maintenance
 
-- DEP: Bump stefanzweifel/git-auto-commit-action from 6 to 7 @[dependabot[bot]](https://github.com/apps/dependabot) (#73)
+- DEP: Bump stefanzweifel/git-auto-commit-action from 6 to 7 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/73)
 
 ### 🤝 Support
 
@@ -183,17 +183,17 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 #### 🚀 Features
 
-- [matrix_lamp] Add preset and playlist management component @parus2024 (#67)
+- [matrix_lamp] Add preset and playlist management component @parus2024 (https://github.com/andrewjswan/matrix-lamp/pull/67)
 
 #### 🐛 Bug Fixes
 
-- MatrixLamp: Rollback to FastLED 3.10.1 @andrewjswan (#69)
+- MatrixLamp: Rollback to FastLED 3.10.1 @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/69)
 
 #### 🧰 Maintenance
 
-- 2025.10: Add Test for ESPHome DEV @andrewjswan (#68)
-- Esp32-C3: Switch to RMT Light @andrewjswan (#70)
-- Add Arduino framework as Default @andrewjswan (#71)
+- 2025.10: Add Test for ESPHome DEV @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/68)
+- Esp32-C3: Switch to RMT Light @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/70)
+- Add Arduino framework as Default @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/71)
 
 #### 🤝 Support
 
@@ -209,12 +209,12 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 ### 🚀 Features
 
-- Bump FastLED to 3.10.3 @andrewjswan (#65)
-- Add preset example package @andrewjswan (#64)
+- Bump FastLED to 3.10.3 @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/65)
+- Add preset example package @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/64)
 
 ### 🧰 Maintenance
 
-- Bump FastLED to 3.10.3 @andrewjswan (#65)
+- Bump FastLED to 3.10.3 @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/65)
 
 ### 🤝 Support
 
@@ -228,11 +228,11 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 ### What's Changed
 
-- Triggers @andrewjswan (#62)
+- Triggers @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/62)
 
 ### 🧰 Maintenance
 
-- DEP: Bump actions/setup-python from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (#61)
+- DEP: Bump actions/setup-python from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/61)
 
 ### 🤝 Support
 
@@ -246,7 +246,7 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 ### What's Changed
 
-- Update documentation @andrewjswan (#59)
+- Update documentation @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/59)
 
 ### 🤝 Support
 
@@ -262,12 +262,12 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 ### 🚀 Features
 
-- Effect: Incremental Drift reborn @andrewjswan (#56)
-- Effects: Incremental Drift tune @andrewjswan (#57)
+- Effect: Incremental Drift reborn @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/56)
+- Effects: Incremental Drift tune @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/57)
 
 ### 🐛 Bug Fixes
 
-- Effect: Incremental Drift reborn @andrewjswan (#56)
+- Effect: Incremental Drift reborn @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/56)
 
 ### 🤝 Support
 
@@ -283,8 +283,8 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 ### 🚀 Features
 
-- Add Incremental Drift effect @andrewjswan (#51)
-- Add Effects to Documentation @andrewjswan (#52)
+- Add Incremental Drift effect @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/51)
+- Add Effects to Documentation @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/52)
 
 ### 🤝 Support
 
@@ -298,7 +298,7 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 ### What's Changed
 
-- Documentation @andrewjswan (#48)
+- Documentation @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/48)
 
 ### 🤝 Support
 
@@ -314,15 +314,15 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 ### 🚀 Features
 
-- Add RMT Light package @andrewjswan (#46)
+- Add RMT Light package @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/46)
 
 ### 🧰 Maintenance
 
-- DEP: Bump actions/upload-pages-artifact from 3 to 4 @[dependabot[bot]](https://github.com/apps/dependabot) (#45)
-- DEP: Bump actions/first-interaction from 2 to 3 @[dependabot[bot]](https://github.com/apps/dependabot) (#44)
-- DEP: Bump actions/download-artifact from 4 to 5 @[dependabot[bot]](https://github.com/apps/dependabot) (#42)
-- DEP: Bump actions/checkout from 4 to 5 @[dependabot[bot]](https://github.com/apps/dependabot) (#43)
-- DEP: Bump actions/first-interaction from 1 to 2 @[dependabot[bot]](https://github.com/apps/dependabot) (#41)
+- DEP: Bump actions/upload-pages-artifact from 3 to 4 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/45)
+- DEP: Bump actions/first-interaction from 2 to 3 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/44)
+- DEP: Bump actions/download-artifact from 4 to 5 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/42)
+- DEP: Bump actions/checkout from 4 to 5 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/43)
+- DEP: Bump actions/first-interaction from 1 to 2 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/41)
 
 ### 🤝 Support
 
@@ -338,19 +338,19 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 ### 🚀 Features
 
-- Matrix Lamp 2025.7.1 @andrewjswan (#37)
+- Matrix Lamp 2025.7.1 @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/37)
 - ESPHome 2025.7.0
 - FastLed 3.10.1
 
 ### 🐛 Bug Fixes
 
-- 2025.7.1: Base Package fix @andrewjswan (#38)
+- 2025.7.1: Base Package fix @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/38)
 
 ### 🧰 Maintenance
 
-- Matrix Lamp 2025.7.1 @andrewjswan (#37)
-- DEP: Bump stefanzweifel/git-auto-commit-action from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (#36)
-- DEP: Bump esphome/build-action from 6 to 7 @[dependabot[bot]](https://github.com/apps/dependabot) (#35)
+- Matrix Lamp 2025.7.1 @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/37)
+- DEP: Bump stefanzweifel/git-auto-commit-action from 5 to 6 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/36)
+- DEP: Bump esphome/build-action from 6 to 7 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/35)
 
 ### 🤝 Support
 
@@ -382,7 +382,7 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 ## ❗️ Breaking Changes
 
-- Breaking: Internal reorganization of methods @andrewjswan (#33)
+- Breaking: Internal reorganization of methods @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/33)
 
 ### 🤝 Support
 
@@ -398,7 +398,7 @@ If you like the project, you can support it with a star ⭐ on GitHub.
 
 ### 🚀 Features
 
-- Add Intensity control @andrewjswan (#32)
+- Add Intensity control @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/32)
 
 ### 🤝 Support
 
