@@ -29,6 +29,7 @@ class MatrixLamp_Icon;
 #define BITMAPICON MAXICONS + 1
 #endif
 
+template<uint8_t WIDTH, uint8_t HEIGHT>
 #if defined(USE_API)
 class MatrixLamp : public Component, public api::CustomAPIDevice {
 #else
