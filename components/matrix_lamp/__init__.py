@@ -124,20 +124,13 @@ CONFIG_SCHEMA = cv.All(MATRIX_LAMP_SCHEMA)
 
 async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
     """Code generation entry point."""
-    var = cg.new_Pvariable(config[CONF_ID])
+    template_args = cg.TemplateArguments(
+        config[CONF_WIDTH], 
+        config[CONF_HEIGHT]
+    )
+    var = cg.new_Pvariable(config[CONF_ID], template_args)
 
     cg.add_library("fastled/FastLED", "3.10.1")
-
-    cg.add_global(
-        cg.RawExpression(
-            f"inline constexpr uint8_t WIDTH = {config[CONF_WIDTH]};",
-        ),
-    )
-    cg.add_global(
-        cg.RawExpression(
-            f"inline constexpr uint8_t HEIGHT = {config[CONF_HEIGHT]};",
-        ),
-    )
 
     if CONF_INTENSITY_ID in config:
         intensity_number = await cg.get_variable(config[CONF_INTENSITY_ID])
