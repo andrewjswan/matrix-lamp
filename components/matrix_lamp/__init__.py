@@ -125,7 +125,7 @@ CONFIG_SCHEMA = cv.All(MATRIX_LAMP_SCHEMA)
 async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
     """Code generation entry point."""
     template_args = cg.TemplateArguments(
-        config[CONF_WIDTH], 
+        config[CONF_WIDTH],
         config[CONF_HEIGHT]
     )
     var = cg.new_Pvariable(config[CONF_ID], template_args)
