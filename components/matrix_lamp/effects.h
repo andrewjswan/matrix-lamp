@@ -10074,21 +10074,21 @@ static float atan_fast(float x) {
   /* A fast look-up method with enough accuracy */
   if (x > 0) {
     if (x <= 1) {
-      uint8_t index = std::clamp((int32_t)std::round(x * 100.0f), 0, 101);
+      uint8_t index = std::clamp((int32_t)std::round(x * 100.0f), (int32_t)0, (int32_t)101);
       return LUT[index];
     } else {
       float re_x = 1 / x;
-      uint8_t index = std::clamp((int32_t)std::round(re_x * 100.0f), 0, 101);
+      uint8_t index = std::clamp((int32_t)std::round(re_x * 100.0f), (int32_t)0, (int32_t)101);
       return (M_PI_2 - LUT[index]);
     }
   } else {
     if (x >= -1) {
       float abs_x = -x;
-      uint8_t index = std::clamp((int32_t)std::round(abs_x * 100.0f), 0, 101);
+      uint8_t index = std::clamp((int32_t)std::round(abs_x * 100.0f), (int32_t)0, (int32_t)101);
       return -(LUT[index]);
     } else {
       float re_x = 1 / (-x);
-      uint8_t index = std::clamp((int32_t)std::round(re_x * 100.0f), 0, 101);
+      uint8_t index = std::clamp((int32_t)std::round(re_x * 100.0f), (int32_t)0, (int32_t)101);
       return (LUT[index] - M_PI_2);
     }
   }
@@ -10310,7 +10310,7 @@ static void TixyLand() {
 
   for (uint8_t x = 0; x < WIDTH; x++) {
     for (uint8_t y = 0; y < HEIGHT; y++) {
-      processFrame(t, static_cast<float>x, static_cast<float>y);
+      processFrame(t, static_cast<float>(x), static_cast<float>(y));
     }
   }
 }
