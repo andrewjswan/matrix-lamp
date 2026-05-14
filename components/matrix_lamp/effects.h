@@ -10038,7 +10038,7 @@ static const PROGMEM float LUT[102] = {
 static float atan2_fast(float y, float x) {
   // http://pubs.opengroup.org/onlinepubs/009695399/functions/atan2.html
   // Volkan SALMA
-  
+
   // Защита от неопределенности 0/0: по стандарту atan2(0,0) равен 0
   if (x == 0.0f && y == 0.0f) return 0.0f;
 
@@ -10060,7 +10060,7 @@ static float atan2_fast(float y, float x) {
 
   // Оптимизация полинома по схеме Горнера (минус одно умножение)
   angle += ((0.1963f * r) * r - 0.9817f) * r;
-  
+
   // Отрицательный угол для III и IV квадрантов
   return (y < 0.0f) ? -angle : angle;
 }
@@ -10070,7 +10070,7 @@ static float atan_fast(float x) {
   if (std::isinf(x)) {
     return (x > 0.0f) ? M_PI_2 : -M_PI_2;
   }
-  
+
   /* A fast look-up method with enough accuracy */
   if (x > 0) {
     if (x <= 1) {
@@ -10201,7 +10201,7 @@ static float code(float t, float i, float x, float y) {
         float denom = std::fmod(y * y, 5.9f) + 1.0f;
         int32_t val = static_cast<int32_t>(x + t * 50.0f / denom);
         return !(val & 15) / denom;
-      }      
+      }
       break;
 
     case 18:
@@ -10209,7 +10209,7 @@ static float code(float t, float i, float x, float y) {
       {
         float offset = sin16(t * 8192.0f) * 0.00006f;
         return sin16((3.5f * atan2_fast(y - CENTER_Y_F + offset, x - CENTER_X_F + offset) + t * 1.5f + 5.0f) * 8192.0f) / 32767.0f;
-      }      
+      }
       break;
 
     case 19:
