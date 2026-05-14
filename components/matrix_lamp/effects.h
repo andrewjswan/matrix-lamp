@@ -10265,7 +10265,7 @@ static float code(float t, float i, float x, float y) {
 // --------------------------------------
 static void processFrame(float t, float x, float y) {
   float i = (y * (float)WIDTH) + x;
-  double frame = constrain(code(t, i, x, y), -1, 1) * 255;
+  float frame = constrain(code(t, i, x, y), -1, 1) * 255.0f;
   if (frame > 0.0f) {
     uint8_t u8f = static_cast<uint8_t>(frame);
     if (hue == 255U) {
