@@ -10497,7 +10497,7 @@ class Circle {
       centerY = random8(HEIGHT);
       hue = random8();
       // offset = random(0, 60000 / bpm);
-      offset = random16(6000)
+      offset = random16(6000);
     }
 
     float radius() {
@@ -10526,7 +10526,7 @@ static void drawCircle(Circle circle) {
   int16_t endY = centerY + r_ceil;
 
   float radiusSq = radius * radius;
-  
+
   for (int16_t x = startX; x <= endX; x++) {
     int16_t dx = x - centerX;
     int16_t dxSq = dx * dx;
@@ -10553,7 +10553,7 @@ static void drawCircle(Circle circle) {
         float fraction = (radius - distance) / radius;
         brightness = (uint16_t)(255.0f * fraction);
       }
-      
+
       leds[index] += CHSV(hue, deltaValue, brightness);
     }
   }
