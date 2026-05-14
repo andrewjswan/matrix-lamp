@@ -4596,11 +4596,11 @@ static void shadowsRoutine() {
 static void wu_pixel(uint32_t x, uint32_t y, const CRGB *col) { // awesome wu_pixel procedure by reddit u/sutaburosu
   // extract the fractional parts and derive their inverses
   uint8_t xx = x & 0xff, yy = y & 0xff, ix = 255 - xx, iy = 255 - yy;
-  
+
   // calculate the intensities for each affected pixel
   uint8_t wu[4] = {WU_WEIGHT(ix, iy), WU_WEIGHT(xx, iy),
                    WU_WEIGHT(ix, yy), WU_WEIGHT(xx, yy)};
-                   
+
   // Извлекаем базовые целые координаты пикселя (деление на 256 -> сдвиг >> 8)
   uint16_t base_x = x >> 8;
   uint16_t base_y = y >> 8;
@@ -4651,11 +4651,11 @@ static void DNARoutine()
       uint32_t x = beatsin16(step, 0, h_step, 0, i * freq);
       uint32_t y = (uint32_t)i << 8;            // i * 256;
       uint32_t x1 = beatsin16(step, 0, h_step, 0, i * freq + 32768);
-      
+
       uint16_t i_mn = ((uint16_t)i * 425) / 23; // mn = 255.0 / 13.8. В целых числах это идеальная дробь 425 / 23 (дает 18.4782)
                                                 // Для i * mn мы будем писать: ((uint16_t)i * 425) / 23
       uint8_t w_hue = base_hue + (i * color_step);
-      
+
       CRGB col = CHSV(w_hue, 255, qadd8(hue, beatsin8(step, 60, 255U, 0, i_mn)));
       CRGB col1 = CHSV(w_hue + 128, 255, qadd8(hue, beatsin8(step, 60, 255U, 0, i_mn + 128)));
       wu_pixel (y , x, &col);
@@ -4674,7 +4674,7 @@ static void DNARoutine()
       uint16_t i_mn = ((uint16_t)i * 425) / 23; // mn = 255.0 / 13.8. В целых числах это идеальная дробь 425 / 23 (дает 18.4782)
                                                 // Для i * mn мы будем писать: ((uint16_t)i * 425) / 23
       uint8_t h_hue = base_hue + (i * color_step);
-      
+
       CRGB col = CHSV(h_hue, 255, qadd8(hue, beatsin8(step, 60, 255U, 0, i_mn)));
       CRGB col1 = CHSV(h_hue + 128, 255, qadd8(hue, beatsin8(step, 60, 255U, 0, i_mn + 128)));
       wu_pixel (x , y, &col);
