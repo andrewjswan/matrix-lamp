@@ -4637,7 +4637,7 @@ static void DNARoutine()
   }
 
   constexpr uint16_t freq = 3000;
-  float mn = 255.0/13.8;
+  // float mn = 255.0/13.8; // Ниже...
 
   fadeToBlackBy(leds, NUM_LEDS, step);
   uint16_t base_hue = millis() / 29;
@@ -4650,11 +4650,11 @@ static void DNARoutine()
     {
       uint32_t x = beatsin16(step, 0, h_step, 0, i * freq);
       uint32_t y = (uint32_t)i << 8;            // i * 256;
-      uint32_t x1 = beatsin16(step, 0, h_step, 0, i * freq + 32768);
+      uint32_t x1 = beatsin16(step, 0, h_step, 0, i * freq + 32768U);
 
       uint16_t i_mn = ((uint16_t)i * 425) / 23; // mn = 255.0 / 13.8. В целых числах это идеальная дробь 425 / 23 (дает 18.4782)
                                                 // Для i * mn мы будем писать: ((uint16_t)i * 425) / 23
-      uint8_t w_hue = base_hue + (i * color_step);
+      uint8_t w_hue = base_hue + (i * w_step);
 
       CRGB col = CHSV(w_hue, 255, qadd8(hue, beatsin8(step, 60, 255U, 0, i_mn)));
       CRGB col1 = CHSV(w_hue + 128, 255, qadd8(hue, beatsin8(step, 60, 255U, 0, i_mn + 128)));
@@ -4669,11 +4669,11 @@ static void DNARoutine()
     {
       uint32_t x = beatsin16(step, 0, w_step, 0, i * freq);
       uint32_t y = (uint32_t)i << 8;  // i * 256
-      uint32_t x1 = beatsin16(step, 0, w_step, 0, i * freq + 32768);
+      uint32_t x1 = beatsin16(step, 0, w_step, 0, i * freq + 32768U);
 
       uint16_t i_mn = ((uint16_t)i * 425) / 23; // mn = 255.0 / 13.8. В целых числах это идеальная дробь 425 / 23 (дает 18.4782)
                                                 // Для i * mn мы будем писать: ((uint16_t)i * 425) / 23
-      uint8_t h_hue = base_hue + (i * color_step);
+      uint8_t h_hue = base_hue + (i * h_step);
 
       CRGB col = CHSV(h_hue, 255, qadd8(hue, beatsin8(step, 60, 255U, 0, i_mn)));
       CRGB col1 = CHSV(h_hue + 128, 255, qadd8(hue, beatsin8(step, 60, 255U, 0, i_mn + 128)));
