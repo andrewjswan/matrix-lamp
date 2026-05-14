@@ -4156,7 +4156,7 @@ static void PicassoGenerate(bool reset){
   if (loadingFlag)
   {
     loadingFlag = false;
-    enlargedObjectNUM = std::clamp(enlargedObjectNUM, 2U, (uint16_t)enlargedOBJECT_MAX_COUNT);
+    enlargedObjectNUM = std::clamp(enlargedObjectNUM, (uint16_t)2U, (uint16_t)enlargedOBJECT_MAX_COUNT);
 
     constexpr float minSpeed = 0.2f;
     constexpr float maxSpeed = 0.8f;
