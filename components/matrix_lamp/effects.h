@@ -1,13 +1,5 @@
 #pragma once
 
-0.034234
-0.03
-113123.04
-12345.123456767
-.23423
-123312.
-0.01F
-
 #include "common.h"
 #include "constants.h"
 #include "effect_data.h"
