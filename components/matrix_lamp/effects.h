@@ -4160,7 +4160,7 @@ static void PicassoGenerate(bool reset){
 
     constexpr float minSpeed = 0.2f;
     constexpr float maxSpeed = 0.8f;
-    
+
     constexpr float speedDiv3 = -maxSpeed / 3.0f;
     constexpr float speedDiv2 = -maxSpeed / 2.0f;
 
@@ -4176,7 +4176,7 @@ static void PicassoGenerate(bool reset){
       trackingObjectShift[i] = speedDiv2 + (maxSpeed * (float)random8() / 255.0f);
       trackingObjectShift[i] += (trackingObjectShift[i] > 0.0f) ? minSpeed : -minSpeed;
 
-      trackingObjectState[i] = trackingObjectHue[i];      
+      trackingObjectState[i] = trackingObjectHue[i];
     }
   }
 
