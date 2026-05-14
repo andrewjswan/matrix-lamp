@@ -2561,7 +2561,7 @@ class Boid {
 
     static float randomf() {
       // return mapfloat(random(0, 255), 0, 255, -0.5f, 0.5f);
-      // random8() дает 0..255. 
+      // random8() дает 0..255.
       // Умножение на (1.0f / 255.0f) дает случайное число от 0.0f до 1.0f.
       // Вычитание 0.5f сдвигает диапазон в [-0.5f .. 0.5f]
       return ((float)random8() * (1.0f / 255.0f)) - 0.5f;
@@ -2607,21 +2607,21 @@ class Boid {
       if (dSq <= radiusSq) {
         // Вычисляем точную дистанцию только для тех, кто реально вошел в радиус
         float d = SQRT_VARIANT(dSq);
-        
+
         PVector repelVec = location - obstacle;
         repelVec.normalize();
 
         // Сила расталкивания: чем ближе к препятствию, тем сильнее импульс
         float scale = (d > 0.01f) ? (1.0f / d) : 100.0f;
-        
+
         // Масштабируем вектор расталкивания
         repelVec *= (maxforce * 7.0f * scale);
 
         // Если нужно обнулять вертикальную силу, чтобы boid не задирал нос (или не падал),
         // делаем это явно, если вектор направлен против основного движения
         // Оригинальное условие "repelVec.mag() < 0" заменено на логичную проверку знака Y
-        if (repelVec.y < 0.0f) { 
-          repelVec.y = 0.0f; 
+        if (repelVec.y < 0.0f) {
+          repelVec.y = 0.0f;
         }
 
         applyForce(repelVec);
@@ -2665,7 +2665,7 @@ class Boid {
         // If the distance is greater than 0 and less than an arbitrary amount (0 when you are yourself)
         if ((dSq > 0.0f) && (dSq < desiredSepSq)) {
           diff /= dSq;  // Weight by distance
-          
+
           steer += diff;
           count++;      // Keep track of how many
         }
@@ -2789,10 +2789,10 @@ class Boid {
       if (dSq < 16.0f) {
         // Извлекаем корень ТОЛЬКО когда частица реально вошла в зону торможения
         float d = SQRT_VARIANT(dSq);
-        
+
         // Normalize desired and scale with arbitrary damping within 100 pixels
         desired.normalize();
-        
+
         // Быстрая float-замена функции map(d, 0, 100, 0, maxspeed)
         // Формула: d * (maxspeed / 100.0f). Множитель считается компилятором заранее!
         float m = d * (maxspeed * 0.01f);
@@ -2833,8 +2833,8 @@ class Boid {
 
       // Задаем ширину зоны предупреждения у стен (например, 2.0f пикселя)
       // Если WIDTH = 16, то 8 пикселей заставили бы boid паниковать прямо по центру экрана
-      constexpr float padding = 2.0f; 
-      
+      constexpr float padding = 2.0f;
+
       const float width_f  = static_cast<float>(WIDTH);
       const float height_f = static_cast<float>(HEIGHT);
 
@@ -2881,7 +2881,7 @@ class Boid {
 
     bool bounceOffBorders(float bounce) {
       bool bounced = false;
-      
+
       const float width_f  = static_cast<float>(WIDTH);
       const float height_f = static_cast<float>(HEIGHT);
 
@@ -6670,7 +6670,7 @@ static float randomf(float min, float max) {
   // random16(4095) выдает случайное число от 0 до 4094.
   // Умножение дает идеальный коэффициент от 0.0f до ~0.9997f.
   float k = static_cast<float>(random16(4095)) * (1.0f / 4095.0f);
-  
+
   // Быстрый Lerp (линейная интерполяция)
   return min + k * (max - min);
 }
