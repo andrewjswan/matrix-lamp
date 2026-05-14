@@ -2396,11 +2396,11 @@ public:
         return !(*this == v);
     }
 
-    Vector2 operator+(const Vector2& v) {
+    Vector2 operator+(const Vector2& v) const {
         return Vector2(x + v.x, y + v.y);
     }
 
-    Vector2 operator-(const Vector2& v) {
+    Vector2 operator-(const Vector2& v) const {
         return Vector2(x - v.x, y - v.y);
     }
 
@@ -2594,7 +2594,7 @@ class Boid {
 
       // Быстрая проверка по квадрату расстояния без вызова тяжелого корня
       float dSq = dist.magSq();
-      float radiusSq = radius * maxSubpixels; // radius * radius
+      float radiusSq = radius * radius;
 
       if (dSq <= radiusSq) {
         // Вычисляем точную дистанцию только для тех, кто реально вошел в радиус
