@@ -10581,20 +10581,20 @@ static void  FireSparks() {
 class Circle {
   public:
     float thickness = 3.0f;
-    long startTime;
+    uint32_t startTime;
     uint16_t offset;
     int16_t centerX;
     int16_t centerY;
-    int hue;
-    int bpm = 10;
+    uint8_t hue;
+    // uint8_t bpm = 10;
 
     void move() {
-      centerX = random(0, WIDTH);
-      centerY = random(0, HEIGHT);
+      centerX = random8(WIDTH);
+      centerY = random8(HEIGHT);
     }
 
     void scroll() {
-      centerX--; // = random(0, WIDTH);
+      centerX--;
       if (centerX < 1) {
         centerX = WIDTH - 1;
       }
@@ -10603,17 +10603,21 @@ class Circle {
         centerY = 0;
       }
     }
+
     void reset() {
       startTime = millis();
-      centerX = random(0, WIDTH);
-      centerY = random(0, HEIGHT);
-      hue = random(0, 255);
-      offset = random(0, 60000 / bpm);
+      centerX = random8(WIDTH);
+      centerY = random8(HEIGHT);
+      hue = random8();
+      // offset = random(0, 60000 / bpm);
+      offset = random16(6000);
     }
 
     float radius() {
-      float radius = beatsin16(modes[currentMode].Speed / 2.5f, 0, 500, offset) / 100.0f;
-      return radius;
+      // float radius = beatsin16((float)modes[currentMode].Speed / 2.5f, 0, 500, offset) / 100.0f;
+      // return radius;
+      uint16_t bpm = ((uint16_t)modes[currentMode].Speed * 2) / 5;
+      return (float)beatsin16(bpm, 0, 500, offset) * 0.01f;
     }
 };
 
@@ -10628,32 +10632,41 @@ static void drawCircle(Circle circle) {
   int hue = circle.hue;
   float radius = circle.radius();
 
-  int16_t startX = centerX - ceil(radius);
-  int16_t endX = centerX + ceil(radius);
-  int16_t startY = centerY - ceil(radius);
-  int16_t endY = centerY + ceil(radius);
+  int16_t r_ceil = (int16_t)(radius + 0.999f); // ceil(radius)
+  int16_t startX = centerX - r_ceil;
+  int16_t endX = centerX + r_ceil;
+  int16_t startY = centerY - r_ceil;
+  int16_t endY = centerY + r_ceil;
 
-  for (int16_t x = startX; x < endX; x++) {
-    for (int16_t y = startY; y < endY; y++) {
-      int16_t index = XY(x, y);
-      if (index < 0 || index >= NUM_LEDS)
+  float radiusSq = radius * radius;
+
+  for (int16_t x = startX; x <= endX; x++) {
+    int16_t dx = x - centerX;
+    int16_t dxSq = dx * dx;
+
+    for (int16_t y = startY; y <= endY; y++) {
+      int16_t dy = y - centerY;
+      int16_t dySq = dy * dy;
+
+      // Быстрая фильтрация пикселей вне круга по квадрату расстояния без корня
+      if ((dxSq + dySq) > radiusSq)
         continue;
-      double distance = sqrt(sq(x - centerX) + sq(y - centerY));
-      if (distance > radius)
+
+      uint16_t index = XY(x, y);
+      if (index >= NUM_LEDS)
         continue;
 
       uint16_t brightness;
-      if (radius < 1) { // last pixel
-        // brightness = 0; //255.0 * radius;
+      if (radius < 1.0f) {  // last pixel
         deltaValue = 20;
         brightness = 180;
-        // brightness = 0;
       } else {
-        deltaValue = 200; // 155 + modes[currentMode].Scale;
-        double percentage = distance / radius;
-        double fraction = 1.0f - percentage;
-        brightness = 255.0f * fraction;
+        deltaValue = 200;
+        float distance = SQRT_VARIANT((float)(dxSq + dySq));
+        float fraction = (radius - distance) / radius;
+        brightness = (uint16_t)(255.0f * fraction);
       }
+
       leds[index] += CHSV(hue, deltaValue, brightness);
     }
   }
@@ -10686,9 +10699,10 @@ static void Dandelions() {
     }
 #endif
     loadingFlag = false;
+
     ledsClear(); // esphome: FastLED.clear();
+
     Circles::draw(true);
-    // deltaValue = 150 + modes[currentMode].Scale;
     deltaValue = 155 + modes[currentMode].Scale;
   }
 
