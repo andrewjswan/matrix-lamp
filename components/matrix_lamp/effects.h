@@ -10006,6 +10006,8 @@ static void EffectStars() {
 //            обсчета эффектов
 //       © Dmytro Korniienko (kDn)
 // ======================================
+//   float optimization © andrewjswan
+// ======================================
 
 #define M_PI_2  1.57079632679489661923
 static const PROGMEM float LUT[102] = {
@@ -10034,49 +10036,59 @@ static const PROGMEM float LUT[102] = {
 
 // --------------------------------------
 static float atan2_fast(float y, float x) {
-  //http://pubs.opengroup.org/onlinepubs/009695399/functions/atan2.html
-  //Volkan SALMA
+  // http://pubs.opengroup.org/onlinepubs/009695399/functions/atan2.html
+  // Volkan SALMA
+  
+  // Защита от неопределенности 0/0: по стандарту atan2(0,0) равен 0
+  if (x == 0.0f && y == 0.0f) return 0.0f;
 
-  constexpr float ONEQTR_PI = PI / 4.0;
-  constexpr float THRQTR_PI = 3.0 * PI / 4.0;
+  constexpr float ONEQTR_PI = PI / 4.0f;
+  constexpr float THRQTR_PI = 3.0f * PI / 4.0f;
 
   float r, angle;
-  float abs_y = std::abs(y) + 1e-10f;      // kludge to prevent 0/0 condition
+  float abs_y = std::abs(y);
+
   if (x < 0.0f) {
+    // Ветка для II и III квадрантов
     r = (x + abs_y) / (abs_y - x);
     angle = THRQTR_PI;
   } else {
+    // Ветка для I и IV квадрантов (включая ось Y, когда x == 0)
     r = (x - abs_y) / (x + abs_y);
     angle = ONEQTR_PI;
   }
-  angle += (0.1963f * r * r - 0.9817f) * r;
-  if (y < 0.0f) {
-    return (-angle);    // negate if in quad III or IV
-  } else {
-    return (angle);
-  }
+
+  // Оптимизация полинома по схеме Горнера (минус одно умножение)
+  angle += ((0.1963f * r) * r - 0.9817f) * r;
+  
+  // Отрицательный угол для III и IV квадрантов
+  return (y < 0.0f) ? -angle : angle;
 }
 
 // --------------------------------------
 static float atan_fast(float x) {
+  if (std::isinf(x)) {
+    return (x > 0.0f) ? M_PI_2 : -M_PI_2;
+  }
+  
   /* A fast look-up method with enough accuracy */
   if (x > 0) {
     if (x <= 1) {
-      int index = round(x * 100);
+      uint8_t index = std::clamp((int32_t)std::round(x * 100.0f), 0, 101);
       return LUT[index];
     } else {
       float re_x = 1 / x;
-      int index = round(re_x * 100);
+      uint8_t index = std::clamp((int32_t)std::round(re_x * 100.0f), 0, 101);
       return (M_PI_2 - LUT[index]);
     }
   } else {
     if (x >= -1) {
       float abs_x = -x;
-      int index = round(abs_x * 100);
+      uint8_t index = std::clamp((int32_t)std::round(abs_x * 100.0f), 0, 101);
       return -(LUT[index]);
     } else {
       float re_x = 1 / (-x);
-      int index = round(re_x * 100);
+      uint8_t index = std::clamp((int32_t)std::round(re_x * 100.0f), 0, 101);
       return (LUT[index] - M_PI_2);
     }
   }
@@ -10088,174 +10100,157 @@ static float tan2pi_fast(float x) {
   return x * (((-0.000221184 * y + 0.0024971104) * y - 0.02301937096) * y + 0.3182994604 + 1.2732402998 / y);
 }
 
-
 // --------------------------------------
-static float code(double t, double i, double x, double y) {
+static float code(float t, float i, float x, float y) {
   switch (pcnt) {
     /** © Motus Art @motus_art */
     case 1: /* Plasma */
       hue = 96U; hue2 = 224U;
-      return (sin16((x + t) * 8192.0) * 0.5 + sin16((y + t) * 8192.0) * 0.5 + sin16((x + y + t) * 8192.0) * 0.3333333333333333) / 32767.0;
+      return (sin16((x + t) * 8192.0f) * 0.5f + sin16((y + t) * 8192.0f) * 0.5f + sin16((x + y + t) * 8192.0f) * 0.33333334f) / 32767.0f;
       break;
 
-    case 2: /* Up&Down */
+    case 2: /* Up & Down */
       //return sin(cos(x) * y / 8 + t);
       hue = 255U; hue2 = 160U;
-      return sin16((cos16(x * 8192.0) / 32767.0 * y / CENTER_Y_F + t) * 8192.0) / 32767.0;
+      return sin16((cos16(x * 8192.0f) / 32767.0f * y / CENTER_Y_F + t) * 8192.0f) / 32767.0f;
       break;
 
     case 3:
       hue = 255U; hue2 = 96U;
-      return sin16((atan_fast(y / x) + t) * 8192.0) / 32767.0;
+      return sin16((atan_fast(y / x) + t) * 8192.0f) / 32767.0f;
       break;
 
     /** © tixy.land website */
     case 4: /* Emitting rings */
       hue = 255U; hue2 = 0U;
-      return sin16((t - SQRT_VARIANT((x - CENTER_X) * (x - CENTER_X) + (y - CENTER_Y) * (y - CENTER_Y))) * 8192.0) / 32767.0;
+      return sin16((t - SQRT_VARIANT((x - CENTER_X_F) * (x - CENTER_X_F) + (y - CENTER_Y_F) * (y - CENTER_Y_F))) * 8192.0f) / 32767.0f;
       break;
 
     case 5: /* Rotation  */
       hue = 136U; hue2 = 48U;
-      return sin16((PI * 2.5 * atan_fast((y - CENTER_Y) / (x - CENTER_X)) + 5 * t) * 8192.0) / 32767.0;
+      return sin16((PI * 2.5f * atan_fast((y - CENTER_Y_F) / (x - CENTER_X_F)) + 5.0f * t) * 8192.0f) / 32767.0f;
       break;
 
     case 6: /* Vertical fade */
       hue = 160U; hue2 = 0U;
-      return sin16((y / 8 + t) * 8192.0) / 32767.0;
+      return sin16((y * 0.125f + t) * 8192.0f) / 32767.0f;  // y / 8 -> y * 0.125f
       break;
 
     case 7: /* Waves */
-      //return sin(x / 2) - sin(x - t) - y + 6;
       hue = 48U; hue2 = 160U;
-      return (sin16(x * 4096.0) - sin16((x - t) * 8192.0)) / 32767.0 - y + CENTER_Y;
+      return (sin16(x * 4096.0f) - sin16((x - t) * 8192.0f)) / 32767.0f - y + CENTER_Y_F;
       break;
 
     case 8: /* Drop */
       hue = 136U; hue2 = 160U;
-      return fmod(8 * t, 13) - SQRT_VARIANT((x - CENTER_X) * (x - CENTER_X) + (y - CENTER_Y) * (y - CENTER_Y)); //hypot(x - (WIDTH/2), y - (HEIGHT/2));
+      return std::fmod(8.0f * t, 13.0f) - SQRT_VARIANT((x - CENTER_X_F) * (x - CENTER_X_F) + (y - CENTER_Y_F) * (y - CENTER_Y_F));
       break;
 
     case 9: /* Ripples @thespite */
       hue = 96U; hue2 = 224U;
-      return sin16((t - SQRT_VARIANT(x * x + y * y)) * 8192.0) / 32767.0;
+      return sin16((t - SQRT_VARIANT(x * x + y * y)) * 8192.0f) / 32767.0f;
       break;
 
     case 10: /* Bloop bloop bloop @v21 */
       hue = 136U; hue2 = 160U;
-      return (x - CENTER_X) * (y - CENTER_Y) - sin16(t * 4096.0) / 512.0;
+      return (x - CENTER_X_F) * (y - CENTER_Y_F) - sin16(t * 4096.0f) / 512.0f;
       break;
 
     case 11: /* SN0WFAKER */
       // https://www.reddit.com/r/programming/comments/jpqbux/minimal_16x16_dots_coding_environment/gbgk7c0/
       hue = 96U; hue2 = 160U;
-      return sin16((atan_fast((y - CENTER_Y) / (x - CENTER_X)) + t) * 8192.0) / 32767.0;
+      return sin16((atan_fast((y - CENTER_Y_F) / (x - CENTER_X_F)) + t) * 8192.0f) / 32767.0f;
       break;
+
     case 12: /* detunized */
       // https://www.reddit.com/r/programming/comments/jpqbux/minimal_16x16_dots_coding_environment/gbgk30l/
       hue = 136U; hue2 = 160U;
-      return sin16((y / CENTER_Y + t * 0.5) * 8192.0) / 32767.0 + x / 16 - 0.5;
+      return sin16((y / CENTER_Y_F + t * 0.5f) * 8192.0f) / 32767.0f + x * 0.0625f - 0.5f;  // x / 16 -> x * 0.0625f
       break;
 
     /** © @akella | https://twitter.com/akella/status/1323549082552619008 */
     case 13:
       hue = 255U; hue2 = 0U;
-      return sin16((6 * atan2_fast(y - CENTER_Y, x) + t) * 8192.0) / 32767.0;
+      return sin16((6.0f * atan2_fast(y - CENTER_Y_F, x) + t) * 8192.0f) / 32767.0f;
       break;
+
     case 14:
       hue = 32U; hue2 = 160U;
-      return sin16((i / 5 + t) * 16384.0) / 32767.0;
+      return sin16((i * 0.2f + t) * 16384.0f) / 32767.0f;  // i / 5 -> i * 0.2f
       break;
-
-    /** © Paul Malin | https://twitter.com/P_Malin/ */
-
-    // sticky blood
-    // by @joeytwiddle
-    //(t,i,x,y) => y-t*3+9+3*cos(x*3-t)-5*sin(x*7)
-
-    //      if (x < 8) {
-    //       // hue = 160U;
-    //      } else {
-    //       // hue = 96U;
-    //      }
-    //      if ((y == HEIGHT -1)&(x == 8)) {
-    //        hue = hue + 30;
-    //        if (hue >= 255U) {
-    //          hue = 0;
-    //        }
-    //      }
-    //      hue = t/128+8;
-
-    //    case 19: // !!!! paint
-    //      // Matrix Rain https://twitter.com/P_Malin/status/1323583013880553472
-    //      //return 1. - fmod((x * x - y + t * (fmod(1 + x * x, 5)) * 6), 16) / 16;
-    //      return 1. - fmod((x * x - (HEIGHT - y) + t * (1 + fmod(x * x, 5)) * 3), WIDTH) / HEIGHT;
-    //      break;
 
     case 15: /* Burst */
       // https://twitter.com/P_Malin/status/1323605999274594304
       hue = 136U; hue2 = 160U;
-      return -10. / ((x - CENTER_X) * (x - CENTER_X) + (y - CENTER_Y) * (y - CENTER_Y) - fmod(t * 0.3, 0.7) * 200);
+      {
+        float denom = (x - CENTER_X_F) * (x - CENTER_X_F) + (y - CENTER_Y_F) * (y - CENTER_Y_F) - std::fmod(t * 0.3f, 0.7f) * 200.0f;
+        if (std::abs(denom) < 1e-5f) denom = 1e-5f; // Защита от деления на 0
+        return -10.0f / denom;
+      }
       break;
 
     case 16: /* Rays */
       hue = 255U; hue2 = 0U;
-      return sin16((atan2_fast(x, y) * 5 + t * 2) * 8192.0) / 32767.0;
+      return sin16((atan2_fast(x, y) * 5.0f + t * 2.0f) * 8192.0f) / 32767.0f;
       break;
 
     case 17: /* Starfield */
       // org | https://twitter.com/P_Malin/status/1323702220320313346
       hue = 255U; hue2 = 160U;
-      return !((int)(x + t * 50 / (fmod(y * y, 5.9) + 1)) & 15) / (fmod(y * y, 5.9) + 1);
-      //      {
-      //        uint16_t _y = HEIGHT - y;
-      //        float d = (fmod(_y * _y + 4, 4.1) + 0.85) * 0.5; // коэффициенты тут отвечают за яркость (размер), скорость, смещение, подбираются экспериментально :)
-      //        return !((int)(x + t * 7.0 / d) & 15) / d; // 7.0 - множитель скорости
-      //      }
+      {
+        float denom = std::fmod(y * y, 5.9f) + 1.0f;
+        int32_t val = static_cast<int32_t>(x + t * 50.0f / denom);
+        return !(val & 15) / denom;
+      }      
       break;
 
     case 18:
       hue = 255U; hue2 = 0U;
-      return sin16((3.5 * atan2_fast(y - CENTER_Y + sin16(t * 8192.0) * 0.00006, x - CENTER_X + sin16(t * 8192.0) * 0.00006) + t * 1.5 + 5) * 8192.0) / 32767.0;
+      {
+        float offset = sin16(t * 8192.0f) * 0.00006f;
+        return sin16((3.5f * atan2_fast(y - CENTER_Y_F + offset, x - CENTER_X_F + offset) + t * 1.5f + 5.0f) * 8192.0f) / 32767.0f;
+      }      
       break;
 
     case 19:
       hue = 255U; hue2 = 224U;
-      return (y - 8) / 3 - tan2pi_fast((x / 6 + 1.87) / PI * 2) * sin16(t * 16834.0) / 32767.0;
+      return (y - 8.0f) * 0.33333334f - tan2pi_fast((x * 0.16666667f + 1.87f) * 0.63661975f) * sin16(t * 16834.0f) / 32767.0f;  // / 3 -> * 0.33333334f, / PI*2 -> * 0.63661975f
       break;
 
     case 20:
       hue = 136U; hue2 = 160U;
-      return (y - 8) / 3 - (sin16((x / 4 + t * 2) * 8192.0) / 32767.0);
+      return (y - 8.0f) * 0.33333334f - (sin16((x * 0.25f + t * 2.0f) * 8192.0f) / 32767.0f);  // / 3 -> * 0.33333334f
       break;
 
     case 21:
       hue = 72U; hue2 = 96U;
-      return cos(sin16(x * t * 819.2) / 32767.0 * PI) + cos16((sin16((y * t / 10 + (SQRT_VARIANT(std::abs(cos16(x * t * 8192.0) / 32767.0)))) * 8192.0) / 32767.0 * PI) * 8192.0) / 32767.0;
+      return std::cos(sin16(x * t * 819.2f) / 32767.0f * PI) + cos16((sin16((y * t * 0.1f + SQRT_VARIANT(std::abs(cos16(x * t * 8192.0f) / 32767.0f))) * 8192.0f) / 32767.0f * PI) * 8192.0f) / 32767.0f;
       break;
 
     case 22: /* bambuk */
       hue = 96U; hue2 = 80U;
-      return sin16(x / 3 * sin16(t * 2730.666666666667) / 2.0) / 32767.0 + cos16(y / 4 * sin16(t * 4096.0) / 2.0) / 32767.0;
+      return sin16(x * 0.33333334f * sin16(t * 2730.6667f) * 0.5f) / 32767.0f + cos16(y * 0.25f * sin16(t * 4096.0f) * 0.5f) / 32767.0f;
       break;
 
     case 23:
       hue = 0U; hue2 = 224U;
       {
-        float _x = x - fmod(t, WIDTH);
-        float _y = y - fmod(t, HEIGHT);
-        return -.4 / (SQRT_VARIANT(_x * _x + _y * _y) - fmod(t, 2) * 9);
+        float _x = x - std::fmod(t, (float)WIDTH);
+        float _y = y - std::fmod(t, (float)HEIGHT);
+        float denom = SQRT_VARIANT(_x * _x + _y * _y) - std::fmod(t, 2.0f) * 9.0f;
+        if (std::abs(denom) < 1e-5f) denom = 1e-5f;
+        return -0.4f / denom;
       }
       break;
 
     case 24: /* honey */
       hue = 255U; hue2 = 40U;
-      return sin16(y * t * 2048.0) / 32767.0 * cos16(x * t * 2048.0) / 32767.0;
+      return sin16(y * t * 2048.0f) / 32767.0f * cos16(x * t * 2048.0f) / 32767.0f;
       break;
 
     case 25:
       hue = 96U; hue2 = 160U;
-      return atan_fast((x - CENTER_X) * (y - CENTER_Y)) - 2.5 * sin16(t * 8192.0) / 32767.0;
+      return atan_fast((x - CENTER_X_F) * (y - CENTER_Y_F)) - 2.5f * sin16(t * 8192.0f) / 32767.0f;
       break;
 
     default:
@@ -10264,28 +10259,28 @@ static float code(double t, double i, double x, double y) {
       }
       pcnt = 1;
       hue = 96U; hue2 = 0U;
-      return sin16(t * 8192.0) / 32767.0;
+      return sin16(t * 8192.0f) / 32767.0f;
       break;
   }
 }
 
 // --------------------------------------
-static void processFrame(double t, double x, double y) {
-  double i = (y * WIDTH) + x;
+static void processFrame(float t, float x, float y) {
+  float i = (y * (float)WIDTH) + x;
   double frame = constrain(code(t, i, x, y), -1, 1) * 255;
-  if (frame > 0) {
+  if (frame > 0.0f) {
+    uint8_t u8f = static_cast<uint8_t>(frame);
     if (hue == 255U) {
-      drawPixelXY(x, y, CRGB(frame, frame, frame));
+      drawPixelXY(x, y, CRGB(u8f, u8f, u8f));
     } else {
-      drawPixelXY(x, y, CHSV(hue, frame, frame));
+      drawPixelXY(x, y, CHSV(hue, u8f, u8f));
     }
+  } else if (frame < 0.0f) {
+    uint8_t u8fn = static_cast<uint8_t>(-frame);
+    if (modes[currentMode].Scale < 5) deltaHue2 = 0;
+    drawPixelXY(x, y, CHSV(hue2 + deltaHue2, u8fn, u8fn));
   } else {
-    if (frame < 0) {
-      if (modes[currentMode].Scale < 5) deltaHue2 = 0;
-      drawPixelXY(x, y, CHSV(hue2 + deltaHue2, frame * -1, frame * -1));
-    } else {
-      drawPixelXY(x, y, CRGB::Black);
-    }
+    drawPixelXY(x, y, CRGB::Black);
   }
 }
 
@@ -10302,22 +10297,20 @@ static void TixyLand() {
     deltaHue = 0;
     pcnt = map(modes[currentMode].Speed, 5, 250, 1U, 25U);
     FPSdelay = 1;
-    deltaHue2 = modes[currentMode].Scale * 2.55;
+    deltaHue2 = ((uint16_t)modes[currentMode].Scale * 255) / 100;
     hue = 255U; hue2 = 0U;
   }
 
-  // *****
-  double t = (double)millis() / 1000.0;
-
+  float t = static_cast<float>(millis()) * 0.001f;
   EVERY_N_SECONDS(20) {
     if ((modes[currentMode].Speed < 5) || (modes[currentMode].Speed > 250)) {
       pcnt++;
     }
   }
 
-  for (double x = 0; x < WIDTH; x++) {
-    for (double y = 0; y < HEIGHT; y++) {
-      processFrame(t, x, y);
+  for (uint8_t x = 0; x < WIDTH; x++) {
+    for (uint8_t y = 0; y < HEIGHT; y++) {
+      processFrame(t, static_cast<float>x, static_cast<float>y);
     }
   }
 }
