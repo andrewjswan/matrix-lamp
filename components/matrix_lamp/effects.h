@@ -4156,58 +4156,57 @@ static void PicassoGenerate(bool reset){
   if (loadingFlag)
   {
     loadingFlag = false;
-    // setCurrentPalette();
-    // ledsClear(); // esphome: FastLED.clear();
-    // not for 3in1
-    // enlargedObjectNUM = (modes[currentMode].Scale - 1U) / 99.0 * (enlargedOBJECT_MAX_COUNT - 1U) + 1U;
-    // enlargedObjectNUM = (modes[currentMode].Scale - 1U) % 11U / 10.0 * (enlargedOBJECT_MAX_COUNT - 1U) + 1U;
-    if (enlargedObjectNUM > enlargedOBJECT_MAX_COUNT) enlargedObjectNUM = enlargedOBJECT_MAX_COUNT;
-    if (enlargedObjectNUM < 2U) enlargedObjectNUM = 2U;
+    enlargedObjectNUM = std::clamp(enlargedObjectNUM, (uint16_t)2U, (uint16_t)enlargedOBJECT_MAX_COUNT);
 
-    double minSpeed = 0.2, maxSpeed = 0.8;
+    constexpr float minSpeed = 0.2f;
+    constexpr float maxSpeed = 0.8f;
+
+    constexpr float speedDiv3 = -maxSpeed / 3.0f;
+    constexpr float speedDiv2 = -maxSpeed / 2.0f;
 
     for (uint8_t i = 0 ; i < enlargedObjectNUM ; i++) {
       trackingObjectPosX[i] = random8(WIDTH);
       trackingObjectPosY[i] = random8(HEIGHT);
 
-      //curr->color = CHSV(random(1U, 255U), 255U, 255U);
       trackingObjectHue[i] = random8();
 
-      trackingObjectSpeedY[i] = +((-maxSpeed / 3) + (maxSpeed * (float)random8(1, 100) / 100));
-      trackingObjectSpeedY[i] += trackingObjectSpeedY[i] > 0 ? minSpeed : -minSpeed;
+      trackingObjectSpeedY[i] = speedDiv3 + (maxSpeed * (float)random8() / 255.0f);
+      trackingObjectSpeedY[i] += (trackingObjectSpeedY[i] > 0.0f) ? minSpeed : -minSpeed;
 
-      trackingObjectShift[i] = +((-maxSpeed / 2) + (maxSpeed * (float)random8(1, 100) / 100));
-      trackingObjectShift[i] += trackingObjectShift[i] > 0 ? minSpeed : -minSpeed;
+      trackingObjectShift[i] = speedDiv2 + (maxSpeed * (float)random8() / 255.0f);
+      trackingObjectShift[i] += (trackingObjectShift[i] > 0.0f) ? minSpeed : -minSpeed;
 
       trackingObjectState[i] = trackingObjectHue[i];
     }
   }
 
-  for (uint8_t i = 0 ; i < enlargedObjectNUM ; i++) {
-      if (reset) {
-        trackingObjectState[i] = random8();
-        trackingObjectSpeedX[i] = (trackingObjectState[i] - trackingObjectHue[i]) / 25;
-      }
-      if (trackingObjectState[i] != trackingObjectHue[i] && trackingObjectSpeedX[i]) {
-        trackingObjectHue[i] += trackingObjectSpeedX[i];
-      }
+  for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
+    if (reset) {
+      trackingObjectState[i] = random8();
+      trackingObjectSpeedX[i] = (float)((int16_t)trackingObjectState[i] - (int16_t)trackingObjectHue[i]) / 25.0f;
+    }
+    if (trackingObjectState[i] != trackingObjectHue[i] && trackingObjectSpeedX[i] != 0.0f) {
+      // trackingObjectHue[i] = (uint8_t)((float)trackingObjectHue[i] + trackingObjectSpeedX[i]);
+      trackingObjectHue[i] = (uint8_t)std::round((float)trackingObjectHue[i] + trackingObjectSpeedX[i]);
+    }
   }
-
 }
 
-static void PicassoPosition(){
-  for (uint8_t i = 0 ; i < enlargedObjectNUM ; i++) {
-    if (trackingObjectPosX[i] + trackingObjectSpeedY[i] > WIDTH || trackingObjectPosX[i] + trackingObjectSpeedY[i] < 0) {
+static void PicassoPosition() {
+  for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
+    float nextX = trackingObjectPosX[i] + trackingObjectSpeedY[i];
+    if (nextX > (float)WIDTH || nextX < 0.0f) {
       trackingObjectSpeedY[i] = -trackingObjectSpeedY[i];
     }
 
-    if (trackingObjectPosY[i] + trackingObjectShift[i] > HEIGHT || trackingObjectPosY[i] + trackingObjectShift[i] < 0) {
+    float nextY = trackingObjectPosY[i] + trackingObjectShift[i];
+    if (nextY > (float)HEIGHT || nextY < 0.0f) {
       trackingObjectShift[i] = -trackingObjectShift[i];
     }
 
     trackingObjectPosX[i] += trackingObjectSpeedY[i];
     trackingObjectPosY[i] += trackingObjectShift[i];
-  };
+  }
 }
 
 static void PicassoRoutine(){
@@ -4294,11 +4293,11 @@ static void picassoSelector(){
   if (loadingFlag)
   {
     if (modes[currentMode].Scale < 34U)            // если масштаб до 34
-      enlargedObjectNUM = (modes[currentMode].Scale - 1U) / 32.0 * (enlargedOBJECT_MAX_COUNT - 3U) + 3U;
+      enlargedObjectNUM = (modes[currentMode].Scale - 1U) / 32.0f * (enlargedOBJECT_MAX_COUNT - 3U) + 3U;
     else if (modes[currentMode].Scale >= 68U)      // если масштаб больше 67
-      enlargedObjectNUM = (modes[currentMode].Scale - 68U) / 32.0 * (enlargedOBJECT_MAX_COUNT - 3U) + 3U;
+      enlargedObjectNUM = (modes[currentMode].Scale - 68U) / 32.0f * (enlargedOBJECT_MAX_COUNT - 3U) + 3U;
     else                                           // для масштабов посередине
-      enlargedObjectNUM = (modes[currentMode].Scale - 34U) / 33.0 * (enlargedOBJECT_MAX_COUNT - 1U) + 1U;
+      enlargedObjectNUM = (modes[currentMode].Scale - 34U) / 33.0f * (enlargedOBJECT_MAX_COUNT - 1U) + 1U;
   }
 
   if (modes[currentMode].Scale < 34U)              // если масштаб до 34
@@ -4309,7 +4308,6 @@ static void picassoSelector(){
     PicassoRoutine2();
 }
 #endif
-
 
 #ifdef DEF_LEAPERS
 // ------------------------------ ЭФФЕКТ ПРЫГУНЫ ----------------------
