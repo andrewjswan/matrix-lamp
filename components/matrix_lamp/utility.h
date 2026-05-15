@@ -321,7 +321,7 @@ static void DrawLineF(const float x1_f, const float y1_f, const float x2_f, cons
     // Проверка выхода за границы отрезка с учетом направления движения
     if (signX > 0.0f) {
       if (x1 > limitX) break;
-    } else { 
+    } else {
       if (x1 < limitX) break;
     }
 
@@ -335,7 +335,7 @@ static void DrawLineF(const float x1_f, const float y1_f, const float x2_f, cons
     drawPixelXYF(x1, y1, color);
 
     const float error2 = error;
-    
+
     if (error2 > -deltaY) {
         error -= deltaY;
         x1 += signX;
