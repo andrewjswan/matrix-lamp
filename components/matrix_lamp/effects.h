@@ -4259,7 +4259,6 @@ static void MultipleStreamSmoke(bool isColored){
 static void PicassoGenerate(bool reset){
   if (loadingFlag)
   {
-    loadingFlag = false;
     enlargedObjectNUM = std::clamp(enlargedObjectNUM, (uint16_t)2U, (uint16_t)enlargedOBJECT_MAX_COUNT);
 
     constexpr float minSpeed = 0.2f;
@@ -4282,6 +4281,8 @@ static void PicassoGenerate(bool reset){
 
       trackingObjectState[i] = trackingObjectHue[i];
     }
+
+    loadingFlag = false;
   }
 
   for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
@@ -4323,9 +4324,9 @@ static void PicassoRoutine(){
   PicassoGenerate(false);
   PicassoPosition();
 
-  for (uint8_t i = 0 ; i < enlargedObjectNUM - 2U ; i+=2)
-    DrawLine(trackingObjectPosX[i], trackingObjectPosY[i], trackingObjectPosX[i+1U], trackingObjectPosY[i+1U], CHSV(trackingObjectHue[i], 255U, 255U));
-    // DrawLine(trackingObjectPosX[i], trackingObjectPosY[i], trackingObjectPosX[i+1U], trackingObjectPosY[i+1U], ColorFromPalette(*curPalette, trackingObjectHue[i]));
+  for (uint8_t i = 0; i < enlargedObjectNUM - 2U; i += 2)
+    DrawLine(trackingObjectPosX[i], trackingObjectPosY[i], trackingObjectPosX[i + 1U], trackingObjectPosY[i + 1U],
+             CHSV(trackingObjectHue[i], 255U, 255U));
 
   EVERY_N_MILLIS(20000) {
     PicassoGenerate(true);
@@ -4345,9 +4346,9 @@ static void PicassoRoutine2(){
   PicassoPosition();
   dimAll(180);
 
-  for (uint8_t i = 0 ; i < enlargedObjectNUM - 1U ; i++)
-    DrawLineF(trackingObjectPosX[i], trackingObjectPosY[i], trackingObjectPosX[i+1U], trackingObjectPosY[i+1U], CHSV(trackingObjectHue[i], 255U, 255U));
-    // DrawLineF(trackingObjectPosX[i], trackingObjectPosY[i], trackingObjectPosX[i+1U], trackingObjectPosY[i+1U], ColorFromPalette(*curPalette, trackingObjectHue[i]));
+  for (uint8_t i = 0; i < enlargedObjectNUM - 1U; i++)
+    DrawLineF(trackingObjectPosX[i], trackingObjectPosY[i], trackingObjectPosX[i + 1U], trackingObjectPosY[i + 1U],
+              CHSV(trackingObjectHue[i], 255U, 255U));
 
   EVERY_N_MILLIS(20000){
     PicassoGenerate(true);
@@ -4368,9 +4369,11 @@ static void PicassoRoutine3(){
   PicassoPosition();
   dimAll(180);
 
-  for (uint8_t i = 0 ; i < enlargedObjectNUM - 2U ; i+=2)
-    drawCircleF(std::abs(trackingObjectPosX[i] - trackingObjectPosX[i+1U]), std::abs(trackingObjectPosY[i] - trackingObjectPosX[i+1U]), std::abs(trackingObjectPosX[i] - trackingObjectPosY[i]), CHSV(trackingObjectHue[i], 255U, 255U));
-    // drawCircleF(std::abs(trackingObjectPosX[i] - trackingObjectPosX[i+1U]), std::abs(trackingObjectPosY[i] - trackingObjectPosX[i+1U]), std::abs(trackingObjectPosX[i] - trackingObjectPosY[i]), ColorFromPalette(*curPalette, trackingObjectHue[i]));
+  for (uint8_t i = 0; i < enlargedObjectNUM - 2U; i += 2)
+    drawCircleF(std::abs(trackingObjectPosX[i] - trackingObjectPosX[i + 1U]),
+                std::abs(trackingObjectPosY[i] - trackingObjectPosX[i + 1U]),
+                std::abs(trackingObjectPosX[i] - trackingObjectPosY[i]),
+                CHSV(trackingObjectHue[i], 255U, 255U));
 
   EVERY_N_MILLIS(20000){
     PicassoGenerate(true);

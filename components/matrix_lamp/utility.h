@@ -187,7 +187,7 @@ static void blur2d(uint8_t width, uint8_t height, fract8 blur_amount)
 
 // ------------------------------------------------
 // залить все
-static void fillAll(CRGB color)
+static void fillAll(const CRGB& color)
 {
   // for (uint16_t i = 0; i < NUM_LEDS; i++) {
   //   leds[i] = color;
@@ -235,7 +235,7 @@ static uint8_t wrapY(int16_t y){
 // ------------------------------ Дополнительные функции рисования ----------------------
 // по мотивам
 // https://gist.github.com/sutaburosu/32a203c2efa2bb584f4b846a91066583
-static void drawPixelXYF(float x, float y, CRGB color)
+static void drawPixelXYF(float x, float y, const CRGB& color)
 {
   // extract the fractional parts and derive their inverses
   // Получаем целую часть координат
@@ -255,7 +255,7 @@ static void drawPixelXYF(float x, float y, CRGB color)
     WU_WEIGHT(ix, yy), WU_WEIGHT(xx, yy)
   };
 
-  // multiply the intensities by the colour, and saturating-add them to the pixels
+  // Multiply the intensities by the colour, and saturating-add them to the pixels
   for (uint8_t i = 0; i < 4; i++) {
     int16_t xn = x_int + (i & 1);
     int16_t yn = y_int + ((i >> 1) & 1);
@@ -272,7 +272,7 @@ static void drawPixelXYF(float x, float y, CRGB color)
 
 
 // ------------------------------------------------
-static void DrawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, CRGB color) {
+static void DrawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, const CRGB& color) {
   int16_t deltaX = abs(x2 - x1);
   int16_t deltaY = abs(y2 - y1);
   int16_t signX = x1 < x2 ? 1 : -1;
@@ -299,71 +299,57 @@ static void DrawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, CRGB color)
 
 
 // ------------------------------------------------
-static void DrawLineF(float x1f, float y1f, float x2f, float y2f, CRGB color) {
-    // 1. Быстрая проверка на одинаковые точки
-    if (std::abs(x1f - x2f) < 0.1f && std::abs(y1f - y2f) < 0.1f) {
-        drawPixelXY((int16_t)x1f, (int16_t)y1f, color);
-        return;
+static void DrawLineF(const float x1_f, const float y1_f, const float x2_f, const float y2_f, const CRGB& color)
+{
+  float x1 = x1_f;
+  float y1 = y1_f;
+
+  const float deltaX = std::fabs(x2_f - x1);
+  const float deltaY = std::fabs(y2_f - y1);
+  float error = deltaX - deltaY;
+
+  // Все константы строго с суффиксом f (float)
+  const float signX = x1 < x2_f ? 0.5f : -0.5f;
+  const float signY = y1 < y2_f ? 0.5f : -0.5f;
+
+  // Выносим инварианты условий выхода из цикла, добавляя небольшой эпсилон (0.01f),
+  // чтобы компенсировать погрешность округления float при многократном сложении
+  const float limitX = x2_f + signX + (signX > 0.0f ? 0.01f : -0.01f);
+  const float limitY = y2_f + signY + (signY > 0.0f ? 0.01f : -0.01f);
+
+  while (true) {
+    // Проверка выхода за границы отрезка с учетом направления движения
+    if (signX > 0.0f) {
+      if (x1 > limitX) break;
+    } else { 
+      if (x1 < limitX) break;
     }
 
-    // 2. Подготовка (Steep и Swap)
-    bool steep = std::abs(y2f - y1f) > std::abs(x2f - x1f);
-    if (steep) { std::swap(x1f, y1f); std::swap(x2f, y2f); }
-    if (x1f > x2f) { std::swap(x1f, x2f); std::swap(y1f, y2f); }
-
-    // 3. Переход в Fixed Point (16.16)
-    // Умножаем на 65536 (сдвиг на 16) для высокой точности
-    int32_t x1 = (int32_t)(x1f * 65536.0f);
-    int32_t x2 = (int32_t)(x2f * 65536.0f);
-    int32_t y1 = (int32_t)(y1f * 65536.0f);
-    int32_t y2 = (int32_t)(y2f * 65536.0f);
-
-    int32_t dx = x2 - x1;
-    int32_t dy = y2 - y1;
-
-    // Градиент в фиксированной точке
-    // Используем 64-битное деление, чтобы избежать переполнения при расчете шага
-    int32_t gradient = (int32_t)(((int64_t)dy << 16) / (dx >> 16));
-
-    int32_t intery = y1;
-    int16_t startX = x1 >> 16;
-    int16_t endX = x2 >> 16;
-
-    // 4. Основной "реактивный" цикл
-    for (int16_t x = startX; x <= endX; x++) {
-        // Получаем целую часть Y и дробную (вес)
-        int16_t y_int = (int16_t)(intery >> 16);
-        // Вес — это верхние 8 бит из нижней 16-битной части
-        uint8_t weight2 = (uint8_t)((intery >> 8) & 0xFF);
-        uint8_t weight1 = 255U - weight2;
-
-        // Определяем координаты пикселей в зависимости от крутизны (steep)
-        int16_t px = steep ? y_int : x;
-        int16_t py = steep ? x : y_int;
-
-        // Отрисовка двух соседних пикселей
-        // Пиксель 1
-        CRGB bg1 = getPixColorXY(px, py);
-        drawPixelXY(px, py, CRGB(qadd8(bg1.r, (color.r * weight1) >> 8),
-                                 qadd8(bg1.g, (color.g * weight1) >> 8),
-                                 qadd8(bg1.b, (color.b * weight1) >> 8)));
-
-        // Пиксель 2 (соседний по Y или X)
-        int16_t px2 = steep ? px + 1 : px;
-        int16_t py2 = steep ? py : py + 1;
-
-        CRGB bg2 = getPixColorXY(px2, py2);
-        drawPixelXY(px2, py2, CRGB(qadd8(bg2.r, (color.r * weight2) >> 8),
-                                   qadd8(bg2.g, (color.g * weight2) >> 8),
-                                   qadd8(bg2.b, (color.b * weight2) >> 8)));
-
-        intery += gradient;
+    if (signY > 0.0f) {
+      if (y1 > limitY) break;
+    } else {
+      if (y1 < limitY) break;
     }
+
+    // Отрисовка текущего субпикселя
+    drawPixelXYF(x1, y1, color);
+
+    const float error2 = error;
+    
+    if (error2 > -deltaY) {
+        error -= deltaY;
+        x1 += signX;
+    }
+    if (error2 < deltaX) {
+        error += deltaX;
+        y1 += signY;
+    }
+  }
 }
 
 
 // ------------------------------------------------
-static void drawCircleF(float x0, float y0, float radius, CRGB color) {
+static void drawCircleF(float x0, float y0, float radius, const CRGB& color) {
   // Используем целые числа для алгоритма (скорость!)
   int16_t x = 0;
   int16_t y = static_cast<int16_t>(radius);
