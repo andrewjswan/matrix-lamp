@@ -15,7 +15,7 @@ namespace esphome::matrix_lamp {
 
 // ============= ЭФФЕКТЫ ===============
 // несколько общих переменных и буферов, которые могут использоваться в любом эффекте
-#define NUM_LAYERSMAX 2
+#define NUM_LAYERSMAX (2U)
 
 static uint8_t hue, hue2;                                 // постепенный сдвиг оттенка или какой-нибудь другой цикличный счётчик
 static uint8_t deltaHue, deltaHue2;                       // ещё пара таких же, когда нужно много
@@ -34,7 +34,7 @@ static uint16_t ff_x, ff_y, ff_z;                         // большие сч
 static int8_t noise2[2][WIDTH + 1][HEIGHT + 1];
 
 // массивы состояния объектов, которые могут использоваться в любом эффекте
-#define trackingOBJECT_MAX_COUNT  (100U)                                        // максимальное количество отслеживаемых объектов (очень влияет на расход памяти)
+#define trackingOBJECT_MAX_COUNT (100U)                                         // максимальное количество отслеживаемых объектов (очень влияет на расход памяти)
 static float    trackingObjectPosX[trackingOBJECT_MAX_COUNT];
 static float    trackingObjectPosY[trackingOBJECT_MAX_COUNT];
 static float    trackingObjectSpeedX[trackingOBJECT_MAX_COUNT];
@@ -44,7 +44,7 @@ static uint8_t  trackingObjectHue[trackingOBJECT_MAX_COUNT];
 static uint8_t  trackingObjectState[trackingOBJECT_MAX_COUNT];
 static bool     trackingObjectIsShift[trackingOBJECT_MAX_COUNT];
 
-#define enlargedOBJECT_MAX_COUNT  (WIDTH * 2)                                   // максимальное количество сложных отслеживаемых объектов (меньше, чем trackingOBJECT_MAX_COUNT)
+#define enlargedOBJECT_MAX_COUNT (WIDTH * 2U)                                   // максимальное количество сложных отслеживаемых объектов (меньше, чем trackingOBJECT_MAX_COUNT)
 static uint16_t  enlargedObjectNUM;                                             // используемое в эффекте количество объектов
 static long      enlargedObjectTime[enlargedOBJECT_MAX_COUNT];
 static float     liquidLampHot[enlargedOBJECT_MAX_COUNT];
@@ -53,7 +53,7 @@ static unsigned  liquidLampMX[enlargedOBJECT_MAX_COUNT];
 static unsigned  liquidLampSC[enlargedOBJECT_MAX_COUNT];
 static unsigned  liquidLampTR[enlargedOBJECT_MAX_COUNT];
 
-static uint8_t custom_eff = 0;
+static uint8_t custom_eff = 0U;
 
 // --------------------------------------------------------------------------------------
 
@@ -68,7 +68,7 @@ static uint32_t colorChangeTime;
 
 #ifdef DEF_SPARKLES
 // ------------- конфетти --------------
-#define FADE_OUT_SPEED        (70U)                                             // скорость затухания
+#define FADE_OUT_SPEED (70U)                                             // скорость затухания
 static void sparklesRoutine()
 {
   if (loadingFlag) {
@@ -78,23 +78,27 @@ static void sparklesRoutine()
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     for (uint16_t i = 0; i < NUM_LEDS; i++)
       if (random8(3U))
         leds[i].nscale8(random8());
       else
         leds[i] = 0U;
+
+    loadingFlag = false;
   }
 
-  for (uint8_t i = 0; i < modes[currentMode].Scale; i++)
+  const uint8_t max_sparks = modes[currentMode].Scale;
+  for (uint8_t i = 0; i < max_sparks; i++)
   {
     uint8_t x = random8(WIDTH);
     uint8_t y = random8(HEIGHT);
-    if (getPixColorXY(x, y) == 0U) {
-      leds[XY(x, y)] = CHSV(random8(), 255U, 255U);
+
+    uint16_t led_index = XY(x, y);
+    if ((uint32_t)leds[led_index] == 0U) {
+      leds[led_index] = CHSV(random8(), 255U, 255U);
     }
   }
-  //fader(FADE_OUT_SPEED);
+
   dimAll(256U - FADE_OUT_SPEED);
 }
 #endif
@@ -105,7 +109,7 @@ static void sparklesRoutine()
 // COOLING: How much does the air cool as it rises?
 // Less cooling = taller flames.  More cooling = shorter flames.
 // Default 55, suggested range 20-100
-#define COOLINGNEW 32
+#define COOLINGNEW (32U)
 // 8  практически сплошной поток красивой подсвеченной воды ровным потоком сверху донизу. будто бы на столе стоит маленький "родничок"
 // 20 ровный водопад с верщиной на свету, где потоки летящей воды наверху разбиваются ветром в белую пену
 // 32 уже не ровный водопад, у которого струи воды долетают до земли неравномерно
@@ -115,7 +119,7 @@ static void sparklesRoutine()
 // SPARKING: What chance (out of 255) is there that a new spark will be lit?
 // Higher chance = more roaring fire.  Lower chance = more flickery fire.
 // Default 120, suggested range 50-200.
-#define SPARKINGNEW 80 // 30 // 120 // 90 // 60
+#define SPARKINGNEW (80U) // 30 // 120 // 90 // 60
 // 80 почти все белые струи сверху будут долетать до низа - хорошо при выбранном ползунке Масштаб = 100 (белая вода без подкрашивания)
 // 50 чуть больше половины будет долетать. для цветных вариантов жидкости так более эффектно
 
@@ -1161,7 +1165,7 @@ static void lightBallsRoutine()
 #ifdef DEF_WHITE_COLOR
 // ------------- ещё более белый свет (с вертикальным вариантом) -------------
 // (c) SottNick
-#define BORDERLAND   2 // две дополнительные единицы бегунка Масштаб на границе вертикального и горизонтального варианта эффекта (с каждой стороны границы) будут для света всеми светодиодами в полную силу
+#define BORDERLAND (2U) // две дополнительные единицы бегунка Масштаб на границе вертикального и горизонтального варианта эффекта (с каждой стороны границы) будут для света всеми светодиодами в полную силу
 static void whiteColorStripeRoutine()
 {
   if (loadingFlag)
@@ -1222,7 +1226,7 @@ static void whiteColorStripeRoutine()
 static int8_t zD;
 static int8_t zF;
 // The coordinates for 3 16-bit noise spaces.
-#define NUM_LAYERS 1 // в кометах используется 1 слой, но для огня 2018 нужно 2
+#define NUM_LAYERS (1U) // в кометах используется 1 слой, но для огня 2018 нужно 2
 
 static uint32_t noise32_x[NUM_LAYERSMAX];
 static uint32_t noise32_y[NUM_LAYERSMAX];
@@ -3608,8 +3612,8 @@ static void stormyRain()
 // ------------------------------ ЭФФЕКТ МЕРЦАНИЕ ----------------------
 // (c) SottNick
 
-#define TWINKLES_SPEEDS 4     // всего 4 варианта скоростей мерцания
-#define TWINKLES_MULTIPLIER 6 // слишком медленно, если на самой медленной просто по единичке к яркости добавлять
+#define TWINKLES_SPEEDS (4U)     // всего 4 варианта скоростей мерцания
+#define TWINKLES_MULTIPLIER (6U) // слишком медленно, если на самой медленной просто по единичке к яркости добавлять
 
 static void twinklesRoutine() {
     if (loadingFlag) {
@@ -3850,7 +3854,7 @@ static void ringsRoutine(){
 // ------------------------------ ЭФФЕКТ КУБИК РУБИКА 2D ----------------------
 // (c) SottNick
 
-#define PAUSE_MAX 7 // пропустить 7 кадров после завершения анимации сдвига ячеек
+#define PAUSE_MAX (7U)                // пропустить 7 кадров после завершения анимации сдвига ячеек
 
 // uint8_t noise3d[1][WIDTH][HEIGHT]; // тут используем только нулевую колонку и нулевую строку. просто для экономии памяти взяли существующий трёхмерный массив
 // uint8_t hue2;                      // осталось шагов паузы
@@ -4450,10 +4454,10 @@ static void LeapersRestart_leaper(uint8_t l) {
 }
 
 static void LeapersMove_leaper(uint8_t l) {
-#define GRAVITY            0.06
-#define SETTLED_THRESHOLD  0.1
-#define WALL_FRICTION      0.95
-#define WIND               0.95    // wind resistance
+#define GRAVITY            (0.06f)
+#define SETTLED_THRESHOLD  (0.1f)
+#define WALL_FRICTION      (0.95f)
+#define WIND               (0.95f)    // wind resistance
 
   trackingObjectPosX[l] += trackingObjectSpeedX[l];
   trackingObjectPosY[l] += trackingObjectSpeedY[l];
@@ -4474,10 +4478,8 @@ static void LeapersMove_leaper(uint8_t l) {
   if (trackingObjectPosX[l] <= 0 || trackingObjectPosX[l] >= WIDTH - 1) {
     trackingObjectSpeedX[l] = (-trackingObjectSpeedX[l] * WALL_FRICTION);
     if (trackingObjectPosX[l] <= 0) {
-      //trackingObjectPosX[l] = trackingObjectSpeedX[l]; // the bug?
       trackingObjectPosX[l] = -trackingObjectPosX[l];
     } else {
-      //trackingObjectPosX[l] = WIDTH - 1 - trackingObjectSpeedX[l]; // the bug?
       trackingObjectPosX[l] = WIDTH + WIDTH - 2 - trackingObjectPosX[l];
     }
   }
@@ -5893,7 +5895,7 @@ static void newMatrixRoutine()
 
     drawPixelXYF(trackingObjectPosX[i], trackingObjectPosY[i], color);
 
-    #define GLUK 20 // вероятность горизонтального сдвига капли
+    #define GLUK (20U) // вероятность горизонтального сдвига капли
     if (random8() < GLUK) {
       //trackingObjectPosX[i] = trackingObjectPosX[i] + random(-1, 2);
       trackingObjectPosX[i] = (uint8_t)(trackingObjectPosX[i] + WIDTH - 1U + random8(3U)) % WIDTH ;
@@ -6528,8 +6530,8 @@ static void spiderRoutine() {
 // особая благодарность https://www.reddit.com/user/ldirko/ Yaroslaw Turbin aka ldirko
 
 // вместо набора палитр в оригинальном эффекте сделан генератор палитр
-#define AURORA_COLOR_RANGE 10 // (+/-10 единиц оттенка) диапазон, в котором плавает цвет сияния относительно выбранного оттенка
-#define AURORA_COLOR_PERIOD 2 // (2 раза в минуту) частота, с которой происходит колебание выбранного оттенка в разрешённом диапазоне
+#define AURORA_COLOR_RANGE (10U) // (+/-10 единиц оттенка) диапазон, в котором плавает цвет сияния относительно выбранного оттенка
+#define AURORA_COLOR_PERIOD (2U) // (2 раза в минуту) частота, с которой происходит колебание выбранного оттенка в разрешённом диапазоне
 
 // генератор палитр для Северного сияния (c) SottNick
 // static const uint8_t MBAuroraColors_arr[5][4] PROGMEM = // палитра в формате CHSV
@@ -6869,12 +6871,12 @@ static void magmaRoutine(){
 //  uint8_t .sat; => shiftValue[HEIGHT] (не хватило двухмерного массива на насыщенность)
 //  uint8_t .val; => noise3d[1][WIDTH][HEIGHT]
 
-#define FLAME_MAX_DY        256 // максимальная вертикальная скорость перемещения языков пламени за кадр.  имеется в виду 256/256 =   1 пиксель за кадр
-#define FLAME_MIN_DY        128 // минимальная вертикальная скорость перемещения языков пламени за кадр.   имеется в виду 128/256 = 0.5 пикселя за кадр
-#define FLAME_MAX_DX         32 // максимальная горизонтальная скорость перемещения языков пламени за кадр. имеется в виду 32/256 = 0.125 пикселя за кадр
-#define FLAME_MIN_DX       (-FLAME_MAX_DX)
-#define FLAME_MAX_VALUE     255 // максимальная начальная яркость языка пламени
-#define FLAME_MIN_VALUE     176 // минимальная начальная яркость языка пламени
+#define FLAME_MAX_DY      (256U) // максимальная вертикальная скорость перемещения языков пламени за кадр.  имеется в виду 256/256 =   1 пиксель за кадр
+#define FLAME_MIN_DY      (128U) // минимальная вертикальная скорость перемещения языков пламени за кадр.   имеется в виду 128/256 = 0.5 пикселя за кадр
+#define FLAME_MAX_DX       (32U) // максимальная горизонтальная скорость перемещения языков пламени за кадр. имеется в виду 32/256 = 0.125 пикселя за кадр
+#define FLAME_MIN_DX   (-FLAME_MAX_DX)
+#define FLAME_MAX_VALUE   (255U) // максимальная начальная яркость языка пламени
+#define FLAME_MIN_VALUE   (176U) // минимальная начальная яркость языка пламени
 
 //пришлось изобрести очередную функцию субпиксельной графики. на этот раз бесшовная по ИКСу, работающая в цветовом пространстве HSV и без смешивания цветов
 static void wu_pixel_maxV(int16_t item){
@@ -6995,7 +6997,7 @@ static void execStringsFlame(){ // внимание! эффект заточен
 // На основе алгоритма https://editor.soulmatelights.com/gallery/546-fire
 // by Stepko
 
-#define FIXED_SCALE_FOR_Y 4U // менять нельзя. корректировка скорости ff_x =... подогнана под него
+#define FIXED_SCALE_FOR_Y (4U) // менять нельзя. корректировка скорости ff_x =... подогнана под него
 
 static void Fire2021Routine(){
   if (loadingFlag) {
@@ -7556,9 +7558,10 @@ static void Contacts() {
 // =====================================
 // CRGBPalette16 currentPalette(PartyColors_p);
 static void DropInWater() {
-#define Sat (255)
-#define MaxRad WIDTH + HEIGHT
+#define Sat (255U)
+#define MaxRad (WIDTH + HEIGHT)
 #define DROP_COUNT ((((WIDTH + HEIGHT) / 8U) > 1U) ? ((WIDTH + HEIGHT) / 8U) : 2U)
+
   static int32_t rad[DROP_COUNT];
   static uint8_t posx[DROP_COUNT], posy[DROP_COUNT];
 
@@ -10145,7 +10148,9 @@ static void EffectStars() {
 //   float optimization © andrewjswan
 // ======================================
 
-#define M_PI_2  1.57079632679489661923
+#ifndef M_PI_2
+  #define M_PI_2 (1.57079632679489661923f)
+#endif
 static const PROGMEM float LUT[102] = {
   0,           0.0099996664, 0.019997334, 0.029991005, 0.039978687,
   0.049958397, 0.059928156,  0.069885999, 0.079829983, 0.089758173,
@@ -12164,7 +12169,7 @@ static void drawFrame(double t, double x, double y, float radius, uint8_t hueOff
   }
 }
 
-#define MAX_ACTIVE_RINGS 5
+#define MAX_ACTIVE_RINGS (5U)
 
 static void RainbowRings() {
   // static float ringRadii[MAX_ACTIVE_RINGS];  -> trackingObjectPosX[trackingOBJECT_MAX_COUNT];
@@ -12598,9 +12603,9 @@ static void butterflyRoutine() {
 //              НОВЫЕ ЗВЁЗДЫ
 // ======================================
 
-#define MAX_STARS 30
+#define MAX_STARS (30U)
 #ifndef TWO_PI
-  #define TWO_PI 6.28318530718
+  #define TWO_PI (6.28318530718f)
 #endif
 
 static void StarsEffect() {
