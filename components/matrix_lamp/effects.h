@@ -128,27 +128,42 @@ static void fire2012WithPalette() {
     loadingFlag = false;
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
-        setModeSettings(random8(7U) ? 46U+random8(26U) : 100U, 195U+random8(40U));
+        setModeSettings(random8(7U) ? 46U + random8(26U) : 100U, 195U + random8(40U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
   }
 
-  for (uint8_t x = 0; x < WIDTH; x++)
-  {
+  constexpr uint8_t cooling_limit = ((COOLINGNEW * 10U) / HEIGHT) + 2U;
+
+  CRGBPalette16 customPalette;
+  const bool is_waterfall = (modes[currentMode].Scale == 100);
+  if (!is_waterfall) {
+    // 2.57f * Scale переводим в целые числа: (Scale * 257) / 100
+    // 2.57f вместо 2.55f, потому что 100 для белого цвета
+    uint8_t hue_val = ((uint16_t)modes[currentMode].Scale * 257U) / 100U;
+    customPalette = CRGBPalette16(
+      CRGB::Black,
+      CHSV(hue_val, 255U, 255U),
+      CHSV(hue_val, 128U, 255U),
+      CRGB::White
+    );
+  }
+
+  for (uint8_t x = 0; x < WIDTH; x++) {
     // Step 1.  Cool down every cell a little
     for (uint8_t i = 0; i < HEIGHT; i++) {
-      noise3d[0][x][i] = qsub8(noise3d[0][x][i], random8(0, ((COOLINGNEW * 10) / HEIGHT) + 2));
+      noise3d[0][x][i] = qsub8(noise3d[0][x][i], random8(0, cooling_limit));
     }
 
     // Step 2.  Heat from each cell drifts 'up' and diffuses a little
     for (uint8_t k = HEIGHT - 1; k >= 2; k--) {
-      noise3d[0][x][k] = (noise3d[0][x][k - 1] + noise3d[0][x][k - 2] + noise3d[0][x][k - 2]) / 3;
+      noise3d[0][x][k] = ((uint16_t)noise3d[0][x][k - 1] + noise3d[0][x][k - 2] + noise3d[0][x][k - 2]) / 3U;
     }
 
     // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
     if (random8() < SPARKINGNEW) {
-      uint8_t y = random8(2);
-      noise3d[0][x][y] = qadd8(noise3d[0][x][y], random8(160, 255));
+      uint8_t y = random8(2U);
+      noise3d[0][x][y] = qadd8(noise3d[0][x][y], random8(160U, 255U));
     }
 
     // Step 4.  Map from heat cells to LED colors
@@ -156,10 +171,13 @@ static void fire2012WithPalette() {
       // Scale the heat value from 0-255 down to 0-240
       // for best results with color palettes.
       uint8_t colorindex = scale8(noise3d[0][x][j], 240);
-      if (modes[currentMode].Scale == 100)
-        leds[XY(x, (HEIGHT - 1) - j)] = ColorFromPalette(WaterfallColors_p, colorindex);
-      else
-        leds[XY(x, (HEIGHT - 1) - j)] = ColorFromPalette(CRGBPalette16(CRGB::Black, CHSV(modes[currentMode].Scale * 2.57f, 255U, 255U), CHSV(modes[currentMode].Scale * 2.57f, 128U, 255U), CRGB::White), colorindex); // 2.57f вместо 2.55f, потому что 100 для белого цвета
+      uint16_t led_idx = XY(x, (HEIGHT - 1) - j);
+      if (led_idx < NUM_LEDS) {
+        if (is_waterfall)
+          leds[led_idx] = ColorFromPalette(WaterfallColors_p, colorindex);
+        else
+          leds[led_idx] = ColorFromPalette(customPalette, colorindex);
+      }
     }
   }
 }
