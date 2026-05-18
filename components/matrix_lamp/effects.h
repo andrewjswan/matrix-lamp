@@ -397,12 +397,10 @@ static void pulseRoutine(uint8_t PMode) {
 
   dimAll(248U);
 
-  uint8_t _sat;
   if (step <= pcnt) {
     uint8_t base_hue = 0U;
     const uint8_t scale_val = modes[currentMode].Scale;
 
-    uint8_t base_hue = 0U;
     // case 1U:                    // 1 - случайные диски
     // case 2U:                    // 2...17 - перелив цвета дисков
     // case 3U:                    // 18...33 - выбор цвета дисков
@@ -411,6 +409,7 @@ static void pulseRoutine(uint8_t PMode) {
     // case 6U:                    // 68...83 - выбор цвета пузырей
     // case 7U:                    // 84...99 - перелив цвета пузырей
     // case 8U:                    // 100 - случайные пузыри
+
     if (PMode == 1U) base_hue = hue;
     else if (PMode == 2U || PMode == 7U || PMode == 8U) base_hue = hue2;
     else if (PMode == 3U || PMode == 6U) base_hue = scale8(scale_val, 255U); // Замена Scale * 2.55f
