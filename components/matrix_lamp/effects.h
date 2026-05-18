@@ -169,7 +169,7 @@ static void fire2012WithPalette() {
 #ifdef DEF_FIRE
 // ------------- Огонь -----------------
 #define SPARKLES              (1U)                       // вылетающие угольки вкл выкл
-#define UNIVERSE_FIRE                                    // универсальный огонь 2-в-1 Цветной+Белый
+#define UNIVERSE_FIRE                                    // универсальный огонь 2-в-1 Цветной + Белый
 
 // uint8_t pcnt = 0U;                                    // внутренний делитель кадров для поднимающегося пламени - переменная вынесена в общий пул, чтобы использовать повторно
 // uint8_t deltaHue = 16U;                               // текущее смещение пламени (hueMask) - переменная вынесена в общий пул, чтобы использовать повторно
@@ -193,7 +193,7 @@ static void drawFrame(uint8_t pcnt, bool isColored);
 static void fireRoutine(bool isColored)
 {
   if (loadingFlag) {
-    memset(matrixValue, 0, sizeof(matrixValue));          // это массив для эффекта Огонь. странно, что его нужно залить нулями
+    memset(matrixValue, 0U, sizeof(matrixValue));          // это массив для эффекта Огонь. странно, что его нужно залить нулями
 
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
@@ -221,7 +221,7 @@ static void fireRoutine(bool isColored)
 // Randomly generate the next line (matrix row)
 static void generateLine() {
   for (uint8_t x = 0U; x < WIDTH; x++) {
-    line[x] = random(127, 255);                             // заполнение случайным образом нижней линии (127, 255) - менее контрастное, (64, 255) - оригинал
+    line[x] = random8(127, 255);                            // заполнение случайным образом нижней линии (127, 255) - менее контрастное, (64, 255) - оригинал
   }
 }
 
@@ -247,37 +247,43 @@ static void shiftUp() {                                     // подъем ка
 static void drawFrame(uint8_t pcnt, bool isColored) {              // прорисовка нового кадра
   int32_t nextv;
 #ifdef UNIVERSE_FIRE                                               // если определен универсальный огонь
-  uint8_t baseHue = (float)(modes[currentMode].Scale - 1U) * 2.6f;
+  uint8_t baseHue = ((uint16_t)(modes[currentMode].Scale - 1U) * 26U) / 10U;
 #else
   uint8_t baseHue = isColored ? 255U : 0U;
 #endif
-  uint8_t baseSat = (modes[currentMode].Scale < 100) ? 255U : 0U;  // вычисление базового оттенка
+  uint8_t baseSat = (modes[currentMode].Scale < 100Г) ? 255U : 0U; // вычисление базового оттенка
 
-  //first row interpolates with the "next" line
-  deltaHue = random(0U, 2U) ? constrain (shiftHue[0] + random(0U, 2U) - random(0U, 2U), 15U, 17U) : shiftHue[0];
+  // first row interpolates with the "next" line
   // random(0U, 2U)= скорость смещения языков чем больше 2U - тем медленнее
   // 15U, 17U - амплитуда качания -1...+1 относительно 16U
   // высчитываем плавную дорожку смещения всполохов для нижней строки
   // так как в последствии координаты точки будут исчисляться из остатка, то за базу можем принять кратную ширину матрицы hueMask
   // ширина матрицы hueMask = 16, поэтому нам нужно получить диапазон чисел от 15 до 17
   // далее к предыдущему значению прибавляем случайную 1 и отнимаем случайную 1 - это позволит плавным образом менять значение смещения
-  shiftHue[0] = deltaHue; // заносим это значение в стэк
+  if (random8(2U) != 0U) {
+    int8_t shift = (int8_t)random8(2U) - (int8_t)random8(2U);
+    shiftHue[0] = std::clamp((int)(shiftHue[0] + shift), 15, 17);
+  }  
+  deltaHue = shiftHue[0]; // заносим это значение в стэк
 
-  deltaValue = random(0U, 3U) ? constrain (shiftValue[0] + random(0U, 2U) - random(0U, 2U), 15U, 17U) : shiftValue[0];
   // random(0U, 3U)= скорость смещения очага чем больше 3U - тем медленнее
   // 15U, 17U - амплитуда качания -1...+1 относительно 16U
-  shiftValue[0] = deltaValue;
+  if (random8(3U) != 0U) {
+    int8_t shift = (int8_t)random8(2U) - (int8_t)random8(2U);
+    shiftValue[0] = std::clamp((int)(shiftValue[0] + shift), 15, 17);
+  }  
+  deltaValue = shiftValue[0];
 
-
+  uint8_t inv_pcnt = 100U - pcnt;                                                           // Предрассчитываем инверсию шага фазы для целочисленного смешивания кадров
   for (uint8_t x = 0U; x < WIDTH; x++) {                                                    // прорисовка нижней строки (сначала делаем ее, так как потом будем пользоваться ее значением смещения)
     uint8_t newX = x % 16;                                                                  // сократил формулу без доп. проверок
-    nextv =                                                                                 // расчет значения яркости относительно valueMask и нижерасположенной строки.
-      (((100.0f - pcnt) * matrixValue[0][newX] + pcnt * line[newX]) / 100.0f)
-      - pgm_read_byte(&valueMask[0][(x + deltaValue) % 16U]);
+    nextv = (int32_t)(((inv_pcnt * matrixValue[0][newX]) +                                  // расчет значения яркости относительно valueMask и нижерасположенной строки.
+                      ((uint16_t)pcnt * line[newX])) / 100U)
+            - pgm_read_byte(&valueMask[0][(x + deltaValue) % 16U]);
     CRGB color = CHSV(                                                                      // вычисление цвета и яркости пикселя
                    baseHue + pgm_read_byte(&hueMask[0][(x + deltaHue) % 16U]),              // H - смещение всполохов
-                   baseSat,                                                                 // S - когда колесо масштаба =100 - белый огонь (экономим на 1 эффекте)
-                   (uint8_t)max((int32_t)0, nextv)                                          // V
+                   baseSat,                                                                 // S - когда колесо масштаба = 100 - белый огонь (экономим на 1 эффекте)
+                   (uint8_t)std::max((int32_t)0, nextv)                                     // V
                  );
     leds[XY(x, 0)] = color;                                                                 // прорисовка цвета очага
   }
@@ -285,40 +291,35 @@ static void drawFrame(uint8_t pcnt, bool isColored) {              // прори
   // Each row interpolates with the one before it
   for (uint8_t y = HEIGHT - 1U; y > 0U; y--) {                                              // прорисовка остальных строк с учетом значения низлежащих
     deltaHue = shiftHue[y];                                                                 // извлекаем положение
-    shiftHue[y] = shiftHue[y - 1];                                                          // подготавлеваем значение смешения для следующего кадра основываясь на предыдущем
+    shiftHue[y] = shiftHue[y - 1U];                                                         // подготавлеваем значение смешения для следующего кадра основываясь на предыдущем
     deltaValue = shiftValue[y];                                                             // извлекаем положение
-    shiftValue[y] = shiftValue[y - 1];                                                      // подготавлеваем значение смешения для следующего кадра основываясь на предыдущем
+    shiftValue[y] = shiftValue[y - 1U];                                                     // подготавлеваем значение смешения для следующего кадра основываясь на предыдущем
 
-
-    if (y > 8U) {                                                                           // цикл стирания текущей строоки для искр
-      for (uint8_t _x = 0U; _x < WIDTH; _x++) {                                             // стираем строчку с искрами (очень не оптимально)
-        drawPixelXY(_x, y, 0U);
-      }
-    }
     for (uint8_t x = 0U; x < WIDTH; x++) {                                                  // пересчет координаты x для текущей строки
+      if (y >= 8U) {
+        drawPixelXY(x, y, 0U);                                                              // стираем строчку с искрами
+      }
+
       uint8_t newX = x % 16U;                                                               // функция поиска позиции значения яркости для матрицы valueMask
       if (y < 8U) {                                                                         // если строка представляет очаг
-        nextv =                                                                             // расчет значения яркости относительно valueMask и нижерасположенной строки.
-          (((100.0f - pcnt) * matrixValue[y][newX]
-            + pcnt * matrixValue[y - 1][newX]) / 100.0f)
-          - pgm_read_byte(&valueMask[y][(x + deltaValue) % 16U]);
+        nextv = (int32_t)(((inv_pcnt * matrixValue[y][newX]) +                              // расчет значения яркости относительно valueMask и нижерасположенной строки
+                          ((uint16_t)pcnt * matrixValue[y - 1U][newX])) / 100U)
+                - pgm_read_byte(&valueMask[y][(x + deltaValue) % 16U]);
 
         CRGB color = CHSV(                                                                  // определение цвета пикселя
-                       baseHue + pgm_read_byte(&hueMask[y][(x + deltaHue) % 16U ]),         // H - смещение всполохов
+                       baseHue + pgm_read_byte(&hueMask[y][(x + deltaHue) % 16U]),          // H - смещение всполохов
                        baseSat,                                                             // S - когда колесо масштаба =100 - белый огонь (экономим на 1 эффекте)
-                       (uint8_t)max((int32_t)0, nextv)                                      // V
+                       (uint8_t)std::max((int32_t)0, nextv)                                 // V
                      );
         leds[XY(x, y)] = color;
       }
       else if (y == 8U && SPARKLES) {                                                       // если это самая нижняя строка искр - формитуем искорку из пламени
-        if (random(0, 20) == 0 && getPixColorXY(x, y - 1U) != 0U)
+        if (random8(20U) == 0 && getPixColorXY(x, y - 1U) != 0U)
           drawPixelXY(x, y, getPixColorXY(x, y - 2U));                                      // 20 = обратная величина количества искр
-        else
-          drawPixelXY(x, y, 0U);
       }
       else if (SPARKLES) {                                                                  // если это не самая нижняя строка искр - перемещаем искорку выше
         // старая версия для яркости
-        newX = (random(0, 4)) ? x : (x + WIDTH + random(0U, 2U) - random(0U, 2U)) % WIDTH ; // с вероятностью 1/3 смещаем искорку влево или вправо
+        newX = (random8(4U)) ? x : (x + WIDTH + random8(2U) - random8(2U)) % WIDTH ;        // с вероятностью 1/3 смещаем искорку влево или вправо
         if (getPixColorXY(x, y - 1U) > 0U)
           drawPixelXY(newX, y, getPixColorXY(x, y - 1U));                                   // рисуем искорку на новой строчке
       }
