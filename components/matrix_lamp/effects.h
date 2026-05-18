@@ -142,13 +142,13 @@ static void fire2012WithPalette() {
     // 2.57f вместо 2.55f, потому что 100 для белого цвета
     uint8_t hue_val = ((uint16_t)modes[currentMode].Scale * 257U) / 100U;
     customPalette = CRGBPalette16(
-      CRGB::Black, 
-      CHSV(hue_val, 255U, 255U), 
-      CHSV(hue_val, 128U, 255U), 
+      CRGB::Black,
+      CHSV(hue_val, 255U, 255U),
+      CHSV(hue_val, 128U, 255U),
       CRGB::White
     );
   }
-  
+
   for (uint8_t x = 0; x < WIDTH; x++) {
     // Step 1.  Cool down every cell a little
     for (uint8_t i = 0; i < HEIGHT; i++) {
