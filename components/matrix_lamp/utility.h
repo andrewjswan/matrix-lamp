@@ -348,6 +348,65 @@ static void DrawLineF(const float x1_f, const float y1_f, const float x2_f, cons
 }
 
 
+//------------------------------------------------
+static void drawCircle(int x0, int y0, int radius, const CRGB &color) {
+  if (radius < 0) return;
+
+  if (radius == 0) {
+    drawPixelXY(x0, y0, color);
+    return;
+  }
+
+  int a = radius;
+  int b = 0;
+  int radiusError = 1 - a;
+
+  const bool completely_inside = (x0 - radius >= 0) && (x0 + radius < (int)WIDTH) &&
+                                 (y0 - radius >= 0) && (y0 + radius < (int)HEIGHT);
+
+  if (completely_inside) {
+    // Сверхбыстрая отрисовка напрямую в буфер leds через макрос XY
+    while (a >= b) {
+      leds[XY( a + x0,  b + y0)] = color;
+      leds[XY( b + x0,  a + y0)] = color;
+      leds[XY(-a + x0,  b + y0)] = color;
+      leds[XY(-b + x0,  a + y0)] = color;
+      leds[XY(-a + x0, -b + y0)] = color;
+      leds[XY(-b + x0, -a + y0)] = color;
+      leds[XY( a + x0, -b + y0)] = color;
+      leds[XY( b + x0, -a + y0)] = color;
+      
+      b++;
+      if (radiusError < 0) {
+        radiusError += (b << 1) + 1;
+      } else {
+        a--;
+        radiusError += ((b - a + 1) << 1);
+      }
+    }
+  } else {
+    while (a >= b) {
+      drawPixelXY( a + x0,  b + y0, color);
+      drawPixelXY( b + x0,  a + y0, color);
+      drawPixelXY(-a + x0,  b + y0, color);
+      drawPixelXY(-b + x0,  a + y0, color);
+      drawPixelXY(-a + x0, -b + y0, color);
+      drawPixelXY(-b + x0, -a + y0, color);
+      drawPixelXY( a + x0, -b + y0, color);
+      drawPixelXY( b + x0, -a + y0, color);
+      
+      b++;
+      if (radiusError < 0) {
+        radiusError += (b << 1) + 1;
+      } else {
+        a--;
+        radiusError += ((b - a + 1) << 1);
+      }
+    }
+  }
+}
+
+
 // ------------------------------------------------
 static void drawCircleF(float x0, float y0, float radius, const CRGB& color) {
   // Используем целые числа для алгоритма (скорость!)
