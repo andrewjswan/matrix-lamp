@@ -335,7 +335,7 @@ static void rainbowHorVertRoutine(bool isVertical) {
   const uint8_t inner_limit = isVertical ? HEIGHT : WIDTH;
 
   const uint8_t step = (modes[currentMode].Scale % 67U) * 2U;
-  
+
   for (uint8_t i = 0U; i < outer_limit; i++) {
     CHSV thisColor = CHSV((uint8_t)(hue + i * step), 255U, 255U);
 
@@ -358,7 +358,7 @@ static void rainbowRoutine() {
   }
 
   hue += 4U;
-  
+
   const uint8_t current_scale = modes[currentMode].Scale;
   if (current_scale < 34U)                                                   // если масштаб до 34
     rainbowHorVertRoutine(false);
@@ -373,17 +373,17 @@ static void rainbowRoutine() {
     // Множитель (255 / MAX_SIDE) также переводим в масштаб Fixed-Point.
     // Шаг по X: ((float)WIDTH / (float)HEIGHT) * (255.0f / MAX_SIDE)
     float stepX_f = ((float)WIDTH / (float)HEIGHT) * (255.0f / (float)MAX_SIDE);
-    uint16_t stepX_fixed = (uint16_t)(stepX_f * 256.0f);    
+    uint16_t stepX_fixed = (uint16_t)(stepX_f * 256.0f);
 
     // Шаг по Y: twirlFactor * (255.0f / MAX_SIDE)
     // Так как twirl_fixed уже умножен на 256, просто умножаем на 255 и делим на MAX_SIDE
     uint32_t stepY_fixed = (twirl_fixed * 255U) / MAX_SIDE;
-    
+
     for (uint8_t i = 0U; i < WIDTH; i++) {
       // Предрассчитываем базовую составляющую цвета для текущего столбца X
       // Сдвиг >> 8 возвращает число из Fixed-Point обратно в диапазон 0..255
       uint16_t base_x_color = (i * stepX_fixed);
-      
+
       for (uint8_t j = 0U; j < HEIGHT; j++) {
         // Итоговый сдвиг цвета: hue + (компонента_X + компонента_Y) -> сдвиг обратно из 16-битного Fixed-Point
         uint8_t calculated_hue = hue + (uint8_t)((base_x_color + (j * stepY_fixed)) >> 8);
