@@ -401,7 +401,7 @@ static void pulseRoutine(uint8_t PMode) {
   if (step <= pcnt) {
     uint8_t base_hue = 0U;
     const uint8_t scale_val = modes[currentMode].Scale;
-    
+
     uint8_t base_hue = 0U;
     // case 1U:                    // 1 - случайные диски
     // case 2U:                    // 2...17 - перелив цвета дисков
@@ -417,7 +417,7 @@ static void pulseRoutine(uint8_t PMode) {
 
     const bool is_bubble_mode = (PMode >= 5U);
     const uint16_t angle_step = 128U / (step + 1U);
-    
+
     for (uint8_t i = 0; i < step; i++) {
       uint8_t cos_val = cos8(angle_step * (i + 1U));
 
