@@ -417,34 +417,6 @@ static void rainbowRoutine() {
 #if defined(DEF_PULSE) || defined(DEF_PULSE_RAINBOW) || defined(DEF_PULSE_WHITE)
 // -------------- эффект пульс ------------
 // Stefan Petrick's PULSE Effect mod by PalPalych for GyverLamp
-static void drawCircle(int x0, int y0, int radius, const CRGB &color){
-  int a = radius, b = 0;
-  int radiusError = 1 - a;
-
-  if (radius == 0) {
-    drawPixelXY(x0, y0, color);
-    return;
-  }
-
-  while (a >= b)  {
-    drawPixelXY(a + x0, b + y0, color);
-    drawPixelXY(b + x0, a + y0, color);
-    drawPixelXY(-a + x0, b + y0, color);
-    drawPixelXY(-b + x0, a + y0, color);
-    drawPixelXY(-a + x0, -b + y0, color);
-    drawPixelXY(-b + x0, -a + y0, color);
-    drawPixelXY(a + x0, -b + y0, color);
-    drawPixelXY(b + x0, -a + y0, color);
-    b++;
-    if (radiusError < 0)
-      radiusError += 2 * b + 1;
-    else
-    {
-      a--;
-      radiusError += 2 * (b - a + 1);
-    }
-  }
-}
 
 // CRGBPalette16 palette; не используется
 // uint8_t currentRadius = 4; // будет pcnt
@@ -470,61 +442,54 @@ static void pulseRoutine(uint8_t PMode) {
 
   dimAll(248U);
 
-    uint8_t _sat;
-    if (step <= pcnt) {
-      for (uint8_t i = 0; i < step; i++) {
-        uint8_t _dark = qmul8(2U, cos8(128U / (step + 1U) * (i + 1U))) ;
-        switch (PMode) {
-          case 1U:                    // 1 - случайные диски
-            deltaHue = hue;
-            _pulse_color = CHSV(deltaHue, 255U, _dark);
-            break;
-          case 2U:                    // 2...17 - перелив цвета дисков
-            deltaHue2 = modes[currentMode].Scale;
-            _pulse_color = CHSV(hue2, 255U, _dark);
-            break;
-          case 3U:                    // 18...33 - выбор цвета дисков
-            deltaHue = modes[currentMode].Scale * 2.55f;
-            _pulse_color = CHSV(deltaHue, 255U, _dark);
-            break;
-          case 4U:                    // 34...50 - дискоцветы
-            deltaHue += modes[currentMode].Scale;
-            _pulse_color = CHSV(deltaHue, 255U, _dark);
-            break;
-          case 5U:                    // 51...67 - пузыри цветы
-            _sat =  qsub8(255U, cos8(128U / (step + 1U) * (i + 1U))) ;
-            deltaHue += modes[currentMode].Scale;
-            _pulse_color = CHSV(deltaHue, _sat, _dark);
-            break;
-          case 6U:                    // 68...83 - выбор цвета пузырей
-            _sat =  qsub8(255U, cos8(128U / (step + 1U) * (i + 1U))) ;
-            deltaHue = modes[currentMode].Scale * 2.55f;
-            _pulse_color = CHSV(deltaHue, _sat, _dark);
-            break;
-          case 7U:                    // 84...99 - перелив цвета пузырей
-            _sat =  qsub8(255U, cos8(128U / (step + 1U) * (i + 1U))) ;
-            deltaHue2 = modes[currentMode].Scale;
-            _pulse_color = CHSV(hue2, _sat, _dark);
-            break;
-          case 8U:                    // 100 - случайные пузыри
-            _sat =  qsub8(255U, cos8(128U / (step + 1U) * (i + 1U))) ;
-            deltaHue2 = modes[currentMode].Scale;
-            _pulse_color = CHSV(hue2, _sat, _dark);
-            break;
-        }
-        drawCircle(emitterX, emitterY, i, _pulse_color);
+  if (step <= pcnt) {
+    uint8_t base_hue = 0U;
+    const uint8_t scale_val = modes[currentMode].Scale;
+
+    // case 1U:                    // 1 - случайные диски
+    // case 2U:                    // 2...17 - перелив цвета дисков
+    // case 3U:                    // 18...33 - выбор цвета дисков
+    // case 4U:                    // 34...50 - дискоцветы
+    // case 5U:                    // 51...67 - пузыри цветы
+    // case 6U:                    // 68...83 - выбор цвета пузырей
+    // case 7U:                    // 84...99 - перелив цвета пузырей
+    // case 8U:                    // 100 - случайные пузыри
+
+    if (PMode == 1U) base_hue = hue;
+    else if (PMode == 2U || PMode == 7U || PMode == 8U) base_hue = hue2;
+    else if (PMode == 3U || PMode == 6U) base_hue = scale8(scale_val, 255U); // Замена Scale * 2.55f
+
+    const bool is_bubble_mode = (PMode >= 5U);
+    const uint16_t angle_step = 128U / (step + 1U);
+
+    for (uint8_t i = 0; i < step; i++) {
+      uint8_t cos_val = cos8(angle_step * (i + 1U));
+
+      uint8_t _dark = qmul8(2U, cos_val);
+      uint8_t _sat  = is_bubble_mode ? qsub8(255U, cos_val) : 255U;
+
+      if (PMode == 4U || PMode == 5U) {
+        deltaHue += scale_val;
+        _pulse_color = CHSV(deltaHue, _sat, _dark);
+      } else {
+        _pulse_color = CHSV(base_hue, _sat, _dark);
       }
+
+      drawCircle(emitterX, emitterY, i, _pulse_color);
     }
-    else
-    {
-      emitterX = random8(WIDTH - 5U) + 3U;
-      emitterY = random8(HEIGHT - 5U) + 3U;
-      hue2 += deltaHue2;
-      hue = random8(0U, 255U);
-      pcnt = random8(WIDTH >> 2U, (WIDTH >> 1U) + 1U);
-      step = 0;
-    }
-    step++;
+  }
+  else
+  {
+    emitterX = random8(WIDTH - 5U) + 3U;
+    emitterY = random8(HEIGHT - 5U) + 3U;
+    deltaHue2 = modes[currentMode].Scale;
+    hue2 += deltaHue2;
+    hue = random8(0U, 255U);
+    pcnt = random8(WIDTH >> 2U, (WIDTH >> 1U) + 1U);
+    step = 0;
+  }
+
+  step++;
 }
 #endif
 
