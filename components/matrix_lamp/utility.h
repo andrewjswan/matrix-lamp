@@ -375,7 +375,7 @@ static void drawCircle(int x0, int y0, int radius, const CRGB &color) {
       leds[XY(-b + x0, -a + y0)] = color;
       leds[XY( a + x0, -b + y0)] = color;
       leds[XY( b + x0, -a + y0)] = color;
-      
+
       b++;
       if (radiusError < 0) {
         radiusError += (b << 1) + 1;
@@ -394,7 +394,7 @@ static void drawCircle(int x0, int y0, int radius, const CRGB &color) {
       drawPixelXY(-b + x0, -a + y0, color);
       drawPixelXY( a + x0, -b + y0, color);
       drawPixelXY( b + x0, -a + y0, color);
-      
+
       b++;
       if (radiusError < 0) {
         radiusError += (b << 1) + 1;
