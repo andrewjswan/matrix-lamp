@@ -251,7 +251,7 @@ static void drawFrame(uint8_t pcnt, bool isColored) {              // прори
 #else
   uint8_t baseHue = isColored ? 255U : 0U;
 #endif
-  uint8_t baseSat = (modes[currentMode].Scale < 100Г) ? 255U : 0U; // вычисление базового оттенка
+  uint8_t baseSat = (modes[currentMode].Scale < 100U) ? 255U : 0U; // вычисление базового оттенка
 
   // first row interpolates with the "next" line
   // random(0U, 2U)= скорость смещения языков чем больше 2U - тем медленнее
