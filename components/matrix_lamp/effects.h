@@ -350,11 +350,16 @@ static void drawFrame(uint8_t pcnt, bool isColored) {              // прори
 #ifdef DEF_RAINBOW_VER
 // ------------- радуга три в одной -------------
 static void rainbowHorVertRoutine(bool isVertical) {
-  for (uint8_t i = 0U; i < (isVertical?WIDTH:HEIGHT); i++) {
-    CHSV thisColor = CHSV((uint8_t)(hue + i * (modes[currentMode].Scale % 67U) * 2U), 255U, 255U);
+  const uint8_t outer_limit = isVertical ? WIDTH : HEIGHT;
+  const uint8_t inner_limit = isVertical ? HEIGHT : WIDTH;
 
-    for (uint8_t j = 0U; j < (isVertical?HEIGHT:WIDTH); j++)
-      drawPixelXY((isVertical?i:j), (isVertical?j:i), thisColor);
+  const uint8_t step = (modes[currentMode].Scale % 67U) * 2U;
+
+  for (uint8_t i = 0U; i < outer_limit; i++) {
+    CHSV thisColor = CHSV((uint8_t)(hue + i * step), 255U, 255U);
+
+    for (uint8_t j = 0U; j < inner_limit; j++)
+      drawPixelXY(isVertical ? i : j, isVertical ? j : i, thisColor);
   }
 }
 
@@ -363,27 +368,48 @@ static void rainbowRoutine() {
     loadingFlag = false;
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings) {
-        uint8_t tmp = 7U+random8(50U);
+        uint8_t tmp = 7U + random8(50U);
         if (tmp>14) tmp += 19U;
         if (tmp>67) tmp += 6U;
-        setModeSettings(tmp, 150U+random8(86U));
+        setModeSettings(tmp, 150U + random8(86U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
   }
 
   hue += 4U;
-  if (modes[currentMode].Scale < 34U)                                        // если масштаб до 34
+
+  const uint8_t current_scale = modes[currentMode].Scale;
+  if (current_scale < 34U)                                                   // если масштаб до 34
     rainbowHorVertRoutine(false);
-  else if (modes[currentMode].Scale > 67U)                                   // если масштаб больше 67
+  else if (current_scale > 67U)                                              // если масштаб больше 67
     rainbowHorVertRoutine(true);
-  else                                                                       // для масштабов посередине
-    for (uint8_t i = 0U; i < WIDTH; i++)
-      for (uint8_t j = 0U; j < HEIGHT; j++)
-      {
-        float twirlFactor = 9.0f * ((modes[currentMode].Scale-33) / 100.0f); // на сколько оборотов будет закручена матрица, [0..3]
-        CRGB thisColor = CHSV((uint8_t)(hue + ((float)WIDTH / (float)HEIGHT * i + j * twirlFactor) * ((float)255 / (float)MAX_SIDE)), 255U, 255U);
-        drawPixelXY(i, j, thisColor);
+  else {                                                                     // для масштабов посередине
+    // Оригинал: twirlFactor = 9.0f * (current_scale - 33) / 100.0f
+    // В целых числах с точностью 1/256: (9 * 256 * (current_scale - 33)) / 100 = (2304 * (current_scale - 33)) / 100
+    // На сколько оборотов будет закручена матрица, [0..3]
+    uint32_t twirl_fixed = (2304U * (uint32_t)(current_scale - 33U)) / 100U;
+
+    // Множитель (255 / MAX_SIDE) также переводим в масштаб Fixed-Point.
+    // Шаг по X: ((float)WIDTH / (float)HEIGHT) * (255.0f / MAX_SIDE)
+    float stepX_f = ((float)WIDTH / (float)HEIGHT) * (255.0f / (float)MAX_SIDE);
+    uint16_t stepX_fixed = (uint16_t)(stepX_f * 256.0f);
+
+    // Шаг по Y: twirlFactor * (255.0f / MAX_SIDE)
+    // Так как twirl_fixed уже умножен на 256, просто умножаем на 255 и делим на MAX_SIDE
+    uint32_t stepY_fixed = (twirl_fixed * 255U) / MAX_SIDE;
+
+    for (uint8_t i = 0U; i < WIDTH; i++) {
+      // Предрассчитываем базовую составляющую цвета для текущего столбца X
+      // Сдвиг >> 8 возвращает число из Fixed-Point обратно в диапазон 0..255
+      uint16_t base_x_color = (i * stepX_fixed);
+
+      for (uint8_t j = 0U; j < HEIGHT; j++) {
+        // Итоговый сдвиг цвета: hue + (компонента_X + компонента_Y) -> сдвиг обратно из 16-битного Fixed-Point
+        uint8_t calculated_hue = hue + (uint8_t)((base_x_color + (j * stepY_fixed)) >> 8);
+        drawPixelXY(i, j, CHSV(calculated_hue, 255U, 255U));
       }
+    }
+  }
 }
 #endif
 
