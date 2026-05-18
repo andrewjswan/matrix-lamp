@@ -263,7 +263,7 @@ static void drawFrame(uint8_t pcnt, bool isColored) {              // прори
   if (random8(2U) != 0U) {
     int8_t shift = (int8_t)random8(2U) - (int8_t)random8(2U);
     shiftHue[0] = std::clamp((int)(shiftHue[0] + shift), 15, 17);
-  }  
+  }
   deltaHue = shiftHue[0]; // заносим это значение в стэк
 
   // random(0U, 3U)= скорость смещения очага чем больше 3U - тем медленнее
@@ -271,7 +271,7 @@ static void drawFrame(uint8_t pcnt, bool isColored) {              // прори
   if (random8(3U) != 0U) {
     int8_t shift = (int8_t)random8(2U) - (int8_t)random8(2U);
     shiftValue[0] = std::clamp((int)(shiftValue[0] + shift), 15, 17);
-  }  
+  }
   deltaValue = shiftValue[0];
 
   uint8_t inv_pcnt = 100U - pcnt;                                                           // Предрассчитываем инверсию шага фазы для целочисленного смешивания кадров
