@@ -1929,7 +1929,7 @@ static void BBallsRoutine() {
   for (uint8_t i = 0 ; i < enlargedObjectNUM ; i++) {
     bballsTCycle = (float)(current_ms - enlargedObjectTime[i]) * 0.001f;                              // Calculate the time since the last time the ball was on the ground
 
-    // A little kinematics equation calculates positon as a function of time, 
+    // A little kinematics equation calculates positon as a function of time,
     // acceleration (gravity) and intial velocity
     bballsHi = 0.5f * bballsGRAVITY * bballsTCycle * bballsTCycle + trackingObjectSpeedY[i] * bballsTCycle;
 
