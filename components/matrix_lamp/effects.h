@@ -682,11 +682,11 @@ static void snowRoutine()
     if (leds[XY(x, HEIGHT - 2U)] == CRGB::Black && (random8(rand_limit) == 0U)) {
       // Вычисляем HEX-маску вычитания.
       // Шаги: 0x000000, 0x101010, 0x202020, 0x303030
-      uint32_t subtract_mask = (uint32_t)random8(4U) * 0x101010OBJ;
+      uint32_t subtract_mask = (uint32_t)random8(4U) * 0x101010UL;
 
       // Вычитаем маску из базового цвета.
       // FastLED сделает это мгновенно на уровне регистров процессора.
-      leds[XY(x, HEIGHT - 1U)] = (uint32_t)0xE0FFFFOBJ - subtract_mask;
+      leds[XY(x, HEIGHT - 1U)] = (uint32_t)0xE0FFFFUL - subtract_mask;
     } else {
       // Гасим пиксель, если снежинка не родилась
       leds[XY(x, HEIGHT - 1U)] = CRGB::Black;
