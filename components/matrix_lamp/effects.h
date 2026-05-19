@@ -595,45 +595,56 @@ static void colorsRoutine2()
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     deltaValue = 255U - modes[currentMode].Speed + 1U;
-    step = deltaValue;                                                   // чтообы при старте эффекта сразу покрасить лампу (для бугунка Масштаб от 246 до 9)
-    deltaHue = 1U;                                                       // чтообы при старте эффекта сразу покрасить лампу (для бегунка Масштаб от 10 до 245)
+
+    step = deltaValue; // чтообы при старте эффекта сразу покрасить лампу (для бугунка Масштаб от 246 до 9)
+    deltaHue = 1U;     // чтообы при старте эффекта сразу покрасить лампу (для бегунка Масштаб от 10 до 245)
     hue2 = 0U;
+
+    loadingFlag = false;
   }
 
-  if (modes[currentMode].Scale < 10U || modes[currentMode].Scale > 245U) // если Масштаб небольшой, меняем цвет на это значение регулярно (каждый цикл кратный значению Скорость)
-    if (step >= deltaValue){
-      hue += modes[currentMode].Scale;
+  const uint8_t current_scale = modes[currentMode].Scale;
+
+  // РЕЖИМ 1: Маленький или очень большой Масштаб — регулярная циклическая смена цвета
+  // Меняем цвет на это значение регулярно (каждый цикл кратный значению Скорость)
+  if (current_scale < 10U || current_scale > 245U) {
+    if (step >= deltaValue) {
+      hue += current_scale;
       step = 0U;
       fillAll(CHSV(hue, 255U, 255U));
-    }
-    else
+    } else {
       step++;
-  else                                                                   // если Масштаб большой, тогда смену цвета делаем как бы пульсацией (поменяли, пауза, поменяли, пауза)
-    if (deltaHue != 0){
-      if (deltaHue > 127U){
+    }
+  }
+  // РЕЖИМ 2: Средний Масштаб — пульсирующее качание цвета с паузами
+  // Смену цвета делаем как бы пульсацией (поменяли, пауза, поменяли, пауза)
+  else {
+    if (deltaHue != 0) {
+      // Плавное перетекание тона (эффект "качания" вокруг оси цвета)
+      if (deltaHue > 127U) {
         hue--;
         deltaHue++;
-      }
-      else {
+      } else {
         hue++;
         deltaHue--;
       }
       fillAll(CHSV(hue, 255U, 255U));
-    }
-    else
-      if (step >= deltaValue){
-        deltaHue = modes[currentMode].Scale;
+    } else {
+      // Блок таймеров и накопления задержек, когда качание завершено (deltaHue == 0)
+      if (step >= deltaValue) {
+        deltaHue = current_scale;
         step = 0U;
-      }
-      else
+      } else {
         if (hue2 >= DELAY_MULTIPLIER) {
           step++;
           hue2 = 0U;
-        }
-        else
+        } else {
           hue2++;
+        }
+      }
+    }
+  }
 }
 #endif
 
