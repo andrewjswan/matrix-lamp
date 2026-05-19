@@ -1050,57 +1050,83 @@ static void butterflysRoutine(bool isColored)
 // uint8_t step; // раньше называлось uint8_t loopCounter;
 static void lightersRoutine()
 {
-  if (loadingFlag)
-  {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
         setModeSettings(14U+random8(43U), 100U+random8(81U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
+    if (modes[currentMode].Scale > trackingOBJECT_MAX_COUNT) {
+      modes[currentMode].Scale = trackingOBJECT_MAX_COUNT;
+    }
 
-    if (modes[currentMode].Scale > trackingOBJECT_MAX_COUNT) modes[currentMode].Scale = trackingOBJECT_MAX_COUNT;
     for (uint8_t i = 0U; i < trackingOBJECT_MAX_COUNT; i++)
     {
-      trackingObjectPosX[i]   = random(0, WIDTH * 10);
-      trackingObjectPosY[i]   = random(0, HEIGHT * 10);
-      trackingObjectSpeedX[i] = random(-10, 10);
-      trackingObjectSpeedY[i] = random(-10, 10);
+      trackingObjectPosX[i]   = (int16_t)random8(WIDTH) * 10;   // random(0, WIDTH * 10);
+      trackingObjectPosY[i]   = (int16_t)random8(HEIGHT) * 10;  // random(0, HEIGHT * 10);
+      trackingObjectSpeedX[i] = (int16_t)random8(21U) - 10;     // random(-10, 10);
+      trackingObjectSpeedY[i] = (int16_t)random8(21U) - 10;     // random(-10, 10);
       trackingObjectHue[i]    = random8();
     }
+
+    loadingFlag = false;
   }
 
   ledsClear(); // esphome: FastLED.clear();
 
   if (++step > 20U) step = 0U;
-  for (uint8_t i = 0U; i < modes[currentMode].Scale; i++)
-  {
-    if (step == 0U) // меняем скорость каждые 255 отрисовок
-    {
-      trackingObjectSpeedX[i] += random(-3, 4);
-      trackingObjectSpeedY[i] += random(-3, 4);
-      trackingObjectSpeedX[i] = constrain(trackingObjectSpeedX[i], -20, 20);
-      trackingObjectSpeedY[i] = constrain(trackingObjectSpeedY[i], -20, 20);
+  
+  const uint8_t lighters_count = modes[currentMode].Scale;
+
+  // Предрассчитываем константные границы сетки х10 для быстрой проверки
+  constexpr int16_t max_x_ten = (WIDTH - 1) * 10;
+  constexpr int16_t max_y_ten = (HEIGHT - 1) * 10;
+  constexpr int16_t limit_x_ten = WIDTH * 10;
+
+  for (uint8_t i = 0U; i < lighters_count; i++) {
+    int16_t pos_x = trackingObjectPosX[i];
+    int16_t pos_y = trackingObjectPosY[i];
+    int16_t sp_x  = trackingObjectSpeedX[i];
+    int16_t sp_y  = trackingObjectSpeedY[i];
+    
+    if (step == 0U) { // меняем скорость каждые 255 отрисовок
+      sp_x += ((int16_t)random8(7U) - 3);  // random(-3, 4);
+      sp_y += ((int16_t)random8(7U) - 3);  // random(-3, 4);
+
+      sp_x = std::clamp((int)sp_x, -20, 20);  // constrain(trackingObjectSpeedX[i], -20, 20);
+      sp_y = std::clamp((int)sp_y, -20, 20);  // constrain(trackingObjectSpeedY[i], -20, 20);
+    }
+    
+    pos_x += sp_x;
+    pos_y += sp_y;
+
+    // Бесшовное зацикливание по горизонтали X
+    if (pos_x < 0) {
+      pos_x = max_x_ten;
+    }
+    if (pos_x >= limit_x_ten) {
+      pos_x = 0;
     }
 
-    trackingObjectPosX[i] += trackingObjectSpeedX[i];
-    trackingObjectPosY[i] += trackingObjectSpeedY[i];
-
-    if (trackingObjectPosX[i] < 0) trackingObjectPosX[i] = (WIDTH - 1) * 10;
-    if (trackingObjectPosX[i] >= (int32_t)(WIDTH * 10)) trackingObjectPosX[i] = 0;
-
-    if (trackingObjectPosY[i] < 0)
-    {
-      trackingObjectPosY[i] = 0;
-      trackingObjectSpeedY[i] = -trackingObjectSpeedY[i];
+    // Жесткий отскок от верхнего и нижнего краев Y
+    if (pos_y < 0) {
+      pos_y = 0;
+      sp_y = -sp_y;
     }
-    if (trackingObjectPosY[i] >= (int32_t)(HEIGHT - 1) * 10)
-    {
-      trackingObjectPosY[i] = (HEIGHT - 1U) * 10;
-      trackingObjectSpeedY[i] = -trackingObjectSpeedY[i];
+    if (pos_y >= max_y_ten) {
+      pos_y = max_y_ten;
+      sp_y = -sp_y;
     }
-    drawPixelXY(trackingObjectPosX[i] / 10, trackingObjectPosY[i] / 10, CHSV(trackingObjectHue[i], 255U, 255U));
+
+    trackingObjectPosX[i]   = pos_x;
+    trackingObjectPosY[i]   = pos_y;
+    trackingObjectSpeedX[i] = sp_x;
+    trackingObjectSpeedY[i] = sp_y;
+    
+    uint8_t screen_x = (uint16_t)pos_x / 10U;
+    uint8_t screen_y = (uint16_t)pos_y / 10U;    
+    drawPixelXY(screen_x, screen_y, CHSV(trackingObjectHue[i], 255U, 255U));
   }
 }
 #endif
