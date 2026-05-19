@@ -1822,31 +1822,37 @@ static void RainbowCometRoutine() {
 // Кометы белые и одноцветные
 static void ColorCometRoutine() {
   if (loadingFlag) {
-    loadingFlag = false;
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
-        setModeSettings(random8(20U) ? 1U + random8(99U) : 100U, 185U+random8(51U));
+        setModeSettings(random8(20U) ? 1U + random8(99U) : 100U, 185U + random8(51U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+
+    loadingFlag = false;
   }
 
   dimAll(254U); // < -- затухание эффекта для последующего кадра
+
+  const uint8_t current_scale = modes[currentMode].Scale;
   CRGB _eNs_color = CRGB::White;
 
-  if (modes[currentMode].Scale < 100) _eNs_color = CHSV((modes[currentMode].Scale) * 2.57f, 255, 255); // 2.57f вместо 2.55f, потому что при 100 будет белый цвет
-  leds[XY(CENTER_X_MINOR, CENTER_Y_MINOR)] += _eNs_color;
-  leds[XY(CENTER_X_MINOR + 1, CENTER_Y_MINOR)] += _eNs_color;
-  leds[XY(CENTER_X_MINOR, CENTER_Y_MINOR + 1)] += _eNs_color;
-  leds[XY(CENTER_X_MINOR + 1, CENTER_Y_MINOR + 1)] += _eNs_color;
+  if (current_scale < 100U) {
+    _eNs_color = CHSV(((uint16_t)current_scale * 257U) / 100U, 255, 255); // * 2.57f вместо * 2.55f, потому что при 100 будет белый цвет
+  }
+
+  leds[XY(CENTER_X_MINOR,      CENTER_Y_MINOR)]      += _eNs_color;
+  leds[XY(CENTER_X_MINOR + 1U, CENTER_Y_MINOR)]      += _eNs_color;
+  leds[XY(CENTER_X_MINOR,      CENTER_Y_MINOR + 1U)] += _eNs_color;
+  leds[XY(CENTER_X_MINOR + 1U, CENTER_Y_MINOR + 1U)] += _eNs_color;
 
   // Noise
-  noise32_x[0] += 1500;
-  noise32_y[0] += 1500;
-  noise32_z[0] += 1500;
-  scale32_x[0] = 8000;
-  scale32_y[0] = 8000;
-  FillNoise(0);
+  noise32_x[0] += 1500U;
+  noise32_y[0] += 1500U;
+  noise32_z[0] += 1500U;
+  scale32_x[0] = 8000U;
+  scale32_y[0] = 8000U;
 
+  FillNoise(0);
   MoveFractionalNoiseX(CENTER_X - 1U);
   MoveFractionalNoiseY(CENTER_Y - 1U);
 }
