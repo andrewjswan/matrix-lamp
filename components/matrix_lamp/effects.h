@@ -1543,7 +1543,7 @@ static void MultipleStream() { // 2 comets
   }
 
   dimAll(255U - (modes[currentMode].Scale << 1));  // * 2);
-  
+
   const uint32_t current_ms = millis();
 
   // gelb im Kreis
