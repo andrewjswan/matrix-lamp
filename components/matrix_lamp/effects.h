@@ -2117,15 +2117,16 @@ static void MetaBallsRoutine() {
   if (loadingFlag)
   {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
-        setModeSettings(random8(8U)*11U+1U + random8(11U), 50U+random8(121U));
-      }
+    if (selectedSettings) {
+      setModeSettings(random8(8U) * 11U + 1U + random8(11U), 50U + random8(121U));
+    }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     setCurrentPalette();
 
     speedfactor = modes[currentMode].Speed / 127.0f;
+
+    loadingFlag = false;
   }
 
   // get some 2 random moving points
@@ -2149,29 +2150,39 @@ static void MetaBallsRoutine() {
   uint8_t x1 = beatsin8(23 * speedfactor, 0, WIDTH - 1U);
   uint8_t y1 = beatsin8(28 * speedfactor, 0, HEIGHT - 1U);
 
-  for (uint8_t y = 0; y < HEIGHT; y++) {
-    for (uint8_t x = 0; x < WIDTH; x++) {
+  const bool is_scale_100 = (modes[currentMode].Scale == 100U);
 
+  for (uint8_t y = 0; y < HEIGHT; y++) {
+    #if (WIDTH < 16) && (HEIGHT < 16)
+      uint8_t dy1 = std::abs(y - y1);
+      uint8_t dy2 = std::abs(y - y2);
+      uint8_t dy3 = std::abs(y - y3);
+    #else
+      uint16_t dy1_sq = (uint16_t)std::abs(y - y1) * std::abs(y - y1);
+      uint16_t dy2_sq = (uint16_t)std::abs(y - y2) * std::abs(y - y2);
+      uint16_t dy3_sq = (uint16_t)std::abs(y - y3) * std::abs(y - y3);
+    #endif
+
+    for (uint8_t x = 0; x < WIDTH; x++) {
       // calculate distances of the 3 points from actual pixel
       // and add them together with weightening
       #if (WIDTH < 16) && (HEIGHT < 16)
-        uint8_t dist  = 2 * (std::abs(x - x1) + std::abs(y - y1));
-        dist += (std::abs(x - x2) + std::abs(y - y2));
-        dist += (std::abs(x - x3) + std::abs(y - y3));
+        // Манхэттенская метрика с использованием предрассчитанных по Y значений
+        uint8_t dist = 2 * (std::abs(x - x1) + dy1);
+        dist += (std::abs(x - x2) + dy2);
+        dist += (std::abs(x - x3) + dy3);
         // fast heuristic method for converting the distance calculated using the Manhattan metric to an approximate value of the Euclidean distance
         dist >>= 1;
       #else
-        uint8_t  dx =  std::abs(x - x1);
-        uint8_t  dy =  std::abs(y - y1);
-        uint8_t dist = 2 * SQRT_VARIANT((dx * dx) + (dy * dy));
+        // Евклидова метрика: подставляем готовые dy_sq, экономя умножения
+        uint16_t dx_sq = (uint16_t)std::abs(x - x1) * std::abs(x - x1);
+        uint8_t dist = 2 * SQRT_VARIANT(dx_sq + dy1_sq);
 
-        dx =  std::abs(x - x2);
-        dy =  std::abs(y - y2);
-        dist += SQRT_VARIANT((dx * dx) + (dy * dy));
+        dx_sq = (uint16_t)std::abs(x - x2) * std::abs(x - x2);
+        dist += SQRT_VARIANT(dx_sq + dy2_sq);
 
-        dx =  std::abs(x - x3);
-        dy =  std::abs(y - y3);
-        dist += SQRT_VARIANT((dx * dx) + (dy * dy));
+        dx_sq = (uint16_t)std::abs(x - x3) * std::abs(x - x3);
+        dist += SQRT_VARIANT(dx_sq + dy3_sq);
       #endif
 
       // inverse result
@@ -2179,23 +2190,23 @@ static void MetaBallsRoutine() {
 
       // map color between thresholds
       if (color > 0 && color < 60) {
-        if (modes[currentMode].Scale == 100U)
+        if (is_scale_100)
           drawPixelXY(x, y, CHSV(color * 9, 255, 255));  // это оригинальный цвет эффекта
         else
           drawPixelXY(x, y, ColorFromPalette(*curPalette, color * 9));
       } else {
-        if (modes[currentMode].Scale == 100U)
+        if (is_scale_100)
           drawPixelXY(x, y, CHSV(0, 255, 255));          // в оригинале центральный глаз почему-то красный
         else
           drawPixelXY(x, y, ColorFromPalette(*curPalette, 0U));
       }
-
-      // show the 3 points, too
-      drawPixelXY(x1, y1, CRGB(255, 255, 255));
-      drawPixelXY(x2, y2, CRGB(255, 255, 255));
-      drawPixelXY(x3, y3, CRGB(255, 255, 255));
     }
   }
+
+  // show the 3 points, too
+  drawPixelXY(x1, y1, CRGB(255, 255, 255));
+  drawPixelXY(x2, y2, CRGB(255, 255, 255));
+  drawPixelXY(x3, y3, CRGB(255, 255, 255));
 }
 #endif
 
