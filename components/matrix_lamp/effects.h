@@ -1264,7 +1264,7 @@ static void lightBallsRoutine()
 
   // The color of each point shifts over time, each at a different speed.
   uint32_t ms = millis() / (((uint32_t)modes[currentMode].Scale >> 2U) + 1U); // Scale / 4 + 1
-  
+
   leds[XY(highByte(i * paintWidth) + BORDERTHICKNESS, highByte(j * paintHeight) + BORDERTHICKNESS)] += CHSV(ms / 29, 200U, 255U);
   leds[XY(highByte(j * paintWidth) + BORDERTHICKNESS, highByte(k * paintHeight) + BORDERTHICKNESS)] += CHSV(ms / 41, 200U, 255U);
   leds[XY(highByte(k * paintWidth) + BORDERTHICKNESS, highByte(m * paintHeight) + BORDERTHICKNESS)] += CHSV(ms / 37, 200U, 255U);
