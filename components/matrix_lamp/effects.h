@@ -1166,62 +1166,64 @@ static void ballsRoutine()
   {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings){
-      setModeSettings(1U + random8(100U) , 190U+random8(31U));
+      setModeSettings(1U + random8(100U) , 190U + random8(31U));
     }
     #endif // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-
-    for (uint8_t j = 0U; j < BALLS_AMOUNT; j++)
-    {
-      int8_t sign;
+    const int16_t start_x = (int16_t)CENTER_X * 10;
+    const int16_t start_y = (int16_t)CENTER_Y * 10;
+    const uint8_t current_scale = modes[currentMode].Scale;
+    
+    for (uint8_t j = 0U; j < BALLS_AMOUNT; j++) {
       // забиваем случайными данными
-      coord[j][0U] = CENTER_X * 10;
-      random(0, 2) ? sign = 1 : sign = -1;
-      vector[j][0U] = random(4, 15) * sign;
-      coord[j][1U] = CENTER_Y * 10;
-      random(0, 2) ? sign = 1 : sign = -1;
-      vector[j][1U] = random(4, 15) * sign;
+      coord[j][0U] = start_x;
+      int8_t sign_x = (random8(2U) == 0U) ? 1 : -1;
+      vector[j][0U] = (int8_t)random8(4U, 15U) * sign_x; // оригинальный диапазон [4..14]
 
-      // цвет зависит от масштаба
-      ballColors[j] = CHSV((modes[currentMode].Scale * (j + 1)) % 256U, 255U, 255U);
+      coord[j][1U] = start_y;
+      int8_t sign_y = (random8(2U) == 0U) ? 1 : -1;
+      vector[j][1U] = (int8_t)random8(4U, 15U) * sign_y; // оригинальный диапазон [4..14]
+
+      // Цвет зависит от масштаба
+      ballColors[j] = CHSV((current_scale * (j + 1U)) % 256U, 255U, 255U);
     }
+
+    loadingFlag = false;
   }
 
-  if (!BALL_TRACK)                                          // режим без следов шариков
-  {
+  // Управление шлейфом (хвостами) светлячков
+  if (!BALL_TRACK) {                                        // режим без следов шариков
     ledsClear(); // esphome: FastLED.clear();
-  }
-  else                                                      // режим со следами
-  {
+  } else {                                                  // режим со следами
     dimAll(256U - TRACK_STEP);
   }
 
-  // движение шариков
-  for (uint8_t j = 0U; j < BALLS_AMOUNT; j++)
-  {
-    // движение шариков
-    for (uint8_t i = 0U; i < 2U; i++)
-    {
+  // Предрассчитываем жесткие границы сетки x10 для осей X и Y
+  constexpr int16_t max_x_ten = (WIDTH - 1) * 10;
+  constexpr int16_t max_y_ten = (HEIGHT - 1) * 10;
+
+  // Движение и отрисовка шариков
+  for (uint8_t j = 0U; j < BALLS_AMOUNT; j++) {
+    for (uint8_t i = 0U; i < 2U; i++) {
       coord[j][i] += vector[j][i];
-      if (coord[j][i] < 0)
-      {
+      if (coord[j][i] < 0) {
         coord[j][i] = 0;
         vector[j][i] = -vector[j][i];
       }
     }
 
-    if (coord[j][0U] > (int16_t)((WIDTH - 1) * 10))
-    {
-      coord[j][0U] = (WIDTH - 1) * 10;
+    if (coord[j][0U] > max_x_ten) {
+      coord[j][0U] = max_x_ten;
       vector[j][0U] = -vector[j][0U];
     }
-    if (coord[j][1U] > (int16_t)((HEIGHT - 1) * 10))
-    {
-      coord[j][1U] = (HEIGHT - 1) * 10;
+    if (coord[j][1U] > max_y_ten) {
+      coord[j][1U] = max_y_ten;
       vector[j][1U] = -vector[j][1U];
     }
-    drawPixelXYF(coord[j][0U] / 10.0f, coord[j][1U] / 10.0f, ballColors[j]);
+
+    float render_x = (float)coord[j][0U] * 0.1f;
+    float render_y = (float)coord[j][1U] * 0.1f;    
+    drawPixelXYF(render_x, render_y, ballColors[j]);
   }
 }
 #endif
