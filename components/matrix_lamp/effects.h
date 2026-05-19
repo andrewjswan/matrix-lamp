@@ -940,7 +940,7 @@ static void butterflysRoutine(bool isColored)
     float absX = std::abs(sp_X);
     float absY = std::abs(sp_Y);
     float maxspeed = absX + absY;                                                      // максимальная суммарная скорость
-    
+
     if (maxspeed == std::abs(sp_X + sp_Y)))
     {
       if (sp_X > 0.0f) {                                                               // правый верхний сектор вектора
@@ -950,7 +950,7 @@ static void butterflysRoutine(bool isColored)
           sp_Y = sp_X - maxspeed;
         } else {
           sp_Y = maxspeed - std::abs(sp_X);
-        }        
+        }
       } else {                                                                         // левый нижний сектор
         sp_X -= trackingObjectShift[i];
         if (sp_X + maxspeed < 0.0f) {                                                  // если вектор переехал вверх
@@ -958,7 +958,7 @@ static void butterflysRoutine(bool isColored)
           sp_Y = maxspeed - std::abs(sp_X);
         } else {
           sp_Y = std::abs(sp_X) - maxspeed;
-        }        
+        }
       }
     } else {                                                                           // левый верхний и правый нижний секторы вектора
       if (sp_X > 0.0f)                                                                 // правый нижний сектор
@@ -980,7 +980,7 @@ static void butterflysRoutine(bool isColored)
         }
       }
     }
-    
+
     // Возвращаем измененную скорость обратно в массив
     trackingObjectSpeedX[i] = sp_X;
     trackingObjectSpeedY[i] = sp_Y;
@@ -989,13 +989,13 @@ static void butterflysRoutine(bool isColored)
     if (trackingObjectState[i] == 255U) {
       if (step == i && random8(2U) == 0U) {
         trackingObjectState[i] = random8(220U, 244U);
-        
+
         float randX = ((float)random8(101U) * 0.05f) + 1.0f; // (float)random8(101U) / 20.0f + 1.0f
         trackingObjectSpeedX[i] = (random8(2U) == 0U) ? -randX : randX;
-        
+
         float randY = ((float)random8(101U) * 0.05f) + 1.0f; // (float)random8(101U) / 20.0f + 1.0f
         trackingObjectSpeedY[i] = (random8(2U) == 0U) ? -randY : randY;
-        
+
         // проворот траектории
         uint8_t random_limit = (uint8_t)((std::abs(trackingObjectSpeedX[i]) + std::abs(trackingObjectSpeedY[i])) * 20.0f + 2.0f);
         float shift_val = (float)random8(random_limit) * 0.005f; // / 200.0f;
@@ -1013,7 +1013,7 @@ static void butterflysRoutine(bool isColored)
         trackingObjectSpeedX[i] = 0.0f;
         trackingObjectSpeedY[i] = 0.0f;
         trackingObjectShift[i] = 0.0f;
-        trackingObjectState[i] = 255U;        
+        trackingObjectState[i] = 255U;
       }
     }
 
