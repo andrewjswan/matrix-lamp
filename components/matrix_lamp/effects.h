@@ -795,7 +795,7 @@ static void matrixRoutine()
     // Аналогично обрабатываем верхний ряд пикселей матрицы
     const uint8_t top_y = HEIGHT - 1U;
     uint32_t thisColor = (uint32_t)leds[XY(x, top_y)];
-    
+
     if (thisColor == 0U) {                                                                       // если наш верхний пиксель не горит, заполняем его с вероятностью .Scale
       if (random8(scale_inverted) == 0U) {
         leds[XY(x, top_y)] = 0x9BF800;
