@@ -643,31 +643,43 @@ static void colorsRoutine2()
 static void snowRoutine()
 {
   if (loadingFlag) {
-    loadingFlag = false;
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
-        setModeSettings(88U+random8(9U), 170U+random8(36U));
+        setModeSettings(88U + random8(9U), 170U + random8(36U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+
+    loadingFlag = false;
   }
 
-  // сдвигаем всё вниз
-  for (uint8_t x = 0U; x < WIDTH; x++)
-  {
-    for (uint8_t y = 0U; y < HEIGHT - 1; y++)
-    {
-      drawPixelXY(x, y, getPixColorXY(x, y + 1U));
+  // Сдвигаем всё вниз
+  for (uint8_t x = 0U; x < WIDTH; x++) {
+    for (uint8_t y = 0U; y < HEIGHT - 1; y++) {
+      // Читаем пиксель строго сверху XY(x, y + 1) и записываем его вниз XY(x, y)
+      leds[XY(x, y)] = leds[XY(x, y + 1U)];      
     }
   }
 
-  for (uint8_t x = 0U; x < WIDTH; x++)
-  {
-    // заполняем случайно верхнюю строку
+  // Кэшируем масштаб
+  const uint8_t current_scale = modes[currentMode].Scale;
+  const uint8_t rand_limit = (current_scale >= 100U) ? 1U : (100U - current_scale);
+
+  // --- Отрисовка новой верхней строки ---
+  for (uint8_t x = 0U; x < WIDTH; x++) {
+    // Заполняем случайно верхнюю строку
     // а также не даём двум блокам по вертикали вместе быть
-    if (getPixColorXY(x, HEIGHT - 2U) == 0U && (random(0, 100 - modes[currentMode].Scale) == 0U))
-      drawPixelXY(x, HEIGHT - 1U, 0xE0FFFF - 0x101010 * random(0, 4));
-    else
-      drawPixelXY(x, HEIGHT - 1U, 0x000000);
+    if (leds[XY(x, HEIGHT - 2U)] == CRGB::Black && (random8(rand_limit) == 0U)) {
+      // Вычисляем HEX-маску вычитания.
+      // Шаги: 0x000000, 0x101010, 0x202020, 0x303030
+      uint32_t subtract_mask = (uint32_t)random8(4U) * 0x101010OBJ;
+
+      // Вычитаем маску из базового цвета.
+      // FastLED сделает это мгновенно на уровне регистров процессора.
+      leds[XY(x, HEIGHT - 1U)] = (uint32_t)0xE0FFFFOBJ - subtract_mask;
+    } else {
+      // Гасим пиксель, если снежинка не родилась
+      leds[XY(x, HEIGHT - 1U)] = CRGB::Black;      
+    }
   }
 }
 #endif
