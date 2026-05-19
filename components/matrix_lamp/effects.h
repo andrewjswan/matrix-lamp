@@ -1576,14 +1576,13 @@ static void MultipleStream() { // 2 comets
 
 #ifdef DEF_COMET_THREE
 static void MultipleStream2() { // 3 comets
-  if (loadingFlag)
-  {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
+      if (selectedSettings) {
         hue = random8();
         hue2 = hue + 85U;
         deltaHue = hue2 + 85U;
-        setModeSettings(1U + random8(25U), 185U+random8(36U));
+        setModeSettings(1U + random8(25U), 185U + random8(36U));
       }
       else{
         hue = 0U;                                                                   // 0xFF0000
@@ -1596,40 +1595,47 @@ static void MultipleStream2() { // 3 comets
       deltaHue = 171U;                                                              // 0x0000FF;
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     trackingObjectState[0] = OCTANT_X;
     trackingObjectState[1] = OCTANT_Y;
-    trackingObjectShift[0] = 255.0f/(WIDTH-1.0f-trackingObjectState[0]-trackingObjectState[0]);
-    trackingObjectShift[1] = 255.0f/(HEIGHT-1.0f-trackingObjectState[1]-trackingObjectState[1]);
+
+    uint8_t denom = WIDTH - 1U - trackingObjectState[0] - trackingObjectState[0];
+    trackingObjectShift[0] = (denom > 0) ? (255U / denom) : 1U;
+    denom = HEIGHT - 1U - trackingObjectState[1] - trackingObjectState[1];
+    trackingObjectShift[1] = (denom > 0) ? (255U / denom) : 1U;
+
     trackingObjectState[2] = QUARTER_X;
     trackingObjectState[3] = QUARTER_Y;
-    trackingObjectShift[2] = 255.0f/(WIDTH-1.0f-trackingObjectState[2]-trackingObjectState[2]);  // ((WIDTH>10)?9.:5.));
-    trackingObjectShift[3] = 255.0f/(HEIGHT-1.0f-trackingObjectState[3]-trackingObjectState[3]); //- ((HEIGHT>10)?9.:5.));
+
+    denom = WIDTH - 1U - trackingObjectState[2] - trackingObjectState[2];
+    trackingObjectShift[2] = (denom > 0) ? (255U / denom) : 1U;
+    denom = HEIGHT - 1U - trackingObjectState[3] - trackingObjectState[3];
+    trackingObjectShift[3] = (denom > 0) ? (255U / denom) : 1U;
+
+    loadingFlag = false;
   }
-    //dimAll(220); // < -- затухание эффекта для последующего кадрв
-  dimAll(255U - modes[currentMode].Scale * 2);
 
-  //uint8_t xx = 2 + sin8(millis() / 10) / 22;
-  //uint8_t yy = 2 + cos8(millis() / 9) / 22;
-  uint8_t xx = trackingObjectState[0] + sin8(millis() / 10) / trackingObjectShift[0]; // / 22;
-  uint8_t yy = trackingObjectState[1] + cos8(millis() / 9) / trackingObjectShift[1];  // / 22;
+  dimAll(255U - (modes[currentMode].Scale << 1));  // * 2);
 
+  const uint32_t current_ms = millis();
+
+  uint8_t xx = trackingObjectState[0] + sin8(current_ms / 10U) / trackingObjectShift[0];
+  uint8_t yy = trackingObjectState[1] + cos8(current_ms / 9U) / trackingObjectShift[1];
   if (xx < WIDTH && yy < HEIGHT)
-    leds[XY(xx, yy)] += CHSV(deltaHue , 255, 255);//0x0000FF;
+    leds[XY(xx, yy)] += CHSV(deltaHue, 255, 255);
 
-  //xx = 4 + sin8(millis() / 10) / 32;
-  //yy = 4 + cos8(millis() / 7) / 32;
-  xx = trackingObjectState[2] + sin8(millis() / 10) / trackingObjectShift[2];     // / 32;
-  yy = trackingObjectState[3] + cos8(millis() / 7) / trackingObjectShift[3];      // / 32;
+  xx = trackingObjectState[2] + sin8(current_ms / 10U) / trackingObjectShift[2];
+  yy = trackingObjectState[3] + cos8(current_ms / 7U) / trackingObjectShift[3];
   if (xx < WIDTH && yy < HEIGHT)
-    leds[XY(xx, yy)] += CHSV(hue , 255, 255);                                     // 0xFF0000;
-  leds[XY(CENTER_X_MINOR, CENTER_Y_MINOR)] += CHSV(hue2 , 255, 255);              // 0xFFFF00;
+    leds[XY(xx, yy)] += CHSV(hue, 255, 255);
+
+  leds[XY(CENTER_X_MINOR, CENTER_Y_MINOR)] += CHSV(hue2, 255, 255);
 
   noise32_x[0] += 3000;
   noise32_y[0] += 3000;
   noise32_z[0] += 3000;
   scale32_x[0] = 8000;
   scale32_y[0] = 8000;
+
   FillNoise(0);
   MoveFractionalNoiseX(2);
   MoveFractionalNoiseY(2, 0.33f);
