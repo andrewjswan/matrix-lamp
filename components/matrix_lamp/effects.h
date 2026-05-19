@@ -1239,12 +1239,13 @@ constexpr uint8_t paintHeight = HEIGHT - BORDERTHICKNESS * 2U;
 static void lightBallsRoutine()
 {
   if (loadingFlag) {
-    loadingFlag = false;
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
         setModeSettings(1U + random8(100U) , 230U + random8(16U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+
+    loadingFlag = false;
   }
 
   // Apply some blurring to whatever's already on the matrix
@@ -1262,7 +1263,8 @@ static void lightBallsRoutine()
   uint16_t m = beatsin16(97, 0, 255); // 123
 
   // The color of each point shifts over time, each at a different speed.
-  uint32_t ms = millis() / (modes[currentMode].Scale / 4 + 1);
+  uint32_t ms = millis() / (((uint32_t)modes[currentMode].Scale >> 2U) + 1U); // Scale / 4 + 1
+
   leds[XY(highByte(i * paintWidth) + BORDERTHICKNESS, highByte(j * paintHeight) + BORDERTHICKNESS)] += CHSV(ms / 29, 200U, 255U);
   leds[XY(highByte(j * paintWidth) + BORDERTHICKNESS, highByte(k * paintHeight) + BORDERTHICKNESS)] += CHSV(ms / 41, 200U, 255U);
   leds[XY(highByte(k * paintWidth) + BORDERTHICKNESS, highByte(m * paintHeight) + BORDERTHICKNESS)] += CHSV(ms / 37, 200U, 255U);
