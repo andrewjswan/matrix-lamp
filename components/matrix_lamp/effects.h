@@ -1173,7 +1173,7 @@ static void ballsRoutine()
     const int16_t start_x = (int16_t)CENTER_X * 10;
     const int16_t start_y = (int16_t)CENTER_Y * 10;
     const uint8_t current_scale = modes[currentMode].Scale;
-    
+
     for (uint8_t j = 0U; j < BALLS_AMOUNT; j++) {
       // забиваем случайными данными
       coord[j][0U] = start_x;
@@ -1222,7 +1222,7 @@ static void ballsRoutine()
     }
 
     float render_x = (float)coord[j][0U] * 0.1f;
-    float render_y = (float)coord[j][1U] * 0.1f;    
+    float render_y = (float)coord[j][1U] * 0.1f;
     drawPixelXYF(render_x, render_y, ballColors[j]);
   }
 }
