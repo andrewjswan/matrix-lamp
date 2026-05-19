@@ -1561,13 +1561,13 @@ static void MultipleStream() { // 2 comets
   }
 
   // Noise
-  noise32_x[0] += 3000;
-  noise32_y[0] += 3000;
-  noise32_z[0] += 3000;
-  scale32_x[0] = 8000;
-  scale32_y[0] = 8000;
-  FillNoise(0);
+  noise32_x[0] += 3000U;
+  noise32_y[0] += 3000U;
+  noise32_z[0] += 3000U;
+  scale32_x[0] = 8000U;
+  scale32_y[0] = 8000U;
 
+  FillNoise(0);
   MoveFractionalNoiseX(3, 0.33f);
   MoveFractionalNoiseY(3);
 }
@@ -1630,11 +1630,11 @@ static void MultipleStream2() { // 3 comets
 
   leds[XY(CENTER_X_MINOR, CENTER_Y_MINOR)] += CHSV(hue2, 255, 255);
 
-  noise32_x[0] += 3000;
-  noise32_y[0] += 3000;
-  noise32_z[0] += 3000;
-  scale32_x[0] = 8000;
-  scale32_y[0] = 8000;
+  noise32_x[0] += 3000U;
+  noise32_y[0] += 3000U;
+  noise32_z[0] += 3000U;
+  scale32_x[0] = 8000U;
+  scale32_y[0] = 8000U;
 
   FillNoise(0);
   MoveFractionalNoiseX(2);
@@ -1663,11 +1663,11 @@ static void MultipleStream3() { // Fireline
   }
 
   // Noise
-  noise32_x[0] += 3000;
-  noise32_y[0] += 3000;
-  noise32_z[0] += 3000;
-  scale32_x[0] = 8000;
-  scale32_y[0] = 8000;
+  noise32_x[0] += 3000U;
+  noise32_y[0] += 3000U;
+  noise32_z[0] += 3000U;
+  scale32_x[0] = 8000U;
+  scale32_y[0] = 8000U;
 
   FillNoise(0);
   MoveFractionalNoiseY(3);
@@ -1683,11 +1683,11 @@ static void MultipleStream4() { // Comet
   leds[XY(CENTER_X_MINOR, CENTER_Y_MINOR)] += CHSV(millis(), 255, 255);
 
   // Noise
-  noise32_x[0] += 2000;
-  noise32_y[0] += 2000;
-  noise32_z[0] += 2000;
-  scale32_x[0] = 4000;
-  scale32_y[0] = 4000;
+  noise32_x[0] += 2000U;
+  noise32_y[0] += 2000U;
+  noise32_z[0] += 2000U;
+  scale32_x[0] = 4000U;
+  scale32_y[0] = 4000U;
 
   FillNoise(0);
   MoveFractionalNoiseX(6);
@@ -1717,11 +1717,11 @@ static void MultipleStream5() { // Fractorial Fire
   }
 
   // Noise
-  noise32_x[0] += 3000;
-  noise32_y[0] += 3000;
-  noise32_z[0] += 3000;
-  scale32_x[0] = 8000;
-  scale32_y[0] = 8000;
+  noise32_x[0] += 3000U;
+  noise32_y[0] += 3000U;
+  noise32_z[0] += 3000U;
+  scale32_x[0] = 8000U;
+  scale32_y[0] = 8000U;
 
   FillNoise(0);
   MoveFractionalNoiseY(2, 1);
@@ -1766,11 +1766,11 @@ static void MultipleStream8() { // Windows
   }
 
   // Noise
-  noise32_x[0] += 3000;
-  noise32_y[0] += 3000;
-  noise32_z[0] += 3000;
-  scale32_x[0] = 8000;
-  scale32_y[0] = 8000;
+  noise32_x[0] += 3000U;
+  noise32_y[0] += 3000U;
+  noise32_z[0] += 3000U;
+  scale32_x[0] = 8000U;
+  scale32_y[0] = 8000U;
 
   FillNoise(0);
   MoveFractionalNoiseX(3);
