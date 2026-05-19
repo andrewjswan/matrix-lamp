@@ -1761,29 +1761,33 @@ static void MultipleStream8() { // Windows
 // Кометы обычные
 static void RainbowCometRoutine() {
   if (loadingFlag) {
-    loadingFlag = false;
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
-        setModeSettings(10U+random8(91U), 185U+random8(51U));
+      if (selectedSettings) {
+        setModeSettings(10U + random8(91U), 185U + random8(51U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+
+    loadingFlag = false;
   }
 
   dimAll(254U); // < -- затухание эффекта для последующего кадра
-  CRGB _eNs_color = CHSV(millis() / modes[currentMode].Scale * 2, 255, 255);
-  leds[XY(CENTER_X_MINOR, CENTER_Y_MINOR)] += _eNs_color;
-  leds[XY(CENTER_X_MINOR + 1, CENTER_Y_MINOR)] += _eNs_color;
-  leds[XY(CENTER_X_MINOR, CENTER_Y_MINOR + 1)] += _eNs_color;
-  leds[XY(CENTER_X_MINOR + 1, CENTER_Y_MINOR + 1)] += _eNs_color;
+
+  // CRGB _eNs_color = CHSV(millis() / modes[currentMode].Scale * 2, 255, 255);
+  CRGB _eNs_color = CHSV((millis() << 1) / modes[currentMode].Scale, 255, 255);
+
+  leds[XY(CENTER_X_MINOR,      CENTER_Y_MINOR)]      += _eNs_color;
+  leds[XY(CENTER_X_MINOR + 1U, CENTER_Y_MINOR)]      += _eNs_color;
+  leds[XY(CENTER_X_MINOR,      CENTER_Y_MINOR + 1U)] += _eNs_color;
+  leds[XY(CENTER_X_MINOR + 1U, CENTER_Y_MINOR + 1U)] += _eNs_color;
 
   // Noise
-  noise32_x[0] += 1500;
-  noise32_y[0] += 1500;
-  noise32_z[0] += 1500;
-  scale32_x[0] = 8000;
-  scale32_y[0] = 8000;
-  FillNoise(0);
+  noise32_x[0] += 1500U;
+  noise32_y[0] += 1500U;
+  noise32_z[0] += 1500U;
+  scale32_x[0] = 8000U;
+  scale32_y[0] = 8000U;
 
+  FillNoise(0);
   MoveFractionalNoiseX(CENTER_X - 1U);
   MoveFractionalNoiseY(CENTER_Y - 1U);
 }
