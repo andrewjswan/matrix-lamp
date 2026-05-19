@@ -941,7 +941,7 @@ static void butterflysRoutine(bool isColored)
     float absY = std::abs(sp_Y);
     float maxspeed = absX + absY;                                                      // максимальная суммарная скорость
 
-    if (maxspeed == std::abs(sp_X + sp_Y)))
+    if (maxspeed == std::abs(sp_X + sp_Y))
     {
       if (sp_X > 0.0f) {                                                               // правый верхний сектор вектора
         sp_X += trackingObjectShift[i];
