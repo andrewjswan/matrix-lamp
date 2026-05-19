@@ -656,7 +656,7 @@ static void snowRoutine()
   for (uint8_t x = 0U; x < WIDTH; x++) {
     for (uint8_t y = 0U; y < HEIGHT - 1; y++) {
       // Читаем пиксель строго сверху XY(x, y + 1) и записываем его вниз XY(x, y)
-      leds[XY(x, y)] = leds[XY(x, y + 1U)];      
+      leds[XY(x, y)] = leds[XY(x, y + 1U)];
     }
   }
 
@@ -678,7 +678,7 @@ static void snowRoutine()
       leds[XY(x, HEIGHT - 1U)] = (uint32_t)0xE0FFFFOBJ - subtract_mask;
     } else {
       // Гасим пиксель, если снежинка не родилась
-      leds[XY(x, HEIGHT - 1U)] = CRGB::Black;      
+      leds[XY(x, HEIGHT - 1U)] = CRGB::Black;
     }
   }
 }
