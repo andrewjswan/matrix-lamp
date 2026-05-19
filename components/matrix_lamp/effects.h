@@ -1983,14 +1983,16 @@ static void BBallsRoutine() {
  * https://github.com/pixelmatix/aurora/blob/sm3.0-64x64/PatternSpiro.h
  * Copyright (c) 2014 Jason Coon
  * Неполная адаптация SottNick
+ * Оптимизация рантайма andrewjswan
  */
+
 static uint8_t spirotheta1 = 0;
 static uint8_t spirotheta2 = 0;
 // uint8_t spirohueoffset = 0; // будем использовать переменную сдвига оттенка hue из эффектов Радуга
 
 // Радиусы (четверть размера)
-static constexpr uint8_t spiroradiusx = QUARTER_X;  // - 1;
-static constexpr uint8_t spiroradiusy = QUARTER_Y;  // - 1;
+static constexpr uint8_t spiroradiusx = QUARTER_X;
+static constexpr uint8_t spiroradiusy = QUARTER_Y;
 
 // Используем ранее созданные центры
 static constexpr uint8_t spirocenterX = CENTER_X;
@@ -2002,98 +2004,101 @@ static constexpr uint8_t spirominy = spirocenterY - spiroradiusy;
 
 // Максимальные границы с учетом четности
 // (WIDTH % 2 == 0) вернет 1 для четных и 0 для нечетных
-static constexpr uint8_t spiromaxx = spirocenterX + spiroradiusx - (WIDTH % 2 == 0);   // + 1;
-static constexpr uint8_t spiromaxy = spirocenterY + spiroradiusy - (HEIGHT % 2 == 0);  // + 1;
+static constexpr uint8_t spiromaxx = spirocenterX + spiroradiusx - (WIDTH % 2 == 0);
+static constexpr uint8_t spiromaxy = spirocenterY + spiroradiusy - (HEIGHT % 2 == 0);
 
-static uint8_t spirocount = 1;
-static uint8_t spirooffset = 256 / spirocount;
+// Вычисляем константные диапазоны для базовых функций маппинга
+static constexpr uint8_t spiro_range_x = spiromaxx - spirominx;
+static constexpr uint8_t spiro_range_y = spiromaxy - spirominy;
+static constexpr uint8_t spiro_range_radius_x = (spiroradiusx << 1); // spiroradiusx * 2
+static constexpr uint8_t spiro_range_radius_y = (spiroradiusy << 1); // spiroradiusy * 2
+
+static uint8_t spirocount = 1U;
+static uint8_t spirooffset = 256U / spirocount;
+
 static boolean spiroincrement = false;
-
 static boolean spirohandledChange = false;
 
-static uint8_t mapsin8(uint8_t theta, uint8_t lowest = 0, uint8_t highest = 255) {
-  uint8_t beatsin = sin8(theta);
-  uint8_t rangewidth = highest - lowest;
-  uint8_t scaledbeat = scale8(beatsin, rangewidth);
-  uint8_t result = lowest + scaledbeat;
-  return result;
+static inline uint8_t mapsin8_fast(uint8_t theta, uint8_t lowest, uint8_t range) {
+  return lowest + scale8(sin8(theta), range);
 }
 
-static uint8_t mapcos8(uint8_t theta, uint8_t lowest = 0, uint8_t highest = 255) {
-  uint8_t beatcos = cos8(theta);
-  uint8_t rangewidth = highest - lowest;
-  uint8_t scaledbeat = scale8(beatcos, rangewidth);
-  uint8_t result = lowest + scaledbeat;
-  return result;
+static inline uint8_t mapcos8_fast(uint8_t theta, uint8_t lowest, uint8_t range) {
+  return lowest + scale8(cos8(theta), range);
 }
 
 static void spiroRoutine() {
-    if (loadingFlag)
-    {
-      #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-        if (selectedSettings){
-          uint8_t rnd = random8(6U);
-          if (rnd > 1U) rnd++;
-          if (rnd > 3U) rnd++;
-          setModeSettings(rnd*11U+3U, random8(10U) ? 2U + random8(26U) : 255U);
-        }
-      #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+  if (loadingFlag) {
+    #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+    if (selectedSettings) {
+      uint8_t rnd = random8(6U);
+      if (rnd > 1U) rnd++;
+      if (rnd > 3U) rnd++;
+      setModeSettings(rnd * 11U + 3U, random8(10U) ? 2U + random8(26U) : 255U);
+    }
+    #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-      loadingFlag = false;
-      setCurrentPalette();
+    setCurrentPalette();
+
+    loadingFlag = false;
+  }
+
+  blurScreen(20); // @Palpalych советует делать размытие
+
+  dimAll(255U - modes[currentMode].Speed / 10U);
+
+  boolean change = false;
+
+  for (uint8_t i = 0; i < spirocount; i++) {
+    uint8_t current_offset = i * spirooffset;
+    uint8_t theta1_calculated = spirotheta1 + current_offset;
+    uint8_t theta2_calculated = spirotheta2 + current_offset;
+
+    uint8_t x = mapsin8_fast(theta1_calculated, spirominx, spiro_range_x);
+    uint8_t y = mapcos8_fast(theta1_calculated, spirominy, spiro_range_y);
+
+    uint8_t x2 = mapsin8_fast(theta2_calculated, x - spiroradiusx, spiro_range_radius_x);
+    uint8_t y2 = mapcos8_fast(theta2_calculated, y - spiroradiusy, spiro_range_radius_y);
+
+    if (x2 < WIDTH && y2 < HEIGHT) {
+      leds[XY(x2, y2)] += ColorFromPalette(*curPalette, hue + current_offset);
     }
 
-      blurScreen(20); // @Palpalych советует делать размытие
-      dimAll(255U - modes[currentMode].Speed / 10);
+    if (x2 == spirocenterX && y2 == spirocenterY) {
+      change = true;
+    }
+  }
 
-      boolean change = false;
+  spirotheta1 += 1U;
+  spirotheta2 += 2U;
 
-      for (uint8_t i = 0; i < spirocount; i++) {
-        uint8_t x = mapsin8(spirotheta1 + i * spirooffset, spirominx, spiromaxx);
-        uint8_t y = mapcos8(spirotheta1 + i * spirooffset, spirominy, spiromaxy);
+  EVERY_N_MILLIS(75) {
+    if (change && !spirohandledChange) {
+      spirohandledChange = true;
 
-        uint8_t x2 = mapsin8(spirotheta2 + i * spirooffset, x - spiroradiusx, x + spiroradiusx);
-        uint8_t y2 = mapcos8(spirotheta2 + i * spirooffset, y - spiroradiusy, y + spiroradiusy);
-
-
-       //CRGB color = ColorFromPalette(PartyColors_p, (hue + i * spirooffset), 128U); // вообще-то палитра должна постоянно меняться, но до адаптации этого руки уже не дошли
-       //CRGB color = ColorFromPalette(*curPalette, hue + i * spirooffset, 128U); // вот так уже прикручена к бегунку Масштаба. за
-       //leds[XY(x2, y2)] += color;
-       if (x2<WIDTH && y2<HEIGHT) // добавил проверки. не знаю, почему эффект подвисает без них
-         leds[XY(x2, y2)] += (CRGB)ColorFromPalette(*curPalette, hue + i * spirooffset);
-
-        if((x2 == spirocenterX && y2 == spirocenterY) ||
-           (x2 == spirocenterX && y2 == spirocenterY)) change = true;
+      if (spirocount >= WIDTH || spirocount == 1U) {
+        spiroincrement = !spiroincrement;
       }
 
-      spirotheta1 += 1;
-      spirotheta2 += 2;
-
-      EVERY_N_MILLIS(75) {
-        if (change && !spirohandledChange) {
-          spirohandledChange = true;
-
-          if (spirocount >= WIDTH || spirocount == 1) spiroincrement = !spiroincrement;
-
-          if (spiroincrement) {
-            if(spirocount >= 4)
-              spirocount *= 2;
-            else
-              spirocount += 1;
-          }
-          else {
-            if(spirocount > 4)
-              spirocount /= 2;
-            else
-              spirocount -= 1;
-          }
-
-          spirooffset = 256 / spirocount;
-        }
-
-        if(!change) spirohandledChange = false;
+      if (spiroincrement) {
+        if(spirocount >= 4U)
+          spirocount <<= 1;  // spirocount *= 2;
+        else
+          spirocount += 1U;
+      } else {
+        if(spirocount > 4U)
+          spirocount >>= 1;  // spirocount /= 2;
+        else
+          spirocount -= 1U;
       }
-      hue += 1;
+
+      spirooffset = 256U / spirocount;
+    }
+
+    if(!change) spirohandledChange = false;
+  }
+
+  hue += 1U;
 }
 #endif
 
