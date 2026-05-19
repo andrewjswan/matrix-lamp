@@ -1292,9 +1292,9 @@ static void whiteColorStripeRoutine()
 
     const uint8_t current_scale = modes[currentMode].Scale;
     const uint8_t current_speed = modes[currentMode].Speed;
-    
-    constexpr uint8_t divisor = 50U - BORDERLAND; 
-    
+
+    constexpr uint8_t divisor = 50U - BORDERLAND;
+
     uint8_t thisSize = HEIGHT;
     uint8_t halfScale = current_scale;
     if (halfScale > 50U) {
@@ -1305,16 +1305,16 @@ static void whiteColorStripeRoutine()
 
     uint8_t center = (thisSize - 1) >> 1;  // (uint8_t)round(thisSize / 2.0f) - 1U;
     uint8_t offset = (uint8_t)(!(thisSize & 0x01));
-    
+
     uint16_t product = (uint16_t)center * halfScale;
     uint8_t fullFill = product / divisor;
     uint8_t iPol = ((product % divisor) * 255U) / divisor;
 
     uint8_t saturation = map(current_speed, 0U, 255U, 0U, 170U);
-    
+
     int16_t threshold_full = (int16_t)center - fullFill - 1;
     int16_t threshold_fade = (int16_t)center - fullFill - 2;
-    
+
     for (int16_t i = center; i >= 0; i--) {
       CRGB color = CHSV(
                      45U,                                                                              // определяем тон
