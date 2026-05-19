@@ -1379,9 +1379,9 @@ static void FillNoise(int8_t layer) {
   const uint32_t base_noise_z = noise32_z[layer];
   const uint32_t scale_x      = scale32_x[layer];
   const uint32_t scale_y      = scale32_y[layer];
-  
+
   const uint8_t inv_smooth    = 255U - noisesmooth;
-  
+
   for (uint8_t i = 0; i < WIDTH; i++) {
     int32_t ioffset = (int32_t)scale_x * (i - CENTER_X_MINOR);
     uint32_t current_x_noise = base_noise_x + ioffset;
@@ -1448,16 +1448,16 @@ static void MoveFractionalNoiseX(int8_t amplitude = 1, float shift = 0) {
     uint16_t abs_amount = (amount < 0) ? -amount : amount;
     int8_t delta = abs_amount >> 8;
     int8_t fraction = abs_amount & 255;
-    
+
     uint8_t ease_inv_frac = ease8InOutApprox(255 - fraction);
     uint8_t ease_frac     = ease8InOutApprox(fraction);
-    
+
     for (uint8_t x = 0 ; x < WIDTH; x++) {
       if (amount < 0) {
-        zD = x - delta; 
+        zD = x - delta;
         zF = zD - 1;
       } else {
-        zD = x + delta; 
+        zD = x + delta;
         zF = zD + 1;
       }
 
@@ -1476,10 +1476,10 @@ static void MoveFractionalNoiseX(int8_t amplitude = 1, float shift = 0) {
 static void MoveFractionalNoiseY(int8_t amplitude = 1, float shift = 0) {
   for (uint8_t x = 0; x < WIDTH; x++) {
     int16_t amount = ((int16_t)noise3d[0][x][0] - 128) * 2 * amplitude + shift * 256;
-    
+
     uint16_t abs_amount = (amount < 0) ? -amount : amount;
     int8_t delta = abs_amount >> 8;
-    int8_t fraction = abs_amount & 255;    
+    int8_t fraction = abs_amount & 255;
 
     uint8_t ease_inv_frac = ease8InOutApprox(255 - fraction);
     uint8_t ease_frac     = ease8InOutApprox(fraction);
@@ -1492,13 +1492,13 @@ static void MoveFractionalNoiseY(int8_t amplitude = 1, float shift = 0) {
         zD = y + delta;
         zF = zD + 1;
       }
-      
+
       CRGB PixelA = CRGB::Black ;
       if ((zD >= 0) && (zD < HEIGHT)) PixelA = leds[XY(x, zD)];
-      
+
       CRGB PixelB = CRGB::Black ;
       if ((zF >= 0) && (zF < HEIGHT)) PixelB = leds[XY(x, zF)];
-      
+
       ledsbuff[XY(x, y)] = (PixelA.nscale8(ease_inv_frac)) + (PixelB.nscale8(ease_frac));
     }
   }
