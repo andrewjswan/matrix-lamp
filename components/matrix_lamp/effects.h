@@ -518,44 +518,63 @@ static void poolRoutine()
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
-        setModeSettings(47U+random8(28U), 201U + random8(38U));
+        setModeSettings(47U + random8(28U), 201U + random8(38U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-    hue = modes[currentMode].Scale * 2.55f;
+    hue = scale8(modes[currentMode].Scale, 255U); // Scale * 2.55f;
     fillAll(CHSV(hue, 255U, 255U));
     deltaHue = 0U;
     deltaHue2 = 0U;
+
+    loadingFlag = false;
   }
 
   if (modes[currentMode].Speed != 255U) // если регулятор скорости на максимуме, то будет работать старый эффект "цвет" (без анимации бликов воды)
   {
-    if (step > 24U)                     // количество кадров в анимации -1 (отсчёт с нуля)
+    if (step > 24U) {                   // количество кадров в анимации -1 (отсчёт с нуля)
       step = 0U;
-    if (step > 0U && step < 3U)         // пару раз за цикл анимации двигаем текстуру по радиусу лампы. а может и не двигаем. как повезёт
-    {
-      if (random(2U) == 0U)
-      {
-        deltaHue++;
-        if (deltaHue > 31U) deltaHue = 0U;
-      }
     }
-    if (step > 11U && step < 14U)       // пару раз за цикл анимации двигаем текстуру по вертикали. а может и не двигаем. как повезёт
-    {
-      if (random(2U) == 0U)
-      {
-        deltaHue2++;
-        if (deltaHue2 > 31U) deltaHue2 = 0U;
+
+    if (step > 0U && step < 3U) {       // пару раз за цикл анимации двигаем текстуру по радиусу лампы. а может и не двигаем. как повезёт
+      if (random8(2U) == 0U) {
+        deltaHue++;
+        if (deltaHue > 31U) {
+          deltaHue = 0U;
+        }
       }
     }
 
+    if (step > 11U && step < 14U) {     // пару раз за цикл анимации двигаем текстуру по вертикали. а может и не двигаем. как повезёт
+      if (random8(2U) == 0U) {
+        deltaHue2++;
+        if (deltaHue2 > 31U) {
+          deltaHue2 = 0U;
+        }
+      }
+    }
+    
+    // Чтобы регулятор Масштаб начал вместо цвета регулировать яркость бликов, нужно определить #define SCALE_BRI
+    #ifdef SCALE_BRI
+    uint8_t dynamic_scale = ((uint16_t)modes[currentMode].Scale * 255U) / 100U;
+    #endif
+
     for (uint8_t x = 0U; x < WIDTH ; x++) {
+      // y % 32, x % 32 - это для масштабирования эффекта на лампы размером большим, чем размер анимации 32х32, а также для произвольного сдвига текстуры
+      // Заменяем тяжелый % 32U быстрой побитовой маской & 31U
+      uint8_t texture_x = (x + deltaHue) & 31U;     // (x + deltaHue) % 32U
+
       for (uint8_t y = 0U; y < HEIGHT; y++) {
-        // y%32, x%32 - это для масштабирования эффекта на лампы размером большим, чем размер анимации 32х32, а также для произвольного сдвига текстуры
-        leds[XY(x, y)] = CHSV(hue, 255U - pgm_read_byte(&aquariumGIF[step][(y + deltaHue2) % 32U][(x + deltaHue) % 32U]) * CAUSTICS_BR / 100U, 255U);
-        // чтобы регулятор Масштаб начал вместо цвета регулировать яркость бликов, нужно закомментировать предыдущую строчку и раскоментировать следующую
-        // leds[XY(x, y)] = CHSV(158U, 255U - pgm_read_byte(&aquariumGIF[step][(y+deltaHue2)%32U][(x+deltaHue)%32U]) * modes[currentMode].Scale / 100U, 255U);
+        uint8_t texture_y = (y + deltaHue2) & 31U;  // (y + deltaHue2) % 32U
+
+        uint8_t val = pgm_read_byte(&aquariumGIF[step][texture_y][texture_x]);
+        #ifdef SCALE_BRI
+        uint8_t final_sat = 255U - scale8_video(val, dynamic_scale);
+        #else
+        uint8_t final_sat = 255U - (val * CAUSTICS_BR) / 100U;
+        #endif
+
+        leds[XY(x, y)] = CHSV(hue, final_sat, 255U);
       }
     }
     step++;
