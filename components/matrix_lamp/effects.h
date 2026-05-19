@@ -697,63 +697,70 @@ static void snowRoutine()
 
 
 #ifdef DEF_STARFALL
-// ------------- метель - 2 -------------
-//SNOWSTORM / МЕТЕЛЬ # STARFALL / ЗВЕЗДОПАД ***** V1.2
+// ------------- метель ----------------------------------------------
+// SNOWSTORM / МЕТЕЛЬ # STARFALL / ЗВЕЗДОПАД
 // v1.0 - Updating for GuverLamp v1.7 by PalPalych 12.03.2020
 // v1.1 - Fix wrong math & full screen drawing by PalPalych 14.03.2020
 // v1.2 - Code optimisation + pseudo 3d by PalPalych 21.04.2020
-#define e_sns_DENSE (32U) // плотность снега - меньше = плотнее
+// v1.3 - Code optimisation by andrewjswan 19.05.2026
 
-static void stormRoutine2()// (bool isColored) // сворачиваем 2 эффекта в 1
+#define e_sns_DENSE (32U)    // плотность снега - меньше = плотнее
+
+static void stormRoutine2()  // сворачиваем 2 эффекта в 1
 {
   if (loadingFlag) {
-    loadingFlag = false;
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
-        uint8_t tmp = 175U+random8(39U);
-        if (tmp & 0x01)
-          setModeSettings(50U+random8(51U), tmp);
-        else
-          setModeSettings(50U+random8(24U), tmp);
+        uint8_t tmp = 175U + random8(39U);
+        if (tmp & 0x01) {
+          setModeSettings(50U + random8(51U), tmp);
+        } else {
+          setModeSettings(50U + random8(24U), tmp);
+        }
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+
+    loadingFlag = false;
   }
 
-  bool isColored = modes[currentMode].Speed & 0x01; // сворачиваем 2 эффекта в 1
+  const bool isColored = modes[currentMode].Speed & 0x01;  // сворачиваем 2 эффекта в 1
+  const uint8_t current_scale = modes[currentMode].Scale;
 
   // заполняем головами комет
   uint8_t Saturation = 0U;    // цвет хвостов
   uint8_t e_TAIL_STEP = 127U; // длина хвоста
+
   if (isColored) {
-    Saturation = modes[currentMode].Scale * 2.55f;
+    Saturation = scale8(current_scale, 255U); // Scale * 2.55f
   } else {
-    e_TAIL_STEP = 255U - modes[currentMode].Scale * 2.5f;
+    e_TAIL_STEP = 255U - scale8(current_scale, 250U); // Scale * 2.5f
   }
 
-  for (uint8_t x = 0U; x < WIDTH - 1U; x++) // fix error i != 0U
-  {
-    if (!random8(e_sns_DENSE) &&
-        !getPixColorXY(wrapX(x), HEIGHT - 1U) &&
-        !getPixColorXY(wrapX(x + 1U), HEIGHT - 1U) &&
-        !getPixColorXY(wrapX(x - 1U), HEIGHT - 1U))
-    {
-      drawPixelXY(x, HEIGHT - 1U, CHSV(random8(), Saturation, random8(64U, 255U)));
+  constexpr uint8_t top_row = HEIGHT - 1U;
+
+  // Случайная генерация голов комет на верхней строчке
+  for (uint8_t x = 0U; x < WIDTH - 1U; x++) {
+    if (random8(e_sns_DENSE) == 0U) {
+      uint8_t cx  = wrapX(x);
+
+      if (leds[XY(cx,           top_row)] == CRGB::Black &&
+          leds[XY(wrapX(x + 1), top_row)] == CRGB::Black &&
+          leds[XY(wrapX(x - 1), top_row)] == CRGB::Black) {
+        leds[XY(cx, top_row)] = CHSV(random8(), Saturation, random8(64U, 255U));
+      }
     }
   }
 
-  // сдвигаем по диагонали
-  for (uint8_t y = 0U; y < HEIGHT - 1U; y++)
-  {
-    for (uint8_t x = 0; x < WIDTH; x++)
-    {
-      drawPixelXY(wrapX(x + 1U), y, getPixColorXY(x, y + 1U));
+  // Сдвигаем по диагонали
+  for (int8_t y = HEIGHT - 2U; y >= 0; y--) {
+    for (uint8_t x = 0; x < WIDTH; x++) {
+      leds[XY(wrapX(x + 1U), y)] = leds[XY(x, y + 1U)];
     }
   }
 
-  // уменьшаем яркость верхней линии, формируем "хвосты"
-  for (uint8_t i = 0U; i < WIDTH; i++)
-  {
-    fadePixel(i, HEIGHT - 1U, e_TAIL_STEP);
+  // Уменьшаем яркость верхней линии, формируем "хвосты"
+  for (uint8_t i = 0U; i < WIDTH; i++) {
+    fadePixel(i, top_row, e_TAIL_STEP);
   }
 }
 #endif
