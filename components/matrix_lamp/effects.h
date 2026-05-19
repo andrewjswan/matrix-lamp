@@ -1632,24 +1632,27 @@ static void MultipleStream3() { // Fireline
   if (loadingFlag) {
     loadingFlag = false;
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
-        setModeSettings(1U + random8(26U), 180U+random8(45U));
+      if (selectedSettings) {
+        setModeSettings(1U + random8(26U), 180U + random8(45U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
   }
 
   blurScreen(20); // без размытия как-то пиксельно, по-моему...
-  //dimAll(160); // < -- затухание эффекта для последующего кадров
-  dimAll(255U - modes[currentMode].Scale * 2);
+
+  dimAll(255U - (modes[currentMode].Scale << 1));  // * 2);
+
   for (uint8_t i = 1; i < WIDTH; i += 3) {
-    leds[XY(i, CENTER_Y_MINOR)] += CHSV(i * 2 , 255, 255);
+    leds[XY(i, CENTER_Y_MINOR)] += CHSV(i << 1, 255, 255);  // CHSV(i * 2 , 255, 255);
   }
+
   // Noise
   noise32_x[0] += 3000;
   noise32_y[0] += 3000;
   noise32_z[0] += 3000;
   scale32_x[0] = 8000;
   scale32_y[0] = 8000;
+
   FillNoise(0);
   MoveFractionalNoiseY(3);
   MoveFractionalNoiseX(3);
