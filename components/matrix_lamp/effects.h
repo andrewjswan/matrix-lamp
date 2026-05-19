@@ -730,7 +730,7 @@ static void stormRoutine2()  // сворачиваем 2 эффекта в 1
   for (uint8_t x = 0U; x < WIDTH - 1U; x++) {
     if (random8(e_sns_DENSE) == 0U) {
       uint8_t cx  = wrapX(x);
-      
+
       if (leds[XY(cx,           top_row)] == CRGB::Black &&
           leds[XY(wrapX(x + 1), top_row)] == CRGB::Black &&
           leds[XY(wrapX(x - 1), top_row)] == CRGB::Black) {
