@@ -1508,15 +1508,13 @@ static void MoveFractionalNoiseY(int8_t amplitude = 1, float shift = 0) {
 #ifdef DEF_COMET_TWO
 // NoiseSmearing(by StefanPetrick) Effect mod for GyverLamp by PalPalych
 static void MultipleStream() { // 2 comets
-  if (loadingFlag)
-  {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
+      if (selectedSettings) {
         hue = random8();
         hue2 = hue + 85U;
-        setModeSettings(1U + random8(25U), 185U+random8(36U));
-      }
-      else{
+        setModeSettings(1U + random8(25U), 185U + random8(36U));
+      } else {
         hue = 0U;   // 0xFF0000
         hue2 = 43U; // 0xFFFF00
       }
@@ -1525,31 +1523,44 @@ static void MultipleStream() { // 2 comets
       hue2 = 43U;   // 0xFFFF00
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     trackingObjectState[0] = OCTANT_X;
     trackingObjectState[1] = OCTANT_Y;
-    trackingObjectShift[0] = 255.0f/(WIDTH-1.0f-trackingObjectState[0]-trackingObjectState[0]);
-    trackingObjectShift[1] = 255.0f/(HEIGHT-1.0f-trackingObjectState[1]-trackingObjectState[1]);
+
+    uint8_t denom = WIDTH - 1U - trackingObjectState[0] - trackingObjectState[0];
+    trackingObjectShift[0] = (denom > 0) ? (255U / denom) : 1U;
+
+    denom = HEIGHT - 1U - trackingObjectState[1] - trackingObjectState[1];
+    trackingObjectShift[1] = (denom > 0) ? (255U / denom) : 1U;
+
     trackingObjectState[2] = QUARTER_X;
     trackingObjectState[3] = QUARTER_Y;
-    trackingObjectShift[2] = 255.0f/(WIDTH-1.0f-trackingObjectState[2]-trackingObjectState[2]);  // ((WIDTH>10)?9.:5.));
-    trackingObjectShift[3] = 255.0f/(HEIGHT-1.0f-trackingObjectState[3]-trackingObjectState[3]); //- ((HEIGHT>10)?9.:5.));
+
+    denom = WIDTH - 1U - trackingObjectState[2] - trackingObjectState[2];
+    trackingObjectShift[2] = (denom > 0) ? (255U / denom) : 1U;
+
+    denom = HEIGHT - 1U - trackingObjectState[3] - trackingObjectState[3];
+    trackingObjectShift[3] = (denom > 0) ? (255U / denom) : 1U;
+
+    loadingFlag = false;
   }
 
-  //dimAll(192); // < -- затухание эффекта для последующего кадрв
-  dimAll(255U - modes[currentMode].Scale * 2);
+  dimAll(255U - modes[currentMode].Scale << 1);  // * 2);
+  
+  const uint32_t current_ms = millis();
 
   // gelb im Kreis
-  uint8_t xx = trackingObjectState[0] + sin8(millis() / 10) / trackingObjectShift[0]; // / 22;
-  uint8_t yy = trackingObjectState[1] + cos8(millis() / 10) / trackingObjectShift[1]; // / 22;
-  if (xx < WIDTH && yy < HEIGHT)
-    leds[XY(xx, yy)] = CHSV(hue2 , 255, 255);                                      // 0xFFFF00;
+  uint8_t xx = trackingObjectState[0] + sin8(current_ms / 10U) / trackingObjectShift[0];
+  uint8_t yy = trackingObjectState[1] + cos8(current_ms / 10U) / trackingObjectShift[1];
+  if (xx < WIDTH && yy < HEIGHT) {
+    leds[XY(xx, yy)] = CHSV(hue2, 255, 255);
+  }
 
   // rot in einer Acht
-  xx = trackingObjectState[2] + sin8(millis() / 46) / trackingObjectShift[2];      // / 32;
-  yy = trackingObjectState[3] + cos8(millis() / 15) / trackingObjectShift[3];      // / 32;
-  if (xx < WIDTH && yy < HEIGHT)
-    leds[XY(xx, yy)] = CHSV(hue , 255, 255);                                       // 0xFF0000;
+  xx = trackingObjectState[2] + sin8(current_ms / 46U) / trackingObjectShift[2];
+  yy = trackingObjectState[3] + cos8(current_ms / 15U) / trackingObjectShift[3];
+  if (xx < WIDTH && yy < HEIGHT) {
+    leds[XY(xx, yy)] = CHSV(hue, 255, 255);
+  }
 
   // Noise
   noise32_x[0] += 3000;
@@ -1558,6 +1569,7 @@ static void MultipleStream() { // 2 comets
   scale32_x[0] = 8000;
   scale32_y[0] = 8000;
   FillNoise(0);
+
   MoveFractionalNoiseX(3, 0.33f);
   MoveFractionalNoiseY(3);
 }
