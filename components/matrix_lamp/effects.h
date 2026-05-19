@@ -2219,36 +2219,45 @@ static void MetaBallsRoutine() {
   read more about the concept: https://www.youtube.com/watch?v=mubH-w_gwdA
   https://gist.github.com/StefanPetrick/dc666c1b4851d5fb8139b73719b70149
 */
+
 // v1.7.0 - Updating for GuverLamp v1.7 by PalPalych 12.03.2020
 // 2nd upd by Stepko https://wokwi.com/arduino/projects/287675911209222664
 // 3rd proper by SottNick
+// Optimization by andrewjswan
 
 static void Sinusoid3Routine()
 {
-  if (loadingFlag)
-  {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
+      if (selectedSettings) {
         uint8_t tmp = random8(100U);
-        setModeSettings(tmp + 1U, 4U+random8(183U));
+        setModeSettings(tmp + 1U, 4U + random8(183U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-
-    deltaValue = (modes[currentMode].Speed - 1U) % 9U;          // количество режимов
+    deltaValue = (modes[currentMode].Speed - 1U) % 9U;                          // количество режимов
 
     emitterX = CENTER_X_F;
     emitterY = CENTER_Y_F;
-    speedfactor = 0.00145f * modes[currentMode].Speed + 0.015f; // speed of the movement along the Lissajous curves //const float speedfactor =
+
+    speedfactor = 0.00145f * modes[currentMode].Speed + 0.015f;                 // speed of the movement along the Lissajous curves //const float speedfactor =
+
+    loadingFlag = false;
   }
 
-  float e_s3_size = 3.0f * modes[currentMode].Scale / 100.0f + 2;  // amplitude of the curves
+  float e_s3_size = 3.0f * modes[currentMode].Scale / 100.0f + 2.0f;            // amplitude of the curves
   uint32_t time_shift = millis() & 0xFFFFFF; // overflow protection
 
   uint16_t _scale = (((modes[currentMode].Scale - 1U) % 9U) * 10U + 80U) << 7U; // = remap(scale, 1, 255, 0.1, 3);
-  float _scale2 = (float)((modes[currentMode].Scale - 1U) % 9U) * 0.2f + 0.4f;  // для спиралей на sinf
   uint16_t _scale3 = ((modes[currentMode].Scale - 1U) % 9U) * 1638U + 3276U;    // для спиралей на sin16
+  float _scale2 = (float)((modes[currentMode].Scale - 1U) % 9U) * 0.2f + 0.4f;  // для спиралей на sinf
+
+  uint32_t phase_shift_raw = time_shift * speedfactor;
+
+  float time_speed_factor = (float)time_shift * speedfactor;
+  float case34_phase = time_speed_factor * 100.0f;
+  float case5_phaseB = time_speed_factor * 0.005f;
+  float case5_phaseR = time_speed_factor * 0.0055f;
 
   float center1x = float(e_s3_size * sin16(speedfactor * 72.0874f * time_shift)) / 0x7FFF - emitterX;
   float center1y = float(e_s3_size * cos16(speedfactor * 98.301f  * time_shift)) / 0x7FFF - emitterY;
@@ -2260,192 +2269,188 @@ static void Sinusoid3Routine()
   switch (deltaValue) {
     case 0:  // Sinusoid I
       for (uint8_t y = 0; y < HEIGHT; y++) {
+        float cy1 = (float)y + center1y; float cy1_sq = cy1 * cy1;
+        float cy3 = (float)y + center3y; float cy3_sq = cy3 * cy3;
+
         for (uint8_t x = 0; x < WIDTH; x++) {
           CRGB color = CRGB::Black;
 
-          float cx = x + center1x;
-          float cy = y + center1y;
-          uint8_t v = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy * cy))) / 0x7FFF);
-          color.r = v;
-          cx = x + center3x;
-          cy = y + center3y;
-          v = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy * cy))) / 0x7FFF);
-          color.b = v;
+          float cx = (float)x + center1x;
+          color.r = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy1_sq))) / 32767.0f); // / 0x7FFF
+
+          cx = (float)x + center3x;
+          color.b = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy3_sq))) / 32767.0f);
+
           drawPixelXY(x, y, color);
         }
       }
       break;
     case 1:  // Sinusoid II
       for (uint8_t y = 0; y < HEIGHT; y++) {
+        float cy1 = (float)y + center1y; float cy1_sq = cy1 * cy1;
+        float cy2 = (float)y + center2y; float cy2_sq = cy2 * cy2;
+
         for (uint8_t x = 0; x < WIDTH; x++) {
           CRGB color = CRGB::Black;
 
-          float cx = x + center1x;
-          float cy = y + center1y;
-          uint8_t v = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy * cy))) / 0x7FFF);
-          color.r = v;
+          float cx = (float)x + center1x;
+          color.r = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy1_sq))) / 32767.0f);
 
-          cx = x + center2x;
-          cy = y + center2y;
-          v = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy * cy))) / 0x7FFF);
+          cx = (float)x + center2x;
+          uint8_t v = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy2_sq))) / 32767.0f);
           color.g = (v - (min(v, color.r) >> 1)) >> 1;
           color.b = color.g >> 2;
           color.r = max(v, color.r);
+
           drawPixelXY(x, y, color);
         }
       }
       break;
     case 2:  // Sinusoid III
       for (uint8_t y = 0; y < HEIGHT; y++) {
+        float cy1 = (float)y + center1y; float cy1_sq = cy1 * cy1;
+        float cy2 = (float)y + center2y; float cy2_sq = cy2 * cy2;
+        float cy3 = (float)y + center3y; float cy3_sq = cy3 * cy3;
+
         for (uint8_t x = 0; x < WIDTH; x++) {
           CRGB color = CRGB::Black;
+          float cx = (float)x + center1x;
+          color.r = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy1_sq))) / 32767.0f);
 
-          float cx = x + center1x;
-          float cy = y + center1y;
-          uint8_t v = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy * cy))) / 0x7FFF);
-          color.r = v;
+          cx = (float)x + center2x;
+          color.b = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy2_sq))) / 32767.0f);
 
-          cx = x + center2x;
-          cy = y + center2y;
-          v = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy * cy))) / 0x7FFF);
-          color.b = v;
+          cx = (float)x + center3x;
+          color.g = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy3_sq))) / 32767.0f);
 
-          cx = x + center3x;
-          cy = y + center3y;
-          v = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy * cy))) / 0x7FFF);
-          color.g = v;
           drawPixelXY(x, y, color);
         }
       }
       break;
     case 3:  // Sinusoid IV
       for (uint8_t y = 0; y < HEIGHT; y++) {
+        float cy1 = (float)y + center1y; float cy1_sq = cy1 * cy1;
+        float cy2 = (float)y + center2y; float cy2_sq = cy2 * cy2;
+        float cy3 = (float)y + center3y; float cy3_sq = cy3 * cy3;
+
         for (uint8_t x = 0; x < WIDTH; x++) {
           CRGB color = CRGB::Black;
-
-          float cx = x + center1x;
-          float cy = y + center1y;
-          uint8_t v = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy * cy) + time_shift * speedfactor * 100)) / 0x7FFF);
+          float cx = (float)x + center1x;
+          uint8_t v = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy1_sq) + case34_phase)) / 32767.0f);
           color.r = ~v;
 
-          cx = x + center2x;
-          cy = y + center2y;
-          v = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy * cy) + time_shift * speedfactor * 100)) / 0x7FFF);
+          cx = (float)x + center2x;
+          v = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy2_sq) + case34_phase)) / 32767.0f);
           color.g = ~v;
 
-          cx = x + center3x;
-          cy = y + center3y;
-          v = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy * cy) + time_shift * speedfactor * 100)) / 0x7FFF);
+          cx = (float)x + center3x;
+          v = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy3_sq) + case34_phase)) / 32767.0f);
           color.b = ~v;
+
           drawPixelXY(x, y, color);
         }
       }
-
       break;
     case 4:  // changed by stepko // colored sinusoid
-      for (uint8_t y = 0; y < HEIGHT; y++) {
-        for (uint8_t x = 0; x < WIDTH; x++) {
-          CRGB color = CRGB::Black;
+      {
+        float ampR = beatsin16(2, 1000, 1750) / 2550.0f;
+        float ampB = beatsin16(1, 570, 1050) / 2250.0f;
+        float ampG = beatsin16(3, 1900, 2550) / 2550.0f;
 
-          float cx = x + center1x;
-          float cy = y + center1y;
-          uint8_t v = 127 * (1 + float(sin16(_scale * (beatsin16(2,1000,1750)/2550.0f) * SQRT_VARIANT(cx * cx + cy * cy))) / 0x7FFF);  // + time_shift * speedfactor * 5 // mass colors plus by SottNick
-          color.r = v;
+        float phaseB = 13.0f * time_speed_factor;
+        float phaseG = 41.0f * time_speed_factor;
 
-          v = 127 * (1 + float(sin16(_scale * (beatsin16(1,570,1050)/2250.0f) * SQRT_VARIANT(((cx * cx) + (cy * cy)))  + 13 * time_shift * speedfactor)) / 0x7FFF);  // вместо beatsin сперва ставил просто * 0.41
-          color.b = v;
+        for (uint8_t y = 0; y < HEIGHT; y++) {
+          float cy1 = (float)y + center1y; float cy1_sq = cy1 * cy1;
 
-          v = 127 * (1 + float(cos16(_scale * (beatsin16(3,1900,2550)/2550.0f) * SQRT_VARIANT(((cx * cx) + (cy * cy)))  + 41 * time_shift * speedfactor)) / 0x7FFF);  // вместо beatsin сперва ставил просто * 0.53
-          color.g = v;
-          drawPixelXY(x, y, color);
+          for (uint8_t x = 0; x < WIDTH; x++) {
+            CRGB color = CRGB::Black;
+
+            float cx = (float)x + center1x;
+            float dist = SQRT_VARIANT(cx * cx + cy1_sq);
+
+            color.r = 127 * (1 + float(sin16(_scale * ampR * dist)) / 32767.0f);
+            color.g = 127 * (1 + float(cos16(_scale * ampG * dist + phaseG)) / 32767.0f);
+            color.b = 127 * (1 + float(sin16(_scale * ampB * dist + phaseB)) / 32767.0f);
+
+            drawPixelXY(x, y, color);
+          }
         }
       }
       break;
     case 5:  // changed by stepko // sinusoid in net
       for (uint8_t y = 0; y < HEIGHT; y++) {
+        float cy1 = (float)y + center1y; float cy1_sq = cy1 * cy1;
+        uint8_t v_r = ~uint8_t(127 * (1 + float(sin16(_scale * ((float)y + case5_phaseR))) / 32767.0f));
+
         for (uint8_t x = 0; x < WIDTH; x++) {
           CRGB color = CRGB::Black;
-
-          float cx = x + center1x;
-          float cy = y + center1y;
-          uint8_t v = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy * cy) + time_shift * speedfactor * 5)) / 0x7FFF);
+          float cx = (float)x + center1x;
+          uint8_t v = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy1_sq) + time_speed_factor * 5.0f)) / 32767.0f);
           color.g = ~v;
 
-          v = 127 * (1 + float(sin16(_scale * (x + 0.005f * time_shift * speedfactor))) / 0x7FFF);  // proper by SottNick
+          v = 127 * (1 + float(sin16(_scale * ((float)x + case5_phaseB))) / 32767.0f);
           color.b = ~v;
+          color.r = v_r;
 
-          v = 127 * (1 + float(sin16(_scale * (y + 0.0055f * time_shift * speedfactor))) / 0x7FFF);  // proper by SottNick
-          color.r = ~v;
           drawPixelXY(x, y, color);
         }
       }
       break;
     case 6:  // changed by stepko // spiral
       for (uint8_t y = 0; y < HEIGHT; y++) {
+        float cy1 = (float)y + center1y; float cy1_sq = cy1 * cy1;
+        float cy2 = (float)y + center2y; float cy2_sq = cy2 * cy2;
+        float cy3 = (float)y + center3y; float cy3_sq = cy3 * cy3;
+
         for (uint8_t x = 0; x < WIDTH; x++) {
           CRGB color = CRGB::Black;
 
-          float cx = x + center1x;
-          float cy = y + center1y;
-          uint8_t v = 127 * (1 + sinf (3* atan2(cy, cx)  + _scale2 *  hypot(cy, cx)));  // proper by SottNick
-          //вырезаем центр спирали - proper by SottNick
-          float d = SQRT_VARIANT(cx * cx + cy * cy) / 10.0f;  // 10 - это радиус вырезаемого центра в каких-то условных величинах. 10 = 1 пиксель, 20 = 2 пикселя. как-то так
+          float cx = (float)x + center1x;
+          uint8_t v = 127 * (1 + sinf(3 * atan2(cy1, cx) + _scale2 * hypot(cy1, cx)));
+          float d = SQRT_VARIANT(cx * cx + cy1_sq) * 0.1f;
           if (d < 0.06f) d = 0.06f;
-          if (d < 1)  // просто для ускорения расчётов
-            v = constrain(v - int16_t(1/d/d), 0, 255);
-          // вырезали
+          if (d < 1.0f) v = constrain(v - int16_t(1.0f / (d * d)), 0, 255);
           color.r = v;
 
-          cx = x + center2x;
-          cy = y + center2y;
-          v = 127 * (1 + sinf (3* atan2(cy, cx)  + _scale2 *  hypot(cy, cx)));  // proper by SottNick
-          //вырезаем центр спирали
-          d = SQRT_VARIANT(cx * cx + cy * cy) / 10.0f;  // 10 - это радиус вырезаемого центра в каких-то условных величинах. 10 = 1 пиксель, 20 = 2 пикселя. как-то так
+          cx = (float)x + center2x;
+          v = 127 * (1 + sinf(3 * atan2(cy2, cx) + _scale2 * hypot(cy2, cx)));
+          d = SQRT_VARIANT(cx * cx + cy2_sq) * 0.1f;
           if (d < 0.06f) d = 0.06f;
-          if (d < 1)  // просто для ускорения расчётов
-            v = constrain(v - int16_t(1/d/d), 0, 255);
-          // вырезали
+          if (d < 1.0f) v = constrain(v - int16_t(1.0f / (d * d)), 0, 255);
           color.b = v;
 
-          cx = x + center3x;
-          cy = y + center3y;
-          v = 127 * (1 + float(sin16(atan2(cy, cx) * 31255  + _scale3 *  hypot(cy, cx))) / 0x7FFF);  // proper by SottNick
-          // вырезаем центр спирали
-          d = SQRT_VARIANT(cx * cx + cy * cy) / 10.0f;  // 10 - это радиус вырезаемого центра в каких-то условных величинах. 10 = 1 пиксель, 20 = 2 пикселя. как-то так
+          cx = (float)x + center3x;
+          v = 127 * (1 + float(sin16(atan2(cy3, cx) * 31255 + _scale3 * hypot(cy3, cx))) / 32767.0f);
+          d = SQRT_VARIANT(cx * cx + cy3_sq) * 0.1f;
           if (d < 0.06f) d = 0.06f;
-          if (d < 1)  // просто для ускорения расчётов
-            v = constrain(v - int16_t(1/d/d), 0, 255);
-          // вырезали
+          if (d < 1.0f) v = constrain(v - int16_t(1.0f / (d * d)), 0, 255);
           color.g = v;
+
           drawPixelXY(x, y, color);
         }
       }
       break;
     case 7: // variant by SottNick
       for (uint8_t y = 0; y < HEIGHT; y++) {
+        float cy1 = (float)y + center1y; float cy1_sq = cy1 * cy1;
+        float cy3 = (float)y + center3y; float cy3_sq = cy3 * cy3;
+
         for (uint8_t x = 0; x < WIDTH; x++) {
           CRGB color = CRGB::Black;
 
-          float cx = x + center1x;
-          float cy = y + center1y;
-          uint8_t v = 127 * (1 + float(sin16(atan2(cy, cx) * 31255  + _scale3 *  hypot(cy, cx))) / 0x7FFF);  // proper by SottNick
-          // вырезаем центр спирали
-          float d = SQRT_VARIANT(cx * cx + cy * cy) / 10.0f;  // 10 - это радиус вырезаемого центра в каких-то условных величинах. 10 = 1 пиксель, 20 = 2 пикселя. как-то так
+          float cx = (float)x + center1x;
+          uint8_t v = 127 * (1 + float(sin16(atan2(cy1, cx) * 31255 + _scale3 * hypot(cy1, cx))) / 32767.0f);
+          float d = SQRT_VARIANT(cx * cx + cy1_sq) * 0.1f;
           if (d < 0.06f) d = 0.06f;
-          if (d < 1)  // просто для ускорения расчётов
-            v = constrain(v - int16_t(1/d/d), 0, 255);
-          // вырезали
+          if (d < 1.0f) v = constrain(v - int16_t(1.0f / (d * d)), 0, 255);
           color.g = v;
 
-          cx = x + center3x;
-          cy = y + center3y;
-          v = 127 * (1 + float(sin16(atan2(cy, cx) * 31255  + _scale3 *  hypot(cy, cx))) / 0x7FFF);  // proper by SottNick
-          // вырезаем центр спирали
-          d = SQRT_VARIANT(cx * cx + cy * cy) / 10.0f;  // 10 - это радиус вырезаемого центра в каких-то условных величинах. 10 = 1 пиксель, 20 = 2 пикселя. как-то так
+          cx = (float)x + center3x;
+          v = 127 * (1 + float(sin16(atan2(cy3, cx) * 31255 + _scale3 * hypot(cy3, cx))) / 32767.0f);
+          d = SQRT_VARIANT(cx * cx + cy3_sq) * 0.1f;
           if (d < 0.06f) d = 0.06f;
-          if (d < 1)  // просто для ускорения расчётов
-            v = constrain(v - int16_t(1/d/d), 0, 255);
-          // вырезали
+          if (d < 1.0f) v = constrain(v - int16_t(1.0f / (d * d)), 0, 255);
           color.r = v;
 
           drawPixelXY(x, y, color);
@@ -2454,23 +2459,21 @@ static void Sinusoid3Routine()
       break;
     case 8:  // variant by SottNick
       for (uint8_t y = 0; y < HEIGHT; y++) {
+        float cy1 = (float)y + center1y; float cy1_sq = cy1 * cy1;
+        float cy2 = (float)y + center2y; float cy2_sq = cy2 * cy2;
+
         for (uint8_t x = 0; x < WIDTH; x++) {
           CRGB color = CRGB::Black;
 
-          float cx = x + center1x;
-          float cy = y + center1y;
-          uint8_t v = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy * cy))) / 0x7FFF);
+          float cx = (float)x + center1x;
+          uint8_t v = 127 * (1 + float(sin16(_scale * SQRT_VARIANT(cx * cx + cy1_sq))) / 32767.0f);
           color.g = v;
 
-          cx = x + center2x;
-          cy = y + center2y;
-          v = 127 * (1 + float(sin16(atan2(cy, cx) * 31255  + _scale3 *  hypot(cy, cx))) / 0x7FFF); // proper by SottNick
-          // вырезаем центр спирали
-          float d = SQRT_VARIANT(cx * cx + cy * cy) / 16.0f;  // 16 - это радиус вырезаемого центра в каких-то условных величинах. 10 = 1 пиксель, 20 = 2 пикселя. как-то так
+          cx = (float)x + center2x;
+          v = 127 * (1 + float(sin16(atan2(cy2, cx) * 31255 + _scale3 * hypot(cy2, cx))) / 32767.0f);
+          float d = SQRT_VARIANT(cx * cx + cy2_sq) * 0.0625f; // 1 / 16.0f
           if (d < 0.06f) d = 0.06f;
-          if (d < 1)  // просто для ускорения расчётов
-            v = constrain(v - int16_t(1/d/d), 0, 255);
-          // вырезали
+          if (d < 1.0f) v = constrain(v - int16_t(1.0f / (d * d)), 0, 255);
           color.g = max(v, color.g);
           color.b = v;
 
