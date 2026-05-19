@@ -1528,7 +1528,6 @@ static void MultipleStream() { // 2 comets
 
     uint8_t denom = WIDTH - 1U - trackingObjectState[0] - trackingObjectState[0];
     trackingObjectShift[0] = (denom > 0) ? (255U / denom) : 1U;
-
     denom = HEIGHT - 1U - trackingObjectState[1] - trackingObjectState[1];
     trackingObjectShift[1] = (denom > 0) ? (255U / denom) : 1U;
 
@@ -1537,14 +1536,13 @@ static void MultipleStream() { // 2 comets
 
     denom = WIDTH - 1U - trackingObjectState[2] - trackingObjectState[2];
     trackingObjectShift[2] = (denom > 0) ? (255U / denom) : 1U;
-
     denom = HEIGHT - 1U - trackingObjectState[3] - trackingObjectState[3];
     trackingObjectShift[3] = (denom > 0) ? (255U / denom) : 1U;
 
     loadingFlag = false;
   }
 
-  dimAll(255U - modes[currentMode].Scale << 1);  // * 2);
+  dimAll(255U - (modes[currentMode].Scale << 1));  // * 2);
   
   const uint32_t current_ms = millis();
 
