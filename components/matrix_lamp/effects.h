@@ -1281,54 +1281,65 @@ static void lightBallsRoutine()
 #define BORDERLAND (2U) // две дополнительные единицы бегунка Масштаб на границе вертикального и горизонтального варианта эффекта (с каждой стороны границы) будут для света всеми светодиодами в полную силу
 static void whiteColorStripeRoutine()
 {
-  if (loadingFlag)
-  {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
-        setModeSettings(11U + random8(83U), 1U + random8(255U / WIDTH + 1U) * WIDTH);
-      }
+    if (selectedSettings){
+      setModeSettings(11U + random8(83U), 1U + random8(255U / WIDTH + 1U) * WIDTH);
+    }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     ledsClear(); // esphome: FastLED.clear();
 
+    const uint8_t current_scale = modes[currentMode].Scale;
+    const uint8_t current_speed = modes[currentMode].Speed;
+    
+    constexpr uint8_t divisor = 50U - BORDERLAND; 
+    
     uint8_t thisSize = HEIGHT;
-    uint8_t halfScale = modes[currentMode].Scale;
-    if (halfScale > 50U)
-    {
+    uint8_t halfScale = current_scale;
+    if (halfScale > 50U) {
       thisSize = WIDTH;
       halfScale = 101U - halfScale;
     }
-    halfScale = constrain(halfScale, 0U, 50U - BORDERLAND);
+    halfScale = constrain(halfScale, 0U, divisor);
 
-    uint8_t center =  (uint8_t)round(thisSize / 2.0f) - 1U;
+    uint8_t center = (thisSize - 1) >> 1;  // (uint8_t)round(thisSize / 2.0f) - 1U;
     uint8_t offset = (uint8_t)(!(thisSize & 0x01));
+    
+    uint16_t product = (uint16_t)center * halfScale;
+    uint8_t fullFill = product / divisor;
+    uint8_t iPol = ((product % divisor) * 255U) / divisor;
 
-    uint8_t fullFill =  center / (50.0f - BORDERLAND) * halfScale;
-    uint8_t iPol = (center / (50.0f - BORDERLAND) * halfScale - fullFill) * 255U;
-
-    for (int16_t i = center; i >= 0; i--)
-    {
+    uint8_t saturation = map(current_speed, 0U, 255U, 0U, 170U);
+    
+    int16_t threshold_full = (int16_t)center - fullFill - 1;
+    int16_t threshold_fade = (int16_t)center - fullFill - 2;
+    
+    for (int16_t i = center; i >= 0; i--) {
       CRGB color = CHSV(
                      45U,                                                                              // определяем тон
-                     map(modes[currentMode].Speed, 0U, 255U, 0U, 170U),                                // определяем насыщенность
-                     i > (center - fullFill - 1)                                                       // определяем яркость
+                     saturation,                                                                       // определяем насыщенность
+                     i > threshold_full                                                                // определяем яркость
                      ? 255U                                                                            // для центральных горизонтальных полос
-                     : iPol * (i > center - fullFill - 2));                                            // для остальных горизонтальных полос яркость равна либо 255, либо 0 в зависимости от масштаба
+                     : iPol * (i > threshold_fade));                                                   // для остальных горизонтальных полос яркость равна либо 255, либо 0 в зависимости от масштаба
 
-      if (modes[currentMode].Scale <= 50U)
-        for (uint8_t x = 0U; x < WIDTH; x++)
-        {
+      if (current_scale <= 50U) {
+        uint8_t mirrorY = HEIGHT + offset - i - 2U;
+        for (uint8_t x = 0U; x < WIDTH; x++) {
           drawPixelXY(x, i, color);                                                                    // при чётной высоте матрицы максимально яркими отрисуются 2 центральных горизонтальных полосы
-          drawPixelXY(x, HEIGHT + offset - i - 2U, color);                                             // при нечётной - одна, но дважды
+          drawPixelXY(x, mirrorY, color);                                                              // при нечётной - одна, но дважды
         }
-      else
-        for (uint8_t y = 0U; y < HEIGHT; y++)
-        {
-          drawPixelXY((i + modes[currentMode].Speed - 1U) % WIDTH, y, color);                          // при чётной ширине матрицы максимально яркими отрисуются 2 центральных вертикальных полосы
-          drawPixelXY((WIDTH + offset - i + modes[currentMode].Speed - 3U) % WIDTH, y, color);         // при нечётной - одна, но дважды
+      } else {
+        uint8_t shiftL = ((uint16_t)i + current_speed - 1U) % WIDTH;
+        uint8_t shiftR = ((uint16_t)(WIDTH * 2U) + offset - i + current_speed - 3U) % WIDTH;
+        for (uint8_t y = 0U; y < HEIGHT; y++) {
+          drawPixelXY(shiftL, y, color);                                                               // при чётной ширине матрицы максимально яркими отрисуются 2 центральных вертикальных полосы
+          drawPixelXY(shiftR, y, color);                                                               // при нечётной - одна, но дважды
         }
+      }
     }
+
+    loadingFlag = false;
   }
 }
 #endif
