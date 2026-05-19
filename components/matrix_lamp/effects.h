@@ -1892,60 +1892,74 @@ constexpr float bballsH0       = 1.0f;                                          
 constexpr float bballsVImpact0 = __builtin_sqrtf(-2.0f * bballsGRAVITY * bballsH0);  // Impact velocity of the ball when it hits the ground if "dropped" from the top of the strip
 
 static void BBallsRoutine() {
-  if (loadingFlag)
-  {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
-        setModeSettings(26U+random8(32U), random8(3U) ? ((random8(4U) ? 127U : 0U) + 9U + random8(12U)) : (random8(4U) ? 255U : 127U));
-      }
+    if (selectedSettings) {
+      setModeSettings(26U + random8(32U), random8(3U) ? ((random8(4U) ? 127U : 0U) + 9U + random8(12U)) : (random8(4U) ? 255U : 127U));
+    }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-    //ledsClear(); // esphome: FastLED.clear();
-    enlargedObjectNUM = (modes[currentMode].Scale - 1U) / 99.0f * (enlargedOBJECT_MAX_COUNT - 1U) + 1U;
-    if (enlargedObjectNUM > enlargedOBJECT_MAX_COUNT) enlargedObjectNUM = enlargedOBJECT_MAX_COUNT;
+    enlargedObjectNUM = ((uint16_t)(modes[currentMode].Scale - 1U) * (enlargedOBJECT_MAX_COUNT - 1U)) / 99U + 1U;
+    if (enlargedObjectNUM > enlargedOBJECT_MAX_COUNT) {
+      enlargedObjectNUM = enlargedOBJECT_MAX_COUNT;
+    }
+
+    uint16_t num_squared = (uint16_t)enlargedObjectNUM * enlargedObjectNUM;
     for (uint8_t i = 0 ; i < enlargedObjectNUM ; i++) {                                               // Initialize variables
-      trackingObjectHue[i] = random8();
-      trackingObjectState[i] = random8(0U, WIDTH);
-      enlargedObjectTime[i] = millis();
-      trackingObjectPosY[i] = 0U;                                                                     // Balls start on the ground
-      trackingObjectSpeedY[i] = bballsVImpact0;                                                       // And "pop" up at vImpact0
-      trackingObjectShift[i] = 0.90f - float(i) / pow(enlargedObjectNUM, 2);                           // это, видимо, прыгучесть. для каждого мячика уникальная изначально
+      trackingObjectHue[i]     = random8();
+      trackingObjectState[i]   = random8(0U, WIDTH);
+      enlargedObjectTime[i]    = millis();
+      trackingObjectPosY[i]    = 0U;                                                                  // Balls start on the ground
+      trackingObjectSpeedY[i]  = bballsVImpact0;                                                      // And "pop" up at vImpact0
+      trackingObjectShift[i]   = 0.90f - (float)i / (float)num_squared;;                              // это, видимо, прыгучесть. для каждого мячика уникальная изначально
       trackingObjectIsShift[i] = false;
+
       hue2 = (modes[currentMode].Speed > 127U) ? 255U : 0U;                                           // цветные или белые мячики
       hue = (modes[currentMode].Speed == 128U) ? 255U : 254U - modes[currentMode].Speed % 128U * 2U;  // скорость угасания хвостов 0 = моментально
     }
+
+    loadingFlag = false;
   }
 
   float bballsHi;
   float bballsTCycle;
 
   if (deltaValue++ & 0x01) deltaHue++;                                                                // постепенное изменение оттенка мячиков (закомментировать строчку, если не нужно)
+
   dimAll(hue);
 
-  for (uint8_t i = 0 ; i < enlargedObjectNUM ; i++) {
-    bballsTCycle =  (millis() - enlargedObjectTime[i]) / 1000.0f ; // Calculate the time since the last time the ball was on the ground
+  constexpr float height_multiplier = (float)(HEIGHT - 1) / bballsH0;
 
-    // A little kinematics equation calculates positon as a function of time, acceleration (gravity) and intial velocity
-    // bballsHi = 0.5 * bballsGRAVITY * pow(bballsTCycle, 2) + trackingObjectSpeedY[i] * bballsTCycle;
+  const uint32_t current_ms = millis();
+
+  for (uint8_t i = 0 ; i < enlargedObjectNUM ; i++) {
+    bballsTCycle = (float)(current_ms - enlargedObjectTime[i]) * 0.001f;                              // Calculate the time since the last time the ball was on the ground
+
+    // A little kinematics equation calculates positon as a function of time,
+    // acceleration (gravity) and intial velocity
     bballsHi = 0.5f * bballsGRAVITY * bballsTCycle * bballsTCycle + trackingObjectSpeedY[i] * bballsTCycle;
 
-    if (bballsHi < 0) {
-      enlargedObjectTime[i] = millis();
-      bballsHi = 0;                                                                                   // If the ball crossed the threshold of the "ground," put it back on the ground
+    if (bballsHi < 0.0f) {
+      enlargedObjectTime[i] = current_ms;
+      bballsHi = 0.0f;                                                                                // If the ball crossed the threshold of the "ground," put it back on the ground
       trackingObjectSpeedY[i] = trackingObjectShift[i] * trackingObjectSpeedY[i] ;                    // and recalculate its new upward velocity as it's old velocity * COR
 
-      if (trackingObjectSpeedY[i] < 0.01f)                                                             // If the ball is barely moving, "pop" it back up at vImpact0
-      {
-        trackingObjectShift[i] = 0.90f - float(random8(9U)) / pow(random8(4U, 9U), 2);                // сделал, чтобы мячики меняли свою прыгучесть каждый цикл
+      if (trackingObjectSpeedY[i] < 0.01f) {                                                          // If the ball is barely moving, "pop" it back up at vImpact0
+        uint8_t rand_base = random8(4U, 9U);
+        uint16_t rand_squared = (uint16_t)rand_base * rand_base;
+
+        trackingObjectShift[i] = 0.90f - (float)random8(9U) / (float)rand_squared;;                   // сделал, чтобы мячики меняли свою прыгучесть каждый цикл
         trackingObjectIsShift[i] = trackingObjectShift[i] >= 0.89f;                                   // если мячик максимальной прыгучести, то разрешаем ему сдвинуться
         trackingObjectSpeedY[i] = bballsVImpact0;
       }
     }
 
-    // trackingObjectPosY[i] = round(bballsHi * (HEIGHT - 1) / bballsH0); были жалобы, что эффект вылетает
-    trackingObjectPosY[i] = constrain(round(bballsHi * (HEIGHT - 1) / bballsH0), 0, HEIGHT - 1);     // Map "h" to a "pos" integer index position on the LED strip
-    if (trackingObjectIsShift[i] && (trackingObjectPosY[i] == HEIGHT - 1)) {                          // если мячик получил право, то пускай сдвинется на максимальной высоте 1 раз
+    int16_t calculated_pos = (int16_t)(bballsHi * height_multiplier + 0.5f);                          // Map "h" to a "pos" integer index position on the LED strip
+    if (calculated_pos < 0) calculated_pos = 0;
+    else if (calculated_pos >= HEIGHT) calculated_pos = HEIGHT - 1;
+    trackingObjectPosY[i] = calculated_pos;
+
+    if (trackingObjectIsShift[i] && (trackingObjectPosY[i] == HEIGHT - 1U)) {                         // если мячик получил право, то пускай сдвинется на максимальной высоте 1 раз
       trackingObjectIsShift[i] = false;
       if (trackingObjectHue[i] & 0x01) {                                                              // нечётные налево, чётные направо
         if (trackingObjectState[i] == 0U) trackingObjectState[i] = WIDTH - 1U;
@@ -1955,8 +1969,8 @@ static void BBallsRoutine() {
         else ++trackingObjectState[i];
       }
     }
+
     leds[XY(trackingObjectState[i], trackingObjectPosY[i])] = CHSV(trackingObjectHue[i] + deltaHue, hue2, 255U);
-    //drawPixelXY(trackingObjectState[i], trackingObjectPosY[i], CHSV(trackingObjectHue[i] + deltaHue, hue2, 255U));  //на случай, если останутся жалобы, что эффект вылетает
   }
 }
 #endif
