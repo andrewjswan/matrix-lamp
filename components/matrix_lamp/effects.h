@@ -839,6 +839,7 @@ static void matrixRoutine()
 #if defined(DEF_BUTTERFLYS) || defined(DEF_BUTTERFLYS_LAMP)
 // ------------- Светлячки 2 - Светлячки в банке - Мотыльки - Лампа с мотыльками --------------
 // (c) SottNick
+// optimization by andrewjswan
 
 // #define trackingOBJECT_MAX_COUNT           (100U)      // максимальное количество мотыльков
 #define BUTTERFLY_FIX_COUNT               (20U)           // количество мотыльков для режима, когда бегунок Масштаб регулирует цвет
@@ -852,31 +853,29 @@ static void matrixRoutine()
 
 static void butterflysRoutine(bool isColored)
 {
-  if (loadingFlag) {
-    loadingFlag = false;
-    #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
-        if (isColored){
-          uint8_t tmp = 66U+random8(83U);
-          setModeSettings((tmp & 0x01) ? 65U+random8(36U) : 15U+random8(26U), tmp);
-        }
-        else
-          setModeSettings(random8(21U) ? (random8(3U) ? 2U + random8(98U) : 1U) : 100U, 20U+random8(155U));
-      }
-    #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-  }
+  const bool isWings = modes[currentMode].Speed & 0x01;
+  const uint8_t current_scale = modes[currentMode].Scale;
 
-  bool isWings = modes[currentMode].Speed & 0x01;
-  if (loadingFlag)
-  {
-    loadingFlag = false;
+  if (loadingFlag) {
+    #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+    if (selectedSettings){
+      if (isColored){
+        uint8_t tmp = 66U + random8(83U);
+        setModeSettings((tmp & 0x01) ? 65U + random8(36U) : 15U + random8(26U), tmp);
+      } else {
+        setModeSettings(random8(21U) ? (random8(3U) ? 2U + random8(98U) : 1U) : 100U, 20U + random8(155U));
+      }
+    }
+    #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+
     speedfactor = (float)modes[currentMode].Speed / 2048.0f + 0.001f;
-    if (isColored)                         // для режима смены цвета фона фиксируем количество мотыльков
-      deltaValue = (modes[currentMode].Scale > trackingOBJECT_MAX_COUNT) ? trackingOBJECT_MAX_COUNT : modes[currentMode].Scale;
-    else
+    if (isColored) { // для режима смены цвета фона фиксируем количество мотыльков
+      deltaValue = (current_scale > trackingOBJECT_MAX_COUNT) ? trackingOBJECT_MAX_COUNT : modes[currentMode].Scale;
+    } else {
       deltaValue = BUTTERFLY_FIX_COUNT;
-    for (uint8_t i = 0U; i < trackingOBJECT_MAX_COUNT; i++)
-    {
+    }
+
+    for (uint8_t i = 0U; i < trackingOBJECT_MAX_COUNT; i++) {
       trackingObjectPosX[i] = random8(WIDTH);
       trackingObjectPosY[i] = random8(HEIGHT);
       trackingObjectSpeedX[i] = 0;
@@ -885,151 +884,169 @@ static void butterflysRoutine(bool isColored)
       trackingObjectHue[i] = (isColored) ? random8() : 255U;
       trackingObjectState[i] = 255U;
     }
-    //для инверсии, чтобы сто раз не пересчитывать
-    if (modes[currentMode].Scale != 1U)
-      hue = (float)(modes[currentMode].Scale - 1U) * 2.6f;
-    else
-      hue = random8();
-    if (modes[currentMode].Scale == 100U){ // вместо белого будет желтоватая лампа
-      hue2 = 170U;
-      hue = 31U;
-    }
-    else
-     hue2 = 255U;
-  }
-  if (isWings && isColored)
-    dimAll(35U);                           // для крылышков
-  else
-    ledsClear();                           // esphome: FastLED.clear();
 
-  float maxspeed;
-  uint8_t tmp;
+    // для инверсии, чтобы сто раз не пересчитывать
+    if (current_scale != 1U) {
+      hue = ((uint16_t)(current_scale - 1U) * 26U) / 10U;
+    } else {
+      hue = random8();
+    }
+
+    if (current_scale == 100U) { // вместо белого будет желтоватая лампа
+      hue = 31U;
+      hue2 = 170U;
+    } else {
+      hue2 = 255U;
+    }
+
+    loadingFlag = false;
+  }
+
+  if (isWings && isColored) {
+    dimAll(35U);                           // для крылышков
+  } else {
+    ledsClear();                           // esphome: FastLED.clear();
+  }
+
   if (++step >= deltaValue)
     step = 0U;
-  for (uint8_t i = 0U; i < deltaValue; i++)
-  {
-    trackingObjectPosX[i] += trackingObjectSpeedX[i]*speedfactor;
-    trackingObjectPosY[i] += trackingObjectSpeedY[i]*speedfactor;
 
-    if (trackingObjectPosX[i] < 0)
-      trackingObjectPosX[i] = (float)(WIDTH - 1) + trackingObjectPosX[i];
-    if (trackingObjectPosX[i] > WIDTH - 1)
-      trackingObjectPosX[i] = trackingObjectPosX[i] + 1 - WIDTH;
+  for (uint8_t i = 0U; i < deltaValue; i++) {
+    float sp_X = trackingObjectSpeedX[i];
+    float sp_Y = trackingObjectSpeedY[i];
 
-    if (trackingObjectPosY[i] < 0)
-    {
+    trackingObjectPosX[i] += sp_X * speedfactor;
+    trackingObjectPosY[i] += sp_Y * speedfactor;
+
+    // Циклическая телепортация по горизонтали X
+    if (trackingObjectPosX[i] < 0.0f) {
+      trackingObjectPosX[i] = (float)(WIDTH - 1U) + trackingObjectPosX[i];
+    }
+    if (trackingObjectPosX[i] > (float)(WIDTH - 1U)) {
+      trackingObjectPosX[i] = trackingObjectPosX[i] + 1.0f - (float)WIDTH;
+    }
+
+    // Отскок от жестких вертикальных краев Y
+    if (trackingObjectPosY[i] < 0.0f) {
       trackingObjectPosY[i] = -trackingObjectPosY[i];
-      trackingObjectSpeedY[i] = -trackingObjectSpeedY[i];
+      sp_Y = -sp_Y;
     }
-    if (trackingObjectPosY[i] > HEIGHT - 1U)
-    {
-      trackingObjectPosY[i] = (HEIGHT << 1U) - 2U - trackingObjectPosY[i];
-      trackingObjectSpeedY[i] = -trackingObjectSpeedY[i];
-    }
-
-    // проворот траектории
-    maxspeed = std::abs(trackingObjectSpeedX[i]) + std::abs(trackingObjectSpeedY[i]);  // максимальная суммарная скорость
-    if (maxspeed == std::abs(trackingObjectSpeedX[i] + trackingObjectSpeedY[i]))
-    {
-      if (trackingObjectSpeedX[i] > 0)                                                 // правый верхний сектор вектора
-      {
-        trackingObjectSpeedX[i] += trackingObjectShift[i];
-        if (trackingObjectSpeedX[i] > maxspeed)                                        // если вектор переехал вниз
-        {
-          trackingObjectSpeedX[i] = maxspeed + maxspeed - trackingObjectSpeedX[i];
-          trackingObjectSpeedY[i] = trackingObjectSpeedX[i] - maxspeed;
-        }
-        else
-          trackingObjectSpeedY[i] = maxspeed - std::abs(trackingObjectSpeedX[i]);
-      }
-      else                                                                             // левый нижний сектор
-      {
-        trackingObjectSpeedX[i] -= trackingObjectShift[i];
-        if (trackingObjectSpeedX[i] + maxspeed < 0)                                    // если вектор переехал вверх
-        {
-          trackingObjectSpeedX[i] = 0 - trackingObjectSpeedX[i] - maxspeed - maxspeed;
-          trackingObjectSpeedY[i] = maxspeed - std::abs(trackingObjectSpeedX[i]);
-        }
-        else
-          trackingObjectSpeedY[i] = std::abs(trackingObjectSpeedX[i]) - maxspeed;
-      }
-    }
-    else //л евый верхний и правый нижний секторы вектора
-    {
-      if (trackingObjectSpeedX[i] > 0)                                                 // правый нижний сектор
-      {
-        trackingObjectSpeedX[i] -= trackingObjectShift[i];
-        if (trackingObjectSpeedX[i] > maxspeed)                                        // если вектор переехал наверх
-        {
-          trackingObjectSpeedX[i] = maxspeed + maxspeed - trackingObjectSpeedX[i];
-          trackingObjectSpeedY[i] = maxspeed - trackingObjectSpeedX[i];
-        }
-        else
-          trackingObjectSpeedY[i] = std::abs(trackingObjectSpeedX[i]) - maxspeed;
-      }
-      else                                                                             // левый верхний сектор
-      {
-        trackingObjectSpeedX[i] += trackingObjectShift[i];
-        if (trackingObjectSpeedX[i] + maxspeed < 0)                                    // если вектор переехал вниз
-        {
-          trackingObjectSpeedX[i] = 0 - trackingObjectSpeedX[i] - maxspeed - maxspeed;
-          trackingObjectSpeedY[i] = 0 - trackingObjectSpeedX[i] - maxspeed;
-        }
-        else
-          trackingObjectSpeedY[i] = maxspeed - std::abs(trackingObjectSpeedX[i]);
-      }
+    if (trackingObjectPosY[i] > (float)(HEIGHT - 1U)) {
+      trackingObjectPosY[i] = (float)(HEIGHT << 1U) - 2.0f - trackingObjectPosY[i];
+      sp_Y = -sp_Y;
     }
 
-    if (trackingObjectState[i] == 255U)
+    // Проворот траектории полета мотылька
+    float absX = std::abs(sp_X);
+    float absY = std::abs(sp_Y);
+    float maxspeed = absX + absY;                                                      // максимальная суммарная скорость
+    
+    if (maxspeed == std::abs(sp_X + sp_Y)))
     {
-      if (step == i && random8(2U) == 0U)
+      if (sp_X > 0.0f) {                                                               // правый верхний сектор вектора
+        sp_X += trackingObjectShift[i];
+        if (sp_X > maxspeed) {                                                         // если вектор переехал вниз
+          sp_X = maxspeed + maxspeed - sp_X;
+          sp_Y = sp_X - maxspeed;
+        } else {
+          sp_Y = maxspeed - std::abs(sp_X);
+        }        
+      } else {                                                                         // левый нижний сектор
+        sp_X -= trackingObjectShift[i];
+        if (sp_X + maxspeed < 0.0f) {                                                  // если вектор переехал вверх
+          sp_X = 0.0f - sp_X - maxspeed - maxspeed;
+          sp_Y = maxspeed - std::abs(sp_X);
+        } else {
+          sp_Y = std::abs(sp_X) - maxspeed;
+        }        
+      }
+    } else {                                                                           // левый верхний и правый нижний секторы вектора
+      if (sp_X > 0.0f)                                                                 // правый нижний сектор
       {
-        trackingObjectState[i] = random8(220U,244U);
-        trackingObjectSpeedX[i] = (float)random8(101U) / 20.0f + 1.0f;
-        if (random8(2U) == 0U) trackingObjectSpeedX[i] = -trackingObjectSpeedX[i];
-        trackingObjectSpeedY[i] = (float)random8(101U) / 20.0f + 1.0f;
-        if (random8(2U) == 0U) trackingObjectSpeedY[i] = -trackingObjectSpeedY[i];
+        sp_X -= trackingObjectShift[i];
+        if (sp_X > maxspeed) {                                                        // если вектор переехал наверх
+          sp_X = maxspeed + maxspeed - sp_X;
+          sp_Y = maxspeed - sp_X;
+        } else {
+          sp_Y = std::abs(sp_X) - maxspeed;
+        }
+      } else {                                                                         // левый верхний сектор
+        sp_X += trackingObjectShift[i];
+        if (sp_X + maxspeed < 0.0f) {                                                  // если вектор переехал вниз
+          sp_X = 0.0f - sp_X - maxspeed - maxspeed;
+          sp_Y = 0.0f - sp_X - maxspeed;
+        } else {
+          sp_Y = maxspeed - std::abs(sp_X);
+        }
+      }
+    }
+    
+    // Возвращаем измененную скорость обратно в массив
+    trackingObjectSpeedX[i] = sp_X;
+    trackingObjectSpeedY[i] = sp_Y;
+
+    // Полет или приземление
+    if (trackingObjectState[i] == 255U) {
+      if (step == i && random8(2U) == 0U) {
+        trackingObjectState[i] = random8(220U, 244U);
+        
+        float randX = ((float)random8(101U) * 0.05f) + 1.0f; // (float)random8(101U) / 20.0f + 1.0f
+        trackingObjectSpeedX[i] = (random8(2U) == 0U) ? -randX : randX;
+        
+        float randY = ((float)random8(101U) * 0.05f) + 1.0f; // (float)random8(101U) / 20.0f + 1.0f
+        trackingObjectSpeedY[i] = (random8(2U) == 0U) ? -randY : randY;
+        
         // проворот траектории
-        trackingObjectShift[i] = (float)random8((std::abs(trackingObjectSpeedX[i]) + std::abs(trackingObjectSpeedY[i])) * 20.0f + 2.0f) / 200.0f;
-        if (random8(2U) == 0U) trackingObjectShift[i] = -trackingObjectShift[i];
+        uint8_t random_limit = (uint8_t)((std::abs(trackingObjectSpeedX[i]) + std::abs(trackingObjectSpeedY[i])) * 20.0f + 2.0f);
+        float shift_val = (float)random8(random_limit) * 0.005f; // / 200.0f;
+        trackingObjectShift[i] = (random8(2U) == 0U) ? -shift_val : shift_val;
       }
-    }
-    else
-    {
-      if (step == i)
+    } else {
+      if (step == i) {
         trackingObjectState[i]++;
-      tmp = 255U - trackingObjectState[i];
-      if (tmp == 0U || ((uint16_t)(trackingObjectPosX[i] * tmp) % tmp == 0U && (uint16_t)(trackingObjectPosY[i] * tmp) % tmp == 0U))
-      {
-        trackingObjectPosX[i] = round(trackingObjectPosX[i]);
-        trackingObjectPosY[i] = round(trackingObjectPosY[i]);
-        trackingObjectSpeedX[i] = 0;
-        trackingObjectSpeedY[i] = 0;
-        trackingObjectShift[i] = 0;
-        trackingObjectState[i] = 255U;
+      }
+
+      uint8_t state_tmp = 255U - trackingObjectState[i];
+      if (state_tmp == 0U || ((uint16_t)(trackingObjectPosX[i] * state_tmp) % state_tmp == 0U && (uint16_t)(trackingObjectPosY[i] * state_tmp) % state_tmp == 0U)) {
+        trackingObjectPosX[i] = (int)(trackingObjectPosX[i] + 0.5f);  // round(trackingObjectPosX[i]);
+        trackingObjectPosY[i] = (int)(trackingObjectPosY[i] + 0.5f);  // round(trackingObjectPosY[i]);
+        trackingObjectSpeedX[i] = 0.0f;
+        trackingObjectSpeedY[i] = 0.0f;
+        trackingObjectShift[i] = 0.0f;
+        trackingObjectState[i] = 255U;        
       }
     }
 
-    if (isWings)
-      // это процедура рисования с нецелочисленными координатами. ищите её в прошивке
-      drawPixelXYF(trackingObjectPosX[i], trackingObjectPosY[i], CHSV(trackingObjectHue[i], 255U, (trackingObjectState[i] == 255U) ? 255U : 128U + random8(2U) * 111U));
-    else
-      // это процедура рисования с нецелочисленными координатами. ищите её в прошивке
-      drawPixelXYF(trackingObjectPosX[i], trackingObjectPosY[i], CHSV(trackingObjectHue[i], 255U, trackingObjectState[i]));
+    // Финальная яркость мотылька
+    uint8_t final_v;
+    if (isWings) {
+      final_v = (trackingObjectState[i] == 255U) ? 255U : 128U + (random8(2U) * 111U);
+    } else {
+      final_v = trackingObjectState[i];
+    }
+    drawPixelXYF(trackingObjectPosX[i], trackingObjectPosY[i], CHSV(trackingObjectHue[i], 255U, final_v));
   }
 
-  // постобработка кадра
-  if (isColored){
-    for (uint8_t i = 0U; i < deltaValue; i++) // ещё раз рисуем всех Мотыльков, которые "сидят на стекле"
-      if (trackingObjectState[i] == 255U)
-        drawPixelXY(trackingObjectPosX[i], trackingObjectPosY[i], CHSV(trackingObjectHue[i], 255U, trackingObjectState[i]));
-  }
-  else {
-    //теперь инверсия всей матрицы
-    if (modes[currentMode].Scale == 1U)
-      if (++deltaHue == 0U) hue++;
-    for (uint16_t i = 0U; i < NUM_LEDS; i++)
-      leds[i] = CHSV(hue, hue2, 255U - leds[i].r);
+  // Постобработка кадра
+  if (isColored) {
+    // Ещё раз рисуем всех Мотыльков, которые "сидят на стекле"
+    for (uint8_t i = 0U; i < deltaValue; i++) {
+      if (trackingObjectState[i] == 255U) {
+        drawPixelXY(trackingObjectPosX[i], trackingObjectPosY[i], CHSV(trackingObjectHue[i], 255U, 255U));
+      }
+    }
+  } else {
+    // Теперь инверсия всей матрицы
+    if (current_scale == 1U) {
+      if (++deltaHue == 0U) {
+        hue++;
+      }
+    }
+
+    // Быстрая поканальная инверсия заднего фона всей матрицы
+    for (uint16_t i = 0U; i < NUM_LEDS; i++) {
+      leds[i] = CHSV(hue, hue2, qsub8(255U, leds[i].r));
+    }
   }
 }
 #endif
