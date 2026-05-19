@@ -685,12 +685,12 @@ static void snowRoutine()
 
 
 #ifdef DEF_STARFALL
-// ------------- метель - 2 -------------
-//SNOWSTORM / МЕТЕЛЬ # STARFALL / ЗВЕЗДОПАД ***** V1.2
+// ------------- метель ----------------------------------------------
+// SNOWSTORM / МЕТЕЛЬ # STARFALL / ЗВЕЗДОПАД
 // v1.0 - Updating for GuverLamp v1.7 by PalPalych 12.03.2020
 // v1.1 - Fix wrong math & full screen drawing by PalPalych 14.03.2020
 // v1.2 - Code optimisation + pseudo 3d by PalPalych 21.04.2020
-// v1.3 - Code optimisation by andrewjswan
+// v1.3 - Code optimisation by andrewjswan 19.05.2026
 
 #define e_sns_DENSE (32U)    // плотность снега - меньше = плотнее
 
