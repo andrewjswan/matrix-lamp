@@ -1076,7 +1076,7 @@ static void lightersRoutine()
   ledsClear(); // esphome: FastLED.clear();
 
   if (++step > 20U) step = 0U;
-  
+
   const uint8_t lighters_count = modes[currentMode].Scale;
 
   // Предрассчитываем константные границы сетки х10 для быстрой проверки
@@ -1089,7 +1089,7 @@ static void lightersRoutine()
     int16_t pos_y = trackingObjectPosY[i];
     int16_t sp_x  = trackingObjectSpeedX[i];
     int16_t sp_y  = trackingObjectSpeedY[i];
-    
+
     if (step == 0U) { // меняем скорость каждые 255 отрисовок
       sp_x += ((int16_t)random8(7U) - 3);  // random(-3, 4);
       sp_y += ((int16_t)random8(7U) - 3);  // random(-3, 4);
@@ -1097,7 +1097,7 @@ static void lightersRoutine()
       sp_x = std::clamp((int)sp_x, -20, 20);  // constrain(trackingObjectSpeedX[i], -20, 20);
       sp_y = std::clamp((int)sp_y, -20, 20);  // constrain(trackingObjectSpeedY[i], -20, 20);
     }
-    
+
     pos_x += sp_x;
     pos_y += sp_y;
 
@@ -1123,9 +1123,9 @@ static void lightersRoutine()
     trackingObjectPosY[i]   = pos_y;
     trackingObjectSpeedX[i] = sp_x;
     trackingObjectSpeedY[i] = sp_y;
-    
+
     uint8_t screen_x = (uint16_t)pos_x / 10U;
-    uint8_t screen_y = (uint16_t)pos_y / 10U;    
+    uint8_t screen_y = (uint16_t)pos_y / 10U;
     drawPixelXY(screen_x, screen_y, CHSV(trackingObjectHue[i], 255U, 255U));
   }
 }
