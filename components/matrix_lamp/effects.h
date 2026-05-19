@@ -1713,31 +1713,35 @@ static void MultipleStream4() { // Comet
 #ifdef DEF_SNAKE
 static void MultipleStream8() { // Windows
   if (loadingFlag) {
-    loadingFlag = false;
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings) {
-        setModeSettings(random8(2U) ? 1U : 2U + random8(99U), 155U+random8(76U));
+        setModeSettings(random8(2U) ? 1U : 2U + random8(99U), 155U + random8(76U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
     if (modes[currentMode].Scale > 1U)
-      hue = (modes[currentMode].Scale - 2U) * 2.6f;
+      hue = ((uint16_t)(modes[currentMode].Scale - 2U) * 26U) / 10U;  // * 2.6f;
     else
       hue = random8();
+
+    loadingFlag = false;
   }
 
   if (modes[currentMode].Scale <= 1U)
     hue++;
 
-  dimAll(96); // < -- затухание эффекта для последующего кадра на 96/255*100=37%
-  //dimAll(255U - modes[currentMode].Scale * 2); // так какая-то хрень получается
+  dimAll(96); // < -- затухание эффекта для последующего кадра на 96 / 255 * 100 = 37%
 
   for (uint8_t y = 2; y < HEIGHT-1; y += 5) {
+    uint8_t y_plus_4 = y + 4U;
+
     for (uint8_t x = 2; x < WIDTH-1; x += 5) {
-      leds[XY(x, y)]  += CHSV(x * y + hue, 255, 255);
-      leds[XY(x + 1, y)] += CHSV((x + 4) * y + hue, 255, 255);
-      leds[XY(x, y + 1)] += CHSV(x * (y + 4) + hue, 255, 255);
-      leds[XY(x + 1, y + 1)] += CHSV((x + 4) * (y + 4) + hue, 255, 255);
+      uint8_t x_plus_4 = x + 4U;
+
+      leds[XY(x, y)]          += CHSV(x * y + hue, 255, 255);
+      leds[XY(x + 1, y)]      += CHSV(x_plus_4 * y + hue, 255, 255);
+      leds[XY(x, y + 1)]      += CHSV(x * y_plus_4 + hue, 255, 255);
+      leds[XY(x + 1, y + 1)]  += CHSV(x_plus_4 * y_plus_4 + hue, 255, 255);
     }
   }
 
@@ -1747,8 +1751,8 @@ static void MultipleStream8() { // Windows
   noise32_z[0] += 3000;
   scale32_x[0] = 8000;
   scale32_y[0] = 8000;
-  FillNoise(0);
 
+  FillNoise(0);
   MoveFractionalNoiseX(3);
   MoveFractionalNoiseY(3);
 }
