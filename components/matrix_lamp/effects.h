@@ -553,7 +553,7 @@ static void poolRoutine()
         }
       }
     }
-    
+
     // Чтобы регулятор Масштаб начал вместо цвета регулировать яркость бликов, нужно определить #define SCALE_BRI
     #ifdef SCALE_BRI
     uint8_t dynamic_scale = ((uint16_t)modes[currentMode].Scale * 255U) / 100U;
