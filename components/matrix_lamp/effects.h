@@ -1676,23 +1676,44 @@ static void MultipleStream3() { // Fireline
 #endif
 
 
+/*
+static void MultipleStream4() { // Comet
+  dimAll(255U - (modes[currentMode].Scale << 1));  // * 2);
+
+  leds[XY(CENTER_X_MINOR, CENTER_Y_MINOR)] += CHSV(millis(), 255, 255);
+
+  // Noise
+  noise32_x[0] += 2000;
+  noise32_y[0] += 2000;
+  noise32_z[0] += 2000;
+  scale32_x[0] = 4000;
+  scale32_y[0] = 4000;
+
+  FillNoise(0);
+  MoveFractionalNoiseX(6);
+  MoveFractionalNoiseY(5, -0.5f);
+}
+*/
+
+
 #ifdef DEF_FIREFLY_TOP
 static void MultipleStream5() { // Fractorial Fire
   if (loadingFlag) {
-    loadingFlag = false;
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings) {
-        setModeSettings(1U + random8(26U), 180U+random8(45U));
-      }
+    if (selectedSettings) {
+      setModeSettings(1U + random8(26U), 180U + random8(45U));
+    }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+
+    loadingFlag = false;
   }
 
   blurScreen(20); // без размытия как-то пиксельно, по-моему...
-  //dimAll(140); // < -- затухание эффекта для последующего кадрв
-  dimAll(255U - modes[currentMode].Scale * 2);
+
+  dimAll(255U - (modes[currentMode].Scale << 1));  // * 2);
 
   for (uint8_t i = 1; i < WIDTH; i += 2) {
-    leds[XY(i, HEIGHT - 1)] += CHSV(i * 2, 255, 255);
+    leds[XY(i, HEIGHT - 1)] += CHSV(i << 1, 255, 255);  // CHSV(i * 2, 255, 255);
   }
 
   // Noise
@@ -1701,33 +1722,13 @@ static void MultipleStream5() { // Fractorial Fire
   noise32_z[0] += 3000;
   scale32_x[0] = 8000;
   scale32_y[0] = 8000;
-  FillNoise(0);
 
-  //MoveX(1);
-  //MoveY(1);
+  FillNoise(0);
   MoveFractionalNoiseY(2, 1);
   MoveFractionalNoiseX(2);
 }
 #endif
 
-/*
-static void MultipleStream4() { // Comet
-  //dimAll(184); // < -- затухание эффекта для последующего кадрв
-  dimAll(255U - modes[currentMode].Scale * 2);
-
-  CRGB _eNs_color = CHSV(millis(), 255, 255);
-  leds[XY(CENTER_X_MINOR, CENTER_Y_MINOR)] += _eNs_color;
-  // Noise
-  noise32_x[0] += 2000;
-  noise32_y[0] += 2000;
-  noise32_z[0] += 2000;
-  scale32_x[0] = 4000;
-  scale32_y[0] = 4000;
-  FillNoise(0);
-  MoveFractionalNoiseX(6);
-  MoveFractionalNoiseY(5, -0.5f);
-}
-*/
 
 #ifdef DEF_SNAKE
 static void MultipleStream8() { // Windows
