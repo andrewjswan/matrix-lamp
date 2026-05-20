@@ -3669,11 +3669,11 @@ static void rain(uint8_t backgroundDepth, uint8_t maxBrightness, uint8_t spawnFr
 
   constexpr uint8_t max_width_idx  = WIDTH - 1U;
   constexpr uint8_t max_height_idx = HEIGHT - 1U;
-  
+
   // ledsbuff[].r - Канал молнии
   // ledsbuff[].b - Канал облаков
   memset(ledsbuff, 0, sizeof(ledsbuff));
-  
+
   // Loop for each column individually
   for (uint8_t x = 0; x < WIDTH; x++) {
     // Step 1.  Move each dot down one cell
@@ -3748,8 +3748,8 @@ static void rain(uint8_t backgroundDepth, uint8_t maxBrightness, uint8_t spawnFr
                   leds[XY(lx - 1U, ly - 1U)] = CRGB(128, 128, 128);
                   ledsbuff[(lx - 1U) + (ly - 1U) * WIDTH].r = 255U;  // fork down and left
                   leds[XY(lx - 1U, ly - 1U)] = CRGB(128, 128, 128);
-                  ledsbuff[(lx + 1U) + (ly - 1U) * WIDTH].r = 255U;  // fork down and right 
-                  break;                
+                  ledsbuff[(lx + 1U) + (ly - 1U) * WIDTH].r = 255U;  // fork down and right
+                  break;
               }
             }
           }
@@ -3763,14 +3763,14 @@ static void rain(uint8_t backgroundDepth, uint8_t maxBrightness, uint8_t spawnFr
                                                                                 // A value of 4011 will be very zoomed out and shimmery
       constexpr uint8_t cloudHeight = ((HEIGHT * 4U) / 10U) + 1U;               // это уже 40% c лишеним, но на высоких матрицах будет чуть меньше
       int xoffset = noiseScale * x + hue;
-      
+
       for(uint8_t z = 0; z < cloudHeight; z++) {
         int yoffset = noiseScale * z - hue;
         constexpr uint8_t dataSmoothing = 192;
-        
+
         uint8_t noiseData = qsub8(fastled_helper::perlin8(ff_x + xoffset, ff_y + yoffset, ff_z), 16U);
         noiseData = qadd8(noiseData, scale8(noiseData, 39U));
-        
+
         uint16_t buf_idx = (uint16_t)x * cloudHeight + z;
         ledsbuff[buf_idx].b = scale8(ledsbuff[buf_idx].b, dataSmoothing) + scale8(noiseData, 256U - dataSmoothing);
         nblend(leds[XY(x, max_height_idx - z)], ColorFromPalette(rainClouds_p, ledsbuff[buf_idx].b), (cloudHeight - z) * (250U / cloudHeight));
