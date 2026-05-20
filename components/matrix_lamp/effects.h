@@ -3859,60 +3859,66 @@ static void stormyRain()
 #define TWINKLES_SPEEDS (4U)     // всего 4 варианта скоростей мерцания
 #define TWINKLES_MULTIPLIER (6U) // слишком медленно, если на самой медленной просто по единичке к яркости добавлять
 
-static void twinklesRoutine() {
-    if (loadingFlag) {
-      #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-        if (selectedSettings){
-          setModeSettings(random8(8U)*11U+2U + random8(9U) , 180U+random8(69U));
-        }
-      #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+static void twinklesRoutine()
+{
+  if (loadingFlag) {
+    #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+      if (selectedSettings){
+        setModeSettings(random8(8U) * 11U + 2U + random8(9U), 180U + random8(69U));
+      }
+    #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-      loadingFlag = false;
-      setCurrentPalette();
+    setCurrentPalette();
 
-      hue = 0U;
-      deltaValue = (modes[currentMode].Scale - 1U) % 11U + 1U;  // вероятность пикселя загореться от 1/1 до 1/11
-      for (uint32_t idx=0; idx < NUM_LEDS; idx++) {
-        if (random8(deltaValue) == 0){
-          ledsbuff[idx].r = random8();                          // оттенок пикселя
-          ledsbuff[idx].g = random8(1, TWINKLES_SPEEDS * 2 +1); // скорость и направление (нарастает 1-4 или угасает 5-8)
-          ledsbuff[idx].b = random8();                          // яркость
-        }
-        else
-          ledsbuff[idx] = 0;                                    // всё выкл
+    hue = 0U;
+    deltaValue = (modes[currentMode].Scale - 1U) % 11U + 1U;      // вероятность пикселя загореться от 1/1 до 1/11
+    for (uint32_t idx = 0U; idx < NUM_LEDS; idx++) {
+      if (random8(deltaValue) == 0U) {
+        ledsbuff[idx].r = random8();                               // оттенок пикселя
+        ledsbuff[idx].g = random8(1U, TWINKLES_SPEEDS * 2U + 1U);  // скорость и направление (нарастает 1-4 или угасает 5-8)
+        ledsbuff[idx].b = random8();                               // яркость
+      } else {
+        ledsbuff[idx] = 0U;                                        // всё выкл 
       }
     }
 
-    for (uint32_t idx=0; idx < NUM_LEDS; idx++) {
-      if (ledsbuff[idx].b == 0){
-        if (random8(deltaValue) == 0 && hue > 0){                                        // если пиксель ещё не горит, зажигаем каждый ХЗй
-          ledsbuff[idx].r = random8();                                                   // оттенок пикселя
-          ledsbuff[idx].g = random8(1, TWINKLES_SPEEDS +1);                              // скорость и направление (нарастает 1-4, но не угасает 5-8)
-          ledsbuff[idx].b = ledsbuff[idx].g;                                             // яркость
-          hue--;                                                                         // уменьшаем количество погасших пикселей
-        }
+    loadingFlag = false;
+  }
+
+  constexpr uint8_t speed_mult_sum = TWINKLES_SPEEDS + TWINKLES_MULTIPLIER;
+  
+  for (uint32_t idx = 0U; idx < NUM_LEDS; idx++) {
+    CRGB &pixel = ledsbuff[idx];
+
+    if (pixel.b == 0U) {
+      if (hue > 0U && random8(deltaValue) == 0U) {                             // если пиксель ещё не горит, зажигаем каждый ХЗй
+        pixel.r = random8();                                                   // оттенок пикселя
+        pixel.g = random8(1U, TWINKLES_SPEEDS + 1U);                           // скорость и направление (нарастает 1-4, но не угасает 5-8)
+        pixel.b = pixel.g;                                                     // яркость
+        hue--;                                                                 // уменьшаем количество погасших пикселей
       }
-      else if (ledsbuff[idx].g <= TWINKLES_SPEEDS){                                      // если нарастание яркости
-        if (ledsbuff[idx].b > 255U - ledsbuff[idx].g - TWINKLES_MULTIPLIER){             // если досигнут максимум
-          ledsbuff[idx].b = 255U;
-          ledsbuff[idx].g = ledsbuff[idx].g + TWINKLES_SPEEDS;
-        }
-        else
-          ledsbuff[idx].b = ledsbuff[idx].b + ledsbuff[idx].g + TWINKLES_MULTIPLIER;
+    } else if (pixel.g <= TWINKLES_SPEEDS) {                                   // если нарастание яркости
+      if (pixel.b > (uint8_t)(255U - pixel.g - TWINKLES_MULTIPLIER)) {         // если досигнут максимум
+        pixel.b = 255U;
+        pixel.g += TWINKLES_SPEEDS;
+      } else {
+        pixel.b += (pixel.g + TWINKLES_MULTIPLIER);
       }
-      else {                                                                             // если угасание яркости
-        if (ledsbuff[idx].b <= ledsbuff[idx].g - TWINKLES_SPEEDS + TWINKLES_MULTIPLIER){ // если досигнут минимум
-          ledsbuff[idx].b = 0;                                                           // всё выкл
-          hue++;                                                                         // считаем количество погасших пикселей
-        }
-        else
-          ledsbuff[idx].b = ledsbuff[idx].b - ledsbuff[idx].g + TWINKLES_SPEEDS - TWINKLES_MULTIPLIER;
+    } else {                                                                   // если угасание яркости
+      if (pixel.b <= (uint8_t)(pixel.g - speed_mult_sum)) {                    // если досигнут минимум
+        pixel.b = 0U;                                                          // всё выкл
+        hue++;                                                                 // считаем количество погасших пикселей
+      } else {
+        pixel.b -= (pixel.g - speed_mult_sum);
       }
-      if (ledsbuff[idx].b == 0)
-        leds[idx] = 0U;
-      else
-        leds[idx] = ColorFromPalette(*curPalette, ledsbuff[idx].r, ledsbuff[idx].b);
     }
+
+    if (pixel.b == 0U) {
+      leds[idx] = CRGB::Black;
+    } else {
+      leds[idx] = ColorFromPalette(*curPalette, pixel.r, pixel.b);
+    }
+  }
 }
 #endif
 
@@ -3922,7 +3928,8 @@ static void twinklesRoutine() {
 // Aurora : https://github.com/pixelmatix/aurora/blob/master/PatternBounce.h
 // Copyright(c) 2014 Jason Coon
 // v1.0 - Updating for GuverLamp v1.7 by Palpalych 14.04.2020
-//#define e_bnc_COUNT (WIDTH) // теперь enlargedObjectNUM. хз, почему использовалась ширина матрицы тут, если по параметру идёт обращение к массиву boids, у которого может быть меньший размер
+
+// #define e_bnc_COUNT (WIDTH) // теперь enlargedObjectNUM. хз, почему использовалась ширина матрицы тут, если по параметру идёт обращение к массиву boids, у которого может быть меньший размер
 #define e_bnc_SIDEJUMP (true)
 
 static PVector gravity = PVector(0, -0.0125f);
