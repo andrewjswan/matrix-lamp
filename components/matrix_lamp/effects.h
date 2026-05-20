@@ -3252,29 +3252,27 @@ static void flockRoutine(bool predatorIs) {
 // Адаптация (c) SottNick
 // используются переменные эффекта Стая. Без него работать не будет.
 
-//uint16_t ff_x; вынесены в общий пул
-//uint16_t ff_y;
-//uint16_t ff_z;
+// uint16_t ff_x; вынесены в общий пул
+// uint16_t ff_y;
+// uint16_t ff_z;
 
-constexpr uint8_t ff_speed = 1;  // чем выше этот параметр, тем короче переходы (градиенты) между цветами. 1 - это самое красивое
-constexpr uint8_t ff_scale = 26; // чем больше этот параметр, тем больше "языков пламени" или как-то так. 26 - это норм
+constexpr uint8_t ff_speed = 1U;  // чем выше этот параметр, тем короче переходы (градиенты) между цветами. 1 - это самое красивое
+constexpr uint8_t ff_scale = 26U; // чем больше этот параметр, тем больше "языков пламени" или как-то так. 26 - это норм
 
 static void whirlRoutine(bool oneColor) {
-  if (loadingFlag)
-  {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
+      if (selectedSettings) {
         if (oneColor)
           setModeSettings(random8(30U) ? 1U + random8(99U) : 100U, 221U + random8(32U));
         else{
           uint8_t tmp = random8(5U);
           if (tmp > 1U) tmp += 3U;
-          setModeSettings(tmp*11U+3U, 221U + random8(32U));
+          setModeSettings(tmp * 11U + 3U, 221U + random8(32U));
         }
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     setCurrentPalette();
 
     ff_x = random16();
@@ -3284,10 +3282,21 @@ static void whirlRoutine(bool oneColor) {
     for (uint8_t i = 0; i < AVAILABLE_BOID_COUNT; i++) {
       boids[i] = Boid(random8(WIDTH), 0);
     }
+
+    loadingFlag = false;
   }
 
   dimAll(240);
 
+  const uint8_t current_scale = modes[currentMode].Scale;
+
+  CRGB single_color;
+  if (oneColor) {
+    uint8_t calculated_hue = (current_scale == 100U) ? 0U : (uint8_t)((uint16_t)current_scale * 255U / 100U);  // цвет белый для .Scale = 100
+    uint8_t calculated_sat = (current_scale == 100U) ? 0U : 255U;
+    single_color = CHSV(calculated_hue, calculated_sat, 255U);
+  }
+  
   for (uint8_t i = 0; i < AVAILABLE_BOID_COUNT; i++) {
     Boid * boid = &boids[i];
 
@@ -3300,17 +3309,16 @@ static void whirlRoutine(bool oneColor) {
     boid->velocity.y = -((float)cos8(angle) * 0.0078125f - 1.0f);
     boid->update();
 
-    if (oneColor)
-      //drawPixelXY(boid->location.x, boid->location.y, CHSV(modes[currentMode].Scale * 2.55, (modes[currentMode].Scale == 100) ? 0U : 255U, 255U)); // цвет белый для .Scale=100
-      drawPixelXYF(boid->location.x, boid->location.y, CHSV(modes[currentMode].Scale * 2.55f, (modes[currentMode].Scale == 100) ? 0U : 255U, 255U)); // цвет белый для .Scale=100
-    else
-      //drawPixelXY(boid->location.x, boid->location.y, ColorFromPalette(*curPalette, angle + hue)); // + hue постепенно сдвигает палитру по кругу
-      drawPixelXYF(boid->location.x, boid->location.y, ColorFromPalette(*curPalette, angle + hue)); // + hue постепенно сдвигает палитру по кругу
-
-    if (boid->location.x < 0 || boid->location.x >= WIDTH || boid->location.y < 0 || boid->location.y >= HEIGHT) {
-      boid->location.x = random(WIDTH);
-      boid->location.y = 0;
+    if (oneColor) {
+      drawPixelXYF(boid->location.x, boid->location.y, single_color);
+    } else {
+      drawPixelXYF(boid->location.x, boid->location.y, ColorFromPalette(*curPalette, angle + hue));  // + hue постепенно сдвигает палитру по кругу
     }
+
+    if (boid->location.x < 0.0f || boid->location.x >= (float)WIDTH || boid->location.y < 0.0f || boid->location.y >= (float)HEIGHT) {
+      boid->location.x = random8(WIDTH);
+      boid->location.y = 0.0f;
+    }    
   }
 
   EVERY_N_MILLIS(200) {
