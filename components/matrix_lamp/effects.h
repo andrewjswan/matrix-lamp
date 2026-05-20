@@ -4495,7 +4495,7 @@ static void MultipleStreamSmoke(bool isColored){
   const uint8_t max_height_idx = HEIGHT - 1U;
   for (uint8_t y = 0; y < HEIGHT; y++) {
     uint8_t target_y = max_height_idx - y;
-    
+
     leds[XY((deltaHue  + y + 1U) % WIDTH, target_y)] += color;
     leds[XY((deltaHue  + y     ) % WIDTH, target_y)] += color;
     leds[XY((deltaHue2 + y     ) % WIDTH,        y)] += color;
