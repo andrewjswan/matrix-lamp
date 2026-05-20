@@ -2506,7 +2506,7 @@ static void fire2012WithPalette4in1() {
       setModeSettings(tmp, 185U + random8(40U)); // 16-31, 48, 80-83 - остальное отстой
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-    
+
     loadingFlag = false;
   }
 
