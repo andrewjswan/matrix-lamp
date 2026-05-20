@@ -5089,16 +5089,14 @@ static void DNARoutine()
 #define SNAKES_LENGTH (8U) // длина червяка от 2 до 15 (+ 1 пиксель голова/хвостик), ограничена размером переменной для хранения трактории тела червяка
 
 static void snakesRoutine(){
-  if (loadingFlag)
-  {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
+      if (selectedSettings) {
         uint8_t tmp = random8(8U);
-        setModeSettings(8U+tmp*tmp, 20U+random8(120U));
+        setModeSettings(8U + tmp * tmp, 20U + random8(120U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     speedfactor = (float)modes[currentMode].Speed / 555.0f + 0.001f;
 
     enlargedObjectNUM = (modes[currentMode].Scale - 1U) / 99.0f * (enlargedOBJECT_MAX_COUNT - 1U) + 1U;
@@ -5109,26 +5107,24 @@ static void snakesRoutine(){
       trackingObjectPosY[i] = random8(HEIGHT);
       trackingObjectSpeedX[i] = (255.0f + random8()) / 255.0f;
       trackingObjectSpeedY[i] = 0;
-      //trackingObjectShift[i] = 0;
+      // trackingObjectShift[i] = 0;
       trackingObjectHue[i] = random8();
       trackingObjectState[i] = random8(4); //     B00           направление головы змейки
                                            // B10     B11
                                            //     B01
     }
-
+    loadingFlag = false;
   }
-  //hue++;
-  //dimAll(220);
+
   ledsClear(); // esphome: FastLED.clear();
 
   int8_t dx, dy;
-  for (uint8_t i = 0; i < enlargedObjectNUM; i++){
+  for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
    trackingObjectSpeedY[i] += trackingObjectSpeedX[i] * speedfactor;
-   if (trackingObjectSpeedY[i] >= 1)
-   {
+   if (trackingObjectSpeedY[i] >= 1) {
     trackingObjectSpeedY[i] = trackingObjectSpeedY[i] - (int)trackingObjectSpeedY[i];
     if (random8(9U) == 0U) // вероятность поворота
-      if (random8(2U)){ // <- поворот налево
+      if (random8(2U)) { // <- поворот налево
         enlargedObjectTime[i] = (enlargedObjectTime[i] << 2) | 0b01; // младший бит = поворот
         switch (trackingObjectState[i]) {
           case 0b10:
@@ -5160,8 +5156,7 @@ static void snakesRoutine(){
               trackingObjectPosX[i]++;
             break;
         }
-      }
-      else{ // -> поворот направо
+      } else { // -> поворот направо
         enlargedObjectTime[i] = (enlargedObjectTime[i] << 2) | 0b11; // младший бит = поворот, старший = направо
         switch (trackingObjectState[i]) {
           case 0b11:
@@ -5193,8 +5188,7 @@ static void snakesRoutine(){
               trackingObjectPosX[i]++;
             break;
         }
-      }
-    else { // двигаем без поворота
+      } else { // двигаем без поворота
         enlargedObjectTime[i] = (enlargedObjectTime[i] << 2);
         switch (trackingObjectState[i]) {
           case 0b01:
@@ -5222,7 +5216,7 @@ static void snakesRoutine(){
               trackingObjectPosX[i]++;
             break;
         }
-    }
+      }
    }
 
     switch (trackingObjectState[i]) {
@@ -5243,19 +5237,16 @@ static void snakesRoutine(){
        dx = -1;
        break;
     }
+
     long temp = enlargedObjectTime[i];
     uint8_t x = trackingObjectPosX[i];
     uint8_t y = trackingObjectPosY[i];
-    //CHSV color = CHSV(trackingObjectHue[i], 255U, 255U);
-    //drawPixelXY(x, y, color);
-    //drawPixelXYF(x, y, CHSV(trackingObjectHue[i], 255U, trackingObjectSpeedY[i] * 255)); // тут рисуется голова // слишком сложно для простого сложения цветов
+
     leds[XY(x,y)] += CHSV(trackingObjectHue[i], 255U, trackingObjectSpeedY[i] * 255); // тут рисуется голова
 
-    for (uint8_t m = 0; m < SNAKES_LENGTH; m++){ // 16 бит распаковываем, 14 ещё остаётся без дела в запасе, 2 на хвостик
+    for (uint8_t m = 0; m < SNAKES_LENGTH; m++) { // 16 бит распаковываем, 14 ещё остаётся без дела в запасе, 2 на хвостик
       x = (WIDTH + x + dx) % WIDTH;
       y = (HEIGHT + y + dy) % HEIGHT;
-      //drawPixelXYF(x, y, CHSV(trackingObjectHue[i] + m*4U, 255U, 255U)); // тут рисуется тело // слишком сложно для простого сложения цветов
-      //leds[XY(x,y)] += CHSV(trackingObjectHue[i] + m*4U, 255U, 255U); // тут рисуется тело
       leds[XY(x,y)] += CHSV(trackingObjectHue[i] + (m + trackingObjectSpeedY[i])*4U, 255U, 255U); // тут рисуется тело
 
       if (temp & 0b01){ // младший бит = поворот, старший = направо
@@ -5281,15 +5272,13 @@ static void snakesRoutine(){
           }
         }
         temp = temp >> 1;
-      }
-      else { // если без поворота
+      } else { // если без поворота
         temp = temp >> 2;
       }
     }
     x = (WIDTH + x + dx) % WIDTH;
     y = (HEIGHT + y + dy) % HEIGHT;
-    //drawPixelXYF(x, y, CHSV(trackingObjectHue[i] + SNAKES_LENGTH*4U, 255U, (1 - trackingObjectSpeedY[i]) * 255)); // хвостик // слишком сложно для простого сложения цветов
-    //leds[XY(x,y)] += CHSV(trackingObjectHue[i] + SNAKES_LENGTH*4U, 255U, (1 - trackingObjectSpeedY[i]) * 255); // хвостик
+
     leds[XY(x,y)] += CHSV(trackingObjectHue[i] + (SNAKES_LENGTH + trackingObjectSpeedY[i])*4U, 255U, (1 - trackingObjectSpeedY[i]) * 255); // хвостик
   }
 }
