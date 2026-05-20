@@ -3348,87 +3348,79 @@ static uint8_t waveScale = 256 / WIDTH;
 static uint8_t waveCount = 1;
 
 static void WaveRoutine() {
-    if (loadingFlag)
-    {
-      #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-        if (selectedSettings){
-          uint8_t tmp = random8(5U);// 0, 1, 5, 6, 7 - остальные 4 палитры с чёрным цветом - будет мерцать (2, 3, 4, 8)
-          if (tmp > 1U) tmp += 3U;
-          setModeSettings(tmp*11U+1U + random8(4U), 220U+random8(17U)*2U);
-        }
-      #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+  if (loadingFlag) {
+    #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+      if (selectedSettings) {
+        uint8_t tmp = random8(5U);  // 0, 1, 5, 6, 7 - остальные 4 палитры с чёрным цветом - будет мерцать (2, 3, 4, 8)
+        if (tmp > 1U) tmp += 3U;
+        setModeSettings(tmp * 11U + 1U + random8(4U), 220U + random8(17U)*2U);
+      }
+    #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-      loadingFlag = false;
-      setCurrentPalette(); //а вот тут явно накосячено. палитры наложены на угол поворота несинхронно, но исправлять особого смысла нет
+    setCurrentPalette(); //а вот тут явно накосячено. палитры наложены на угол поворота несинхронно, но исправлять особого смысла нет
 
-      //waveRotation = random(0, 4);// теперь вместо этого регулятор Масштаб
-      waveRotation = (modes[currentMode].Scale % 11U) % 4U;//(modes[currentMode].Scale - 1) / 25U;
-      //waveCount = random(1, 3);// теперь вместо этого чётное/нечётное у регулятора Скорость
-      waveCount = modes[currentMode].Speed & 0x01;//% 2;
-      //waveThetaUpdateFrequency = random(1, 2);
-      //hueUpdateFrequency = random(1, 6);
-    }
+    waveRotation = (modes[currentMode].Scale % 11U) % 4U;  // (modes[currentMode].Scale - 1) / 25U;
+    waveCount = modes[currentMode].Speed & 0x01;           // % 2;
 
-        dimAll(254);
+    loadingFlag = false;
+  }
 
-        int n = 0;
+  dimAll(254);
 
-        switch (waveRotation) {
-            case 0:
-                for (uint8_t x = 0; x < WIDTH; x++) {
-                    n = quadwave8(x * 2 + waveTheta) / waveScale;
-                    drawPixelXY(x, n, ColorFromPalette(*curPalette, hue + x));
-                    if (waveCount != 1)
-                        drawPixelXY(x, HEIGHT - 1 - n, ColorFromPalette(*curPalette, hue + x));
-                }
-                break;
+  int n = 0;
+  
+  const uint8_t max_x = WIDTH - 1U;
+  const uint8_t max_y = HEIGHT - 1U;
+  
+  switch (waveRotation) {
+    case 0:
+      for (uint8_t x = 0; x < WIDTH; x++) {
+        n = quadwave8((x << 1) + waveTheta) / waveScale;  // n = quadwave8(x * 2 + waveTheta) / waveScale;
+        drawPixelXY(x, n, ColorFromPalette(*curPalette, hue + x));
+        if (waveCount != 1) drawPixelXY(x, max_y - n, ColorFromPalette(*curPalette, hue + x));
+      }
+      break;
+  
+    case 1:
+      for (uint8_t y = 0; y < HEIGHT; y++) {
+        n = quadwave8((y << 1) + waveTheta) / waveScale;  // n = quadwave8(y * 2 + waveTheta) / waveScale;
+        drawPixelXY(n, y, ColorFromPalette(*curPalette, hue + y));
+        if (waveCount != 1) drawPixelXY(max_x - n, y, ColorFromPalette(*curPalette, hue + y));
+      }
+      break;
+  
+    case 2:
+      for (uint8_t x = 0; x < WIDTH; x++) {
+        n = quadwave8((x << 1) - waveTheta) / waveScale;  // n = quadwave8(x * 2 - waveTheta) / waveScale;
+        drawPixelXY(x, n, ColorFromPalette(*curPalette, hue + x));
+        if (waveCount != 1) drawPixelXY(x, max_y - n, ColorFromPalette(*curPalette, hue + x));
+      }
+      break;
+  
+    case 3:
+      for (uint8_t y = 0; y < HEIGHT; y++) {
+        n = quadwave8((y << 1) - waveTheta) / waveScale;  // n = quadwave8(y * 2 - waveTheta) / waveScale;
+        drawPixelXY(n, y, ColorFromPalette(*curPalette, hue + y));
+        if (waveCount != 1) drawPixelXY(max_x - n, y, ColorFromPalette(*curPalette, hue + y));
+      }
+      break;
+  }
 
-            case 1:
-                for (uint8_t y = 0; y < HEIGHT; y++) {
-                    n = quadwave8(y * 2 + waveTheta) / waveScale;
-                    drawPixelXY(n, y, ColorFromPalette(*curPalette, hue + y));
-                    if (waveCount != 1)
-                        drawPixelXY(WIDTH - 1 - n, y, ColorFromPalette(*curPalette, hue + y));
-                }
-                break;
+  if (waveThetaUpdate >= waveThetaUpdateFrequency) {
+    waveThetaUpdate = 0;
+    waveTheta++;
+  } else {
+    waveThetaUpdate++;
+  }
 
-            case 2:
-                for (uint8_t x = 0; x < WIDTH; x++) {
-                    n = quadwave8(x * 2 - waveTheta) / waveScale;
-                    drawPixelXY(x, n, ColorFromPalette(*curPalette, hue + x));
-                    if (waveCount != 1)
-                        drawPixelXY(x, HEIGHT - 1 - n, ColorFromPalette(*curPalette, hue + x));
-                }
-                break;
+  if (hueUpdate >= hueUpdateFrequency) {
+    hueUpdate = 0;
+    hue++;
+  } else {
+    hueUpdate++;
+  }
 
-            case 3:
-                for (uint8_t y = 0; y < HEIGHT; y++) {
-                    n = quadwave8(y * 2 - waveTheta) / waveScale;
-                    drawPixelXY(n, y, ColorFromPalette(*curPalette, hue + y));
-                    if (waveCount != 1)
-                        drawPixelXY(WIDTH - 1 - n, y, ColorFromPalette(*curPalette, hue + y));
-                }
-                break;
-        }
-
-
-        if (waveThetaUpdate >= waveThetaUpdateFrequency) {
-            waveThetaUpdate = 0;
-            waveTheta++;
-        }
-        else {
-            waveThetaUpdate++;
-        }
-
-        if (hueUpdate >= hueUpdateFrequency) {
-            hueUpdate = 0;
-            hue++;
-        }
-        else {
-            hueUpdate++;
-        }
-
-        blurScreen(20); // @Palpalych советует делать размытие. вот в этом эффекте его явно не хватает...
+  blurScreen(20);  // @Palpalych советует делать размытие. вот в этом эффекте его явно не хватает...
 }
 #endif
 
