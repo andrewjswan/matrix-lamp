@@ -3878,7 +3878,7 @@ static void twinklesRoutine()
         ledsbuff[idx].g = random8(1U, TWINKLES_SPEEDS * 2U + 1U);  // скорость и направление (нарастает 1-4 или угасает 5-8)
         ledsbuff[idx].b = random8();                               // яркость
       } else {
-        ledsbuff[idx] = 0U;                                        // всё выкл 
+        ledsbuff[idx] = 0U;                                        // всё выкл
       }
     }
 
@@ -3886,7 +3886,7 @@ static void twinklesRoutine()
   }
 
   constexpr uint8_t speed_mult_sum = TWINKLES_SPEEDS + TWINKLES_MULTIPLIER;
-  
+
   for (uint32_t idx = 0U; idx < NUM_LEDS; idx++) {
     CRGB &pixel = ledsbuff[idx];
 
