@@ -4162,291 +4162,258 @@ static int8_t globalShiftX, globalShiftY;    // нужно ли сдвинуть
 static bool seamlessX;                       // получилось ли сделать поле по Х бесшовным
 static bool krutimVertikalno;                // направление вращения в данный момент
 
-static void cube2dRoutine(){
-    uint8_t x, y;
-    uint8_t anim0; // будем считать тут начальный пиксель для анимации сдвига строки/колонки
-    int8_t shift, kudaVse; // какое-то расчётное направление сдвига (-1, 0, +1)
-    CRGB color, color2;
+static void cube2dRoutine() {
+  uint8_t x, y;
+  uint8_t anim0;          // будем считать тут начальный пиксель для анимации сдвига строки/колонки
+  int8_t shift, kudaVse;  // какое-то расчётное направление сдвига (-1, 0, +1)
+  CRGB color, color2;
 
-    if (loadingFlag)
-    {
-      #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-        if (selectedSettings){
-          uint8_t tmp = random8(9U)*11U + random8(8U); // масштаб 1-7, палитры все 9
-          if (tmp == 45U) tmp = 100U; //+ белый цвет
-          setModeSettings(tmp, 175U+random8(66U));
-        }
-      #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-
-      loadingFlag = false;
-      setCurrentPalette();
-
-      ledsClear(); // esphome: FastLED.clear();
-
-      razmerX = (modes[currentMode].Scale - 1U) % 11U + 1U; // размер ячейки от 1 до 11 пикселей для каждой из 9 палитр
-      razmerY = razmerX;
-      if (modes[currentMode].Speed & 0x01) // по идее, ячейки не обязательно должны быть квадратными, поэтому можно тут поизвращаться
-        razmerY = (razmerY << 1U) + 1U;
-
-      shtukY = HEIGHT / (razmerY + 1U);
-      if (shtukY < 2U)
-        shtukY = 2U;
-      y = HEIGHT / shtukY - 1U;
-      if (razmerY > y)
-        razmerY = y;
-      poleY = (razmerY + 1U) * shtukY;
-      shtukX = WIDTH / (razmerX + 1U);
-      if (shtukX < 2U)
-        shtukX = 2U;
-      x = WIDTH / shtukX - 1U;
-      if (razmerX > x)
-        razmerX = x;
-      poleX = (razmerX + 1U) * shtukX;
-      seamlessX = (poleX == WIDTH);
-      deltaHue = 0U;
-      deltaHue2 = 0U;
-      globalShiftX = 0;
-      globalShiftY = 0;
-
-      for (uint8_t j = 0U; j < shtukY; j++)
-      {
-        y = j * (razmerY + 1U); // + deltaHue2 т.к. оно =0U
-        for (uint8_t i = 0U; i < shtukX; i++)
-        {
-          x = i * (razmerX + 1U); // + deltaHue т.к. оно =0U
-          if (modes[currentMode].Scale == 100U)
-            color = CHSV(45U, 0U, 128U + random8(128U));
-          else
-            color = ColorFromPalette(*curPalette, random8());
-          for (uint8_t k = 0U; k < razmerY; k++)
-            for (uint8_t m = 0U; m < razmerX; m++)
-              leds[XY(x+m, y+k)] = color;
-        }
+  if (loadingFlag) {
+    #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+      if (selectedSettings) {
+        uint8_t tmp = random8(9U) * 11U + random8(8U);  // масштаб 1-7, палитры все 9
+        if (tmp == 45U) tmp = 100U; // + белый цвет
+        setModeSettings(tmp, 175U + random8(66U));
       }
-      step = 4U; // текущий шаг сдвига первоначально с перебором (от 0 до deltaValue-1)
-      deltaValue = 4U; // всего шагов сдвига (от razmer? до (razmer?+1) * shtuk?)
-      hue2 = 0U; // осталось шагов паузы
+    #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-      //это лишнее обнуление
-      //krutimVertikalno = true;
-      //for (uint8_t i = 0U; i < shtukX; i++)
-      //  noise3d[0][i][0] = 0U;
-    }
+    setCurrentPalette();
 
-  //двигаем, что получилось...
-  if (hue2 == 0 && step < deltaValue) // если пауза закончилась, а цикл вращения ещё не завершён
-  {
-    step++;
-    if (krutimVertikalno)
-    {
-      for (uint8_t i = 0U; i < shtukX; i++)
-      {
-        x = (deltaHue + i * (razmerX + 1U)) % WIDTH;
-        if (noise3d[0][i][0] > 0) // в нулевой ячейке храним оставшееся количество ходов прокрутки
-        {
-          noise3d[0][i][0]--;
-          shift = noise3d[0][i][1] - 1; // в первой ячейке храним направление прокрутки
+    ledsClear(); // esphome: FastLED.clear();
 
-          if (globalShiftY == 0)
-            anim0 = (deltaHue2 == 0U) ? 0U : deltaHue2 - 1U;
-          else if (globalShiftY > 0)
-            anim0 = deltaHue2;
-          else
-            anim0 = deltaHue2 - 1U;
+    razmerX = (modes[currentMode].Scale - 1U) % 11U + 1U;  // размер ячейки от 1 до 11 пикселей для каждой из 9 палитр
+    razmerY = razmerX;
 
-          if (shift < 0) // если крутим столбец вниз
-          {
-            color = leds[XY(x, anim0)];                                   // берём цвет от нижней строчки
-            for (uint8_t k = anim0; k < anim0+poleY-1; k++)
-            {
-              color2 = leds[XY(x,k+1)];                                   // берём цвет от строчки над нашей
-              for (uint8_t m = x; m < x + razmerX; m++)
-                leds[XY(m % WIDTH,k)] = color2;                           // копируем его на всю нашу строку
-            }
-            for   (uint8_t m = x; m < x + razmerX; m++)
-              leds[XY(m % WIDTH,anim0+poleY-1)] = color;                  // цвет нижней строчки копируем на всю верхнюю
-          }
-          else if (shift > 0) // если крутим столбец вверх
-          {
-            color = leds[XY(x,anim0+poleY-1)];                            // берём цвет от верхней строчки
-            for (uint8_t k = anim0+poleY-1; k > anim0 ; k--)
-            {
-              color2 = leds[XY(x,k-1)];                                   // берём цвет от строчки под нашей
-              for (uint8_t m = x; m < x + razmerX; m++)
-                leds[XY(m % WIDTH,k)] = color2;                           // копируем его на всю нашу строку
-            }
-            for   (uint8_t m = x; m < x + razmerX; m++)
-              leds[XY(m % WIDTH, anim0)] = color;                         // цвет верхней строчки копируем на всю нижнюю
-          }
-        }
-      }
-    }
-    else
-    {
-      for (uint8_t j = 0U; j < shtukY; j++)
-      {
-        y = deltaHue2 + j * (razmerY + 1U);
-        if (noise3d[0][0][j] > 0) // в нулевой ячейке храним оставшееся количество ходов прокрутки
-        {
-          noise3d[0][0][j]--;
-          shift = noise3d[0][1][j] - 1; // в первой ячейке храним направление прокрутки
+    if (modes[currentMode].Speed & 0x01)                   // по идее, ячейки не обязательно должны быть квадратными, поэтому можно тут поизвращаться
+      razmerY = (razmerY << 1U) + 1U;
 
-          if (seamlessX)
-            anim0 = 0U;
-          else if (globalShiftX == 0)
-            anim0 = (deltaHue == 0U) ? 0U : deltaHue - 1U;
-          else if (globalShiftX > 0)
-            anim0 = deltaHue;
-          else
-            anim0 = deltaHue - 1U;
+    shtukY = HEIGHT / (razmerY + 1U);
+    if (shtukY < 2U) shtukY = 2U;
+    y = HEIGHT / shtukY - 1U;
+    if (razmerY > y) razmerY = y;
+    poleY = (razmerY + 1U) * shtukY;
 
-          if (shift < 0) // если крутим строку влево
-          {
-            color = leds[XY(anim0, y)];                            // берём цвет от левой колонки (левого пикселя)
-            for (uint8_t k = anim0; k < anim0+poleX-1; k++)
-            {
-              color2 = leds[XY(k+1, y)];                           // берём цвет от колонки (пикселя) правее
-              for (uint8_t m = y; m < y + razmerY; m++)
-                leds[XY(k, m)] = color2;                           // копируем его на всю нашу колонку
-            }
-            for   (uint8_t m = y; m < y + razmerY; m++)
-              leds[XY(anim0+poleX-1, m)] = color;                  // цвет левой колонки копируем на всю правую
-          }
-          else if (shift > 0) // если крутим столбец вверх
-          {
-            color = leds[XY(anim0+poleX-1, y)];                    // берём цвет от правой колонки
-            for (uint8_t k = anim0+poleX-1; k > anim0 ; k--)
-            {
-              color2 = leds[XY(k-1, y)];                           // берём цвет от колонки левее
-              for (uint8_t m = y; m < y + razmerY; m++)
-                leds[XY(k, m)] = color2;                           // копируем его на всю нашу колонку
-            }
-            for   (uint8_t m = y; m < y + razmerY; m++)
-              leds[XY(anim0, m)] = color;                          // цвет правой колонки копируем на всю левую
-          }
-        }
+    shtukX = WIDTH / (razmerX + 1U);
+    if (shtukX < 2U) shtukX = 2U;
+    x = WIDTH / shtukX - 1U;
+    if (razmerX > x) razmerX = x;
+    poleX = (razmerX + 1U) * shtukX;
+
+    seamlessX = (poleX == WIDTH);
+
+    deltaHue = 0U;
+    deltaHue2 = 0U;
+    globalShiftX = 0;
+    globalShiftY = 0;
+
+    for (uint8_t j = 0U; j < shtukY; j++) {
+      y = j * (razmerY + 1U);    // + deltaHue2 т.к. оно =0U
+      for (uint8_t i = 0U; i < shtukX; i++) {
+        x = i * (razmerX + 1U);  // + deltaHue т.к. оно =0U
+        if (modes[currentMode].Scale == 100U)
+          color = CHSV(45U, 0U, 128U + random8(128U));
+        else
+          color = ColorFromPalette(*curPalette, random8());
+
+        for (uint8_t k = 0U; k < razmerY; k++)
+          for (uint8_t m = 0U; m < razmerX; m++)
+            leds[XY(x+m, y+k)] = color;
       }
     }
 
+    step = 4U;       // текущий шаг сдвига первоначально с перебором (от 0 до deltaValue-1)
+    deltaValue = 4U; // всего шагов сдвига (от razmer? до (razmer?+1) * shtuk?)
+    hue2 = 0U;       // осталось шагов паузы
+
+    loadingFlag = false;
   }
-  else if (hue2 != 0U) // пропускаем кадры после прокрутки кубика (делаем паузу)
+
+  // двигаем, что получилось...
+  if (hue2 == 0U && step < deltaValue) {                                  // если пауза закончилась, а цикл вращения ещё не завершён
+    step++;
+
+    if (krutimVertikalno) {
+      if (globalShiftY == 0U) {
+        anim0 = (deltaHue2 == 0U) ? 0U : deltaHue2 - 1U;
+      } else if (globalShiftY > 0U) {
+        anim0 = deltaHue2;
+      } else {
+        anim0 = deltaHue2 - 1U;
+      }
+
+      const uint8_t step_x = razmerX + 1U;
+      const uint16_t end_y = anim0 + poleY - 1U;
+
+      for (uint8_t i = 0U; i < shtukX; i++) {
+        x = (deltaHue + i * step_x) % WIDTH;
+
+        if (noise3d[0][i][0] > 0) {                                       // в нулевой ячейке храним оставшееся количество ходов прокрутки
+          noise3d[0][i][0]--;
+          shift = noise3d[0][i][1] - 1;                                   // в первой ячейке храним направление прокрутки
+
+          if (shift < 0) {                                                // если крутим столбец вниз
+            color = leds[XY(x, anim0)];                                   // берём цвет от нижней строчки
+            for (uint8_t k = anim0; k < end_y; k++) {
+              color2 = leds[XY(x, k + 1U)];                               // берём цвет от строчки над нашей
+              for (uint8_t m = x; m < x + razmerX; m++)
+                leds[XY(m % WIDTH, k)] = color2;                          // копируем его на всю нашу строку
+            }
+            for (uint8_t m = x; m < x + razmerX; m++) {
+              leds[XY(m % WIDTH, end_y)] = color;                         // цвет нижней строчки копируем на всю верхнюю
+            }
+          } else if (shift > 0) {                                         // если крутим столбец вверх
+            color = leds[XY(x, end_y)];                                   // берём цвет от верхней строчки
+            for (uint8_t k = end_y; k > anim0 ; k--) {
+              color2 = leds[XY(x, k - 1U)];                               // берём цвет от строчки под нашей
+              for (uint8_t m = x; m < x + razmerX; m++)
+                leds[XY(m % WIDTH, k)] = color2;                          // копируем его на всю нашу строку
+            }
+            for (uint8_t m = x; m < x + razmerX; m++) {
+              leds[XY(m % WIDTH, anim0)] = color;                         // цвет верхней строчки копируем на всю нижнюю
+            }
+          }
+        }
+      }
+    } else {                                                              // Идём по вертикали, крутим по горизонтали (строки двигаются)
+      if (seamlessX)
+        anim0 = 0U;
+      else if (globalShiftX == 0)
+        anim0 = (deltaHue == 0U) ? 0U : deltaHue - 1U;
+      else if (globalShiftX > 0)
+        anim0 = deltaHue;
+      else
+        anim0 = deltaHue - 1U;
+
+      const uint8_t step_y = razmerY + 1U;
+      const uint16_t end_x = anim0 + poleX - 1U;
+
+      for (uint8_t j = 0U; j < shtukY; j++) {
+        y = deltaHue2 + j * step_y;
+
+        if (noise3d[0][0][j] > 0) {                                       // в нулевой ячейке храним оставшееся количество ходов прокрутки
+          noise3d[0][0][j]--;
+          shift = noise3d[0][1][j] - 1;                                   // в первой ячейке храним направление прокрутки
+
+          if (shift < 0) {                                                // если крутим строку влево
+            color = leds[XY(anim0, y)];                                   // берём цвет от левой колонки (левого пикселя)
+            for (uint8_t k = anim0; k < end_x; k++) {
+              color2 = leds[XY(k + 1U, y)];                               // берём цвет от колонки (пикселя) правее
+              for (uint8_t m = y; m < y + razmerY; m++) {
+                leds[XY(k, m)] = color2;                                  // копируем его на всю нашу колонку
+              }
+            }
+            for (uint8_t m = y; m < y + razmerY; m++) {
+              leds[XY(end_x, m)] = color;                                 // цвет левой колонки копируем на всю правую
+            }
+          } else if (shift > 0) {                                         // если крутим столбец вверх
+            color = leds[XY(end_x, y)];                                   // берём цвет от правой колонки
+            for (uint8_t k = end_x; k > anim0 ; k--) {
+              color2 = leds[XY(k - 1U, y)];                               // берём цвет от колонки левее
+              for (uint8_t m = y; m < y + razmerY; m++) {
+                leds[XY(k, m)] = color2;                                  // копируем его на всю нашу колонку
+              }
+            }
+            for (uint8_t m = y; m < y + razmerY; m++) {
+              leds[XY(anim0, m)] = color;                                 // цвет правой колонки копируем на всю левую
+            }
+          }
+        }
+      }
+    }
+  } else if (hue2 != 0U) {                                                // пропускаем кадры после прокрутки кубика (делаем паузу)
     hue2--;
+  }
 
-  if (step >= deltaValue) // если цикл вращения завершён, меняем местами соответствующие ячейки (цвет в них) и точку первой ячейки
-    {
-      step = 0U;
-      hue2 = PAUSE_MAX;
-      //если часть ячеек двигалась на 1 пиксель, пододвигаем глобальные координаты начала
-      deltaHue2 = deltaHue2 + globalShiftY; //+= globalShiftY;
-      globalShiftY = 0;
-      //deltaHue += globalShiftX; для бесшовной не годится
-      deltaHue = (WIDTH + deltaHue + globalShiftX) % WIDTH;
-      globalShiftX = 0;
+  if (step >= deltaValue) {                                               // если цикл вращения завершён, меняем местами соответствующие ячейки (цвет в них) и точку первой ячейки
+    step = 0U;
+    hue2 = PAUSE_MAX;
 
-      //пришла пора выбрать следующие параметры вращения
-      kudaVse = 0;
-      krutimVertikalno = random8(2U);
-      if (krutimVertikalno) // идём по горизонтали, крутим по вертикали (столбцы двигаются)
-      {
-        for (uint8_t i = 0U; i < shtukX; i++)
-        {
-          noise3d[0][i][1] = random8(3);
-          shift = noise3d[0][i][1] - 1; // в первой ячейке храним направление прокрутки
-          if (kudaVse == 0)
-            kudaVse = shift;
-          else if (shift != 0 && kudaVse != shift)
-            kudaVse = 50;
-        }
-        deltaValue = razmerY + ((deltaHue2 - kudaVse >= 0 && deltaHue2 - kudaVse + poleY < (int)HEIGHT) ? random8(2U) : 1U);
+    deltaHue2 = deltaHue2 + globalShiftY;                                 // если часть ячеек двигалась на 1 пиксель, пододвигаем глобальные координаты начала
+    globalShiftY = 0;
 
-/*        if (kudaVse == 0) // пытался сделать, чтобы при совпадении "весь кубик стоит" сдвинуть его весь на пиксель, но заколебался
-        {
-          deltaValue = razmerY;
-          kudaVse = (random8(2)) ? 1 : -1;
-          if (deltaHue2 - kudaVse < 0 || deltaHue2 - kudaVse + poleY >= (int)HEIGHT)
-            kudaVse = 0 - kudaVse;
-        }
-*/
-        if (deltaValue == razmerY) // значит полюбому kudaVse было = (-1, 0, +1) - и для нуля в том числе мы двигаем весь куб на 1 пиксель
-        {
-          globalShiftY = 1 - kudaVse; //временно на единичку больше, чем надо
-          for (uint8_t i = 0U; i < shtukX; i++)
-            if (noise3d[0][i][1] == 1U) // если ячейка никуда не планировала двигаться
-            {
-              noise3d[0][i][1] = globalShiftY;
-              noise3d[0][i][0] = 1U; // в нулевой ячейке храним количество ходов сдвига
-            }
-            else
-              noise3d[0][i][0] = deltaValue; // в нулевой ячейке храним количество ходов сдвига
-          globalShiftY--;
-        }
-        else
-        {
-          x = 0;
-          for (uint8_t i = 0U; i < shtukX; i++)
-            if (noise3d[0][i][1] != 1U)
-              {
-                y = random8(shtukY);
-                if (y > x)
-                  x = y;
-                noise3d[0][i][0] = deltaValue * (x + 1U); // в нулевой ячейке храним количество ходов сдвига
-              }
-          deltaValue = deltaValue * (x + 1U);
-        }
+    deltaHue = (WIDTH + deltaHue + globalShiftX) % WIDTH;
+    globalShiftX = 0;
 
-      }
-      else // идём по вертикали, крутим по горизонтали (строки двигаются)
-      {
-        for (uint8_t j = 0U; j < shtukY; j++)
-        {
-          noise3d[0][1][j] = random8(3);
-          shift = noise3d[0][1][j] - 1; // в первой ячейке храним направление прокрутки
-          if (kudaVse == 0)
-            kudaVse = shift;
-          else if (shift != 0 && kudaVse != shift)
-            kudaVse = 50;
-        }
-        if (seamlessX)
-          deltaValue = razmerX + ((kudaVse < 50) ? random8(2U) : 1U);
-        else
-          deltaValue = razmerX + ((deltaHue - kudaVse >= 0 && deltaHue - kudaVse + poleX < (int)WIDTH) ? random8(2U) : 1U);
+    kudaVse = 0;                                                          // пришла пора выбрать следующие параметры вращения
+    krutimVertikalno = random8(2U);
 
-/*        if (kudaVse == 0) // пытался сделать, чтобы при совпадении "весь кубик стоит" сдвинуть его весь на пиксель, но заколебался
-        {
-          deltaValue = razmerX;
-          kudaVse = (random8(2)) ? 1 : -1;
-          if (deltaHue - kudaVse < 0 || deltaHue - kudaVse + poleX >= (int)WIDTH)
-            kudaVse = 0 - kudaVse;
-        }
-*/
-        if (deltaValue == razmerX) // значит полюбому kudaVse было = (-1, 0, +1) - и для нуля в том числе мы двигаем весь куб на 1 пиксель
-        {
-          globalShiftX = 1 - kudaVse; //временно на единичку больше, чем надо
-          for (uint8_t j = 0U; j < shtukY; j++)
-            if (noise3d[0][1][j] == 1U) // если ячейка никуда не планировала двигаться
-            {
-              noise3d[0][1][j] = globalShiftX;
-              noise3d[0][0][j] = 1U; // в нулевой ячейке храним количество ходов сдвига
-            }
-            else
-              noise3d[0][0][j] = deltaValue; // в нулевой ячейке храним количество ходов сдвига
-          globalShiftX--;
-        }
-        else
-        {
-          y = 0;
-          for (uint8_t j = 0U; j < shtukY; j++)
-            if (noise3d[0][1][j] != 1U)
-              {
-                x = random8(shtukX);
-                if (x > y)
-                  y = x;
-                noise3d[0][0][j] = deltaValue * (x + 1U); // в нулевой ячейке храним количество ходов сдвига
-              }
-          deltaValue = deltaValue * (y + 1U);
+    if (krutimVertikalno) {                                               // идём по горизонтали, крутим по вертикали (столбцы двигаются)
+      for (uint8_t i = 0U; i < shtukX; i++) {
+        noise3d[0][i][1] = random8(3U);
+        shift = noise3d[0][i][1] - 1;                                     // в первой ячейке храним направление прокрутки
+        if (kudaVse == 0) {
+          kudaVse = shift;
+        } else if (shift != 0 && kudaVse != shift) {
+          kudaVse = 50;
         }
       }
-   }
+      int16_t check_y = (int16_t)deltaHue2 - kudaVse;                     // Защита от underflow: приведение к знаковому int16_t
+      deltaValue = razmerY + ((check_y >= 0 && check_y + (int16_t)poleY < (int16_t)HEIGHT) ? random8(2U) : 1U);
+
+      if (deltaValue == razmerY) {                                        // значит полюбому kudaVse было = (-1, 0, +1) - и для нуля в том числе мы двигаем весь куб на 1 пиксель
+        globalShiftY = 1 - kudaVse;                                       // временно на единичку больше, чем надо
+        for (uint8_t i = 0U; i < shtukX; i++) {
+          if (noise3d[0][i][1] == 1U) {                                   // если ячейка никуда не планировала двигаться
+            noise3d[0][i][1] = globalShiftY;
+            noise3d[0][i][0] = 1U;                                        // в нулевой ячейке храним количество ходов сдвига
+          } else {
+            noise3d[0][i][0] = deltaValue;                                // в нулевой ячейке храним количество ходов сдвига
+          }
+        }
+        globalShiftY--;
+      } else {
+        x = 0;
+        for (uint8_t i = 0U; i < shtukX; i++) {
+          if (noise3d[0][i][1] != 1U) {
+            y = random8(shtukY);
+            if (y > x) {
+              x = y;
+            }
+            noise3d[0][i][0] = deltaValue * (x + 1U);                     // в нулевой ячейке храним количество ходов сдвига
+          }
+        }
+        deltaValue = deltaValue * (x + 1U);
+      }
+    } else {                                                              // идём по вертикали, крутим по горизонтали (строки двигаются)
+      for (uint8_t j = 0U; j < shtukY; j++) {
+        noise3d[0][1][j] = random8(3);
+        shift = noise3d[0][1][j] - 1;                                     // в первой ячейке храним направление прокрутки
+        if (kudaVse == 0)
+          kudaVse = shift;
+        else if (shift != 0 && kudaVse != shift)
+          kudaVse = 50;
+      }
+      if (seamlessX) {
+        deltaValue = razmerX + ((kudaVse < 50) ? random8(2U) : 1U);
+      } else {
+        int16_t check_x = (int16_t)deltaHue - kudaVse;                    // Защита от underflow: приведение к знаковому int16_t
+        deltaValue = razmerX + ((check_x >= 0 && check_x + (int16_t)poleX < (int16_t)WIDTH) ? random8(2U) : 1U);
+      }
+
+      if (deltaValue == razmerX) {                                        // значит полюбому kudaVse было = (-1, 0, +1) - и для нуля в том числе мы двигаем весь куб на 1 пиксель
+        globalShiftX = 1 - kudaVse;                                       // временно на единичку больше, чем надо
+        for (uint8_t j = 0U; j < shtukY; j++) {
+          if (noise3d[0][1][j] == 1U) {                                   // если ячейка никуда не планировала двигаться
+            noise3d[0][1][j] = globalShiftX;
+            noise3d[0][0][j] = 1U;                                        // в нулевой ячейке храним количество ходов сдвига
+          } else
+            noise3d[0][0][j] = deltaValue;                                // в нулевой ячейке храним количество ходов сдвига
+        }
+        globalShiftX--;
+      } else {
+        y = 0;
+        for (uint8_t j = 0U; j < shtukY; j++) {
+          if (noise3d[0][1][j] != 1U) {
+            x = random8(shtukX);
+            if (x > y)
+              y = x;
+            noise3d[0][0][j] = deltaValue * (x + 1U);                     // в нулевой ячейке храним количество ходов сдвига
+          }
+        }
+        deltaValue = deltaValue * (y + 1U);
+      }
+    }
+  }
 }
 #endif
 
