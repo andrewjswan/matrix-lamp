@@ -3296,7 +3296,7 @@ static void whirlRoutine(bool oneColor) {
     uint8_t calculated_sat = (current_scale == 100U) ? 0U : 255U;
     single_color = CHSV(calculated_hue, calculated_sat, 255U);
   }
-  
+
   for (uint8_t i = 0; i < AVAILABLE_BOID_COUNT; i++) {
     Boid * boid = &boids[i];
 
@@ -3318,7 +3318,7 @@ static void whirlRoutine(bool oneColor) {
     if (boid->location.x < 0.0f || boid->location.x >= (float)WIDTH || boid->location.y < 0.0f || boid->location.y >= (float)HEIGHT) {
       boid->location.x = random8(WIDTH);
       boid->location.y = 0.0f;
-    }    
+    }
   }
 
   EVERY_N_MILLIS(200) {
