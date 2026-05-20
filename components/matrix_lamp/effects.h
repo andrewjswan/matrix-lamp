@@ -4790,85 +4790,108 @@ static void LeapersRoutine(){
 // float trackingObjectShift[enlargedOBJECT_MAX_COUNT];                    // радиус пузыря ... мог бы быть, если бы круги рисовались нормально
 
 static void LavaLampGetspeed(uint8_t l) {
-  //trackingObjectSpeedY[l] = (float)random8(1, 11) / 10.0; // скорость пузырей 10 градаций?
-  trackingObjectSpeedY[l] = (float)random8(5, 11) / (257U - modes[currentMode].Speed) / 4.0f; // если скорость кадров фиксированная
+  trackingObjectSpeedY[l] = (float)random8(5U, 11U) / (257U - modes[currentMode].Speed) * 0.25f;  // / 4.0f // если скорость кадров фиксированная
 }
 
 static void drawBlob(uint8_t l, CRGB color) { //раз круги нарисовать не получается, будем попиксельно вырисовывать 2 варианта пузырей
-  if (trackingObjectShift[l] == 2)
-  {
-    for (int8_t x = -2; x < 3; x++)
-      for (int8_t y = -2; y < 3; y++)
-        if (std::abs(x) + std::abs(y) < 4)
-          drawPixelXYF(fmod(trackingObjectPosX[l]+x +WIDTH,WIDTH), trackingObjectPosY[l]+y, color);
-  }
-  else
-  {
-    for (int8_t x = -1; x < 3; x++)
-      for (int8_t y = -1; y < 3; y++)
-        if (!(x==-1 && (y==-1 || y==2) || x==2 && (y==-1 || y==2)))
-          drawPixelXYF(fmod(trackingObjectPosX[l]+x +WIDTH,WIDTH), trackingObjectPosY[l]+y, color);
+  const float base_x = trackingObjectPosX[l] + (float)WIDTH;
+
+  if ((uint8_t)trackingObjectShift[l] == 2U) {
+    for (int8_t x = -2; x < 3; x++) {
+      // Быстрый аналог fmod для зацикливания по ширине матрицы
+      float target_x = base_x + (float)x;
+      if (target_x >= (float)WIDTH) target_x -= (float)WIDTH;
+      if (target_x < 0.0f) target_x += (float)WIDTH;
+
+      for (int8_t y = -2; y < 3; y++) {
+        if (std::abs(x) + std::abs(y) < 4U) {
+          drawPixelXYF(target_x, trackingObjectPosY[l] + (float)y, color);
+        }
+      }
+    }
+  } else {
+    for (int8_t x = -1; x < 3; x++) {
+      float target_x = base_x + (float)x;
+      if (target_x >= (float)WIDTH) target_x -= (float)WIDTH;
+      if (target_x < 0.0f) target_x += (float)WIDTH;
+
+      for (int8_t y = -1; y < 3; y++) {
+        // Упростили логическое условие для исключения угловых пикселей
+        if (!((x == -1 || x == 2) && (y == -1 || y == 2))) {
+          drawPixelXYF(target_x, trackingObjectPosY[l] + (float)y, color);
+        }
+      }
+    }
   }
 }
 
 static void LavaLampRoutine(){
-  //unsigned num = map(scale, 0U, 255U, 6U, sizeof(boids) / sizeof(*boids));
-  if (loadingFlag)
-  {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-    if (selectedSettings)
-    {
-      setModeSettings(random8(30U) ? (random8(3U) ? 2U + random8(98U) : 1U) : 100U, 50U+random8(196U));
+    if (selectedSettings) {
+      setModeSettings(random8(30U) ? (random8(3U) ? 2U + random8(98U) : 1U) : 100U, 50U + random8(196U));
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
+    enlargedObjectNUM = CENTER_X - ((WIDTH - 1U) & 0x01);
+    uint8_t shift = random8(2U);
 
-    enlargedObjectNUM = CENTER_X - ((WIDTH - 1) & 0x01);
-    uint8_t shift = random8(2);
     for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
-      trackingObjectPosY[i] = 0;
-      trackingObjectPosX[i] = i * 2U + shift;
+      trackingObjectPosY[i] = 0.0f;
+      trackingObjectPosX[i] = (float)(i * 2U + shift);
       LavaLampGetspeed(i);
-      trackingObjectShift[i] = random8(1,3);             // присваивается случайный целочисленный радиус пузырям от 1 до 2
+      trackingObjectShift[i] = (float)random8(1U, 3U);  // присваивается случайный целочисленный радиус пузырям от 1 до 2
     }
-    if (modes[currentMode].Scale != 1U)
+
+    if (modes[currentMode].Scale != 1U) {
       hue = modes[currentMode].Scale * 2.57f;
+    }
+
+    loadingFlag = false;
   }
 
-  if (modes[currentMode].Scale == 1U)
-  {
+  if (modes[currentMode].Scale == 1U) {
     hue2++;
-    if (hue2 % 0x10 == 0U)
+    if (hue2 % 16U == 0U) {  // 0x10
       hue++;
+    }
   }
+
   CRGB color = CHSV(hue, (modes[currentMode].Scale < 100U) ? 255U : 0U, 255U);
 
   ledsClear(); // esphome: FastLED.clear();
 
-  for (uint8_t i = 0; i < enlargedObjectNUM; i++) {      //двигаем по аналогии с https://jiwonk.im/lavalamp/
-    if (trackingObjectPosY[i] + trackingObjectShift[i] >= HEIGHT - 1)
-       trackingObjectPosY[i] += (trackingObjectSpeedY[i] * ((HEIGHT - 1 - trackingObjectPosY[i]) / trackingObjectShift[i] + 0.005f));
-    else if (trackingObjectPosY[i] - trackingObjectShift[i] <= 0)
-       trackingObjectPosY[i] += (trackingObjectSpeedY[i] * (trackingObjectPosY[i] / trackingObjectShift[i] + 0.005f));
-    else
-       trackingObjectPosY[i] += trackingObjectSpeedY[i];
+  const float max_h = (float)(HEIGHT - 1U);
+
+  for (uint8_t i = 0; i < enlargedObjectNUM; i++) {       // двигаем по аналогии с https://jiwonk.im/lavalamp/
+    float posY = trackingObjectPosY[i];
+    float shiftY = trackingObjectShift[i];
+    float speedY = trackingObjectSpeedY[i];
+
+    // Движение и симуляция физики лавовой лампы у краев
+    if (posY + shiftY >= max_h) {
+      posY += speedY * ((max_h - posY) / shiftY + 0.005f);
+    } else if (posY - shiftY <= 0.0f) {
+      posY += speedY * (posY / shiftY + 0.005f);
+    } else {
+      posY += speedY;
+    }
 
     // bounce off the floor and ceiling?
-    if (trackingObjectPosY[i] < 0.01f){                   // почему-то при нуле появляется мерцание (один кадр, еле заметно)
+    if (posY < 0.01f) {                                   // почему-то при нуле появляется мерцание (один кадр, еле заметно)
       LavaLampGetspeed(i);
-      trackingObjectPosY[i] = 0.01f;
-    }
-    else if (trackingObjectPosY[i] > HEIGHT - 1.01f){     // тоже на всякий пожарный
+      posY = 0.01f;
+    } else if (posY > HEIGHT - 1.01f) {                   // тоже на всякий пожарный
       LavaLampGetspeed(i);
       trackingObjectSpeedY[i] = -trackingObjectSpeedY[i];
-      trackingObjectPosY[i] = HEIGHT - 1.01f;
+      posY = HEIGHT - 1.01f;
     }
 
+    trackingObjectPosY[i] = posY;
     drawBlob(i, color);                                  // рисуем попиксельно 2 размера пузырей
   };
 
-  blurScreen(20);
+  blurScreen(20U);
 }
 #endif
 
