@@ -3170,7 +3170,7 @@ static bool predatorPresent = true;
 static void flockRoutine(bool predatorIs) {
   const uint8_t current_scale = modes[currentMode].Scale;
   const uint8_t current_speed = modes[currentMode].Speed;
-  
+
   // Предрасчет коэффициента скорости для float-физики
   const float speed_factor = (float)current_speed / 127.0f;
 
@@ -3189,13 +3189,13 @@ static void flockRoutine(bool predatorIs) {
     for (int i = 0; i < boidCount; i++) {
       boids[i] = Boid(0.0f, 0.0f);  // WIDTH - 1U, HEIGHT - 1U);
       boids[i].maxspeed = 0.380f * speed_factor + 0.380f / 2.0f;
-      boids[i].maxforce = 0.015f * speed_factor + 0.015f / 2.0f;      
+      boids[i].maxforce = 0.015f * speed_factor + 0.015f / 2.0f;
     }
 
     predatorPresent = predatorIs && random8(2U);
     predator = Boid(0, 0);          // WIDTH + WIDTH - 1, HEIGHT + HEIGHT - 1);
     predator.maxspeed = 0.385f * speed_factor + 0.385f / 2.0f;
-    predator.maxforce = 0.020f * speed_factor + 0.020f / 2.0f;    
+    predator.maxforce = 0.020f * speed_factor + 0.020f / 2.0f;
     predator.neighbordist = 8.0f;   // было 16.0 и хищник гонял по одной линии всегда
     predator.desiredseparation = 0.0f;
 
