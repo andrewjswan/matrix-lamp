@@ -3808,10 +3808,9 @@ static void coloredRain() // внимание! этот эффект заточ�
     loadingFlag = false;
   }
 
+  const uint8_t spawn_frequency = map8(42U, 5U, 100U);
   const uint8_t current_scale = modes[currentMode].Scale;
   uint8_t tail_length = myScale8(current_scale);
-
-  constexpr uint8_t spawn_frequency = map8(42U, 5U, 100U);
 
   // я хз, как прикрутить а 1 регулятор и длину хвостов и цвет капель
   // ( Depth of dots, maximum brightness, frequency of new dots, length of tails, color, splashes, clouds, ligthening )
@@ -3835,7 +3834,7 @@ static void simpleRain()
   }
 
   // ( Depth of dots, maximum brightness, frequency of new dots, length of tails, color, splashes, clouds, ligthening )
-  rain(60U, 180U, ((uint16_t)(current_scale - 1U) * 258U) / 100U, 30U, solidRainColor, true, true, false);  //  2.58f
+  rain(60U, 180U, ((uint16_t)(modes[currentMode].Scale - 1U) * 258U) / 100U, 30U, solidRainColor, true, true, false);  //  2.58f
 }
 
 static void stormyRain()
@@ -3851,7 +3850,7 @@ static void stormyRain()
   }
 
   // ( Depth of dots, maximum brightness, frequency of new dots, length of tails, color, splashes, clouds, ligthening )
-  rain(60U, 160U, ((uint16_t)(current_scale - 1U) * 258U) / 100U, 30U, solidRainColor, true, true, true);  //  2.58f
+  rain(60U, 160U, ((uint16_t)(modes[currentMode].Scale - 1U) * 258U) / 100U, 30U, solidRainColor, true, true, true);  //  2.58f
 }
 #endif
 
