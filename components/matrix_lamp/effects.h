@@ -3945,18 +3945,16 @@ static void bounceRoutine()
 {
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
-        setModeSettings(random8(9U)*11U+3U+random8(9U), random8(4U) ? 3U+random8(26U) : 255U);
+      if (selectedSettings) {
+        setModeSettings(random8(9U) * 11U + 3U + random8(9U), random8(4U) ? 3U + random8(26U) : 255U);
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     setCurrentPalette();
 
     enlargedObjectNUM = (modes[currentMode].Scale - 1U) % 11U / 10.0f * (AVAILABLE_BOID_COUNT - 1U) + 1U;
     uint8_t colorWidth = 256U / enlargedObjectNUM;
-    for (uint8_t i = 0; i < enlargedObjectNUM; i++)
-    {
+    for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
       Boid boid = Boid(i % WIDTH, 0);
       boid.velocity.x = 0;
       boid.velocity.y = i * -0.01f;
@@ -3965,35 +3963,40 @@ static void bounceRoutine()
       boid.maxspeed = 10;
       boids[i] = boid;
     }
+
+    loadingFlag = false;
   }
 
   blurScreen(beatsin8(5U, 1U, 5U));
   dimAll(255U - modes[currentMode].Speed);
-  for (uint8_t i = 0; i < enlargedObjectNUM; i++)
-  {
-    Boid boid = boids[i];
+
+  constexpr float inv_255 = 0.003921569f;  // (1.0f / 255.0f)
+
+  for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
+    Boid &boid = boids[i];
+
     boid.applyForce(gravity);
     boid.update();
-    if (boid.location.x >= WIDTH) boid.location.x = boid.location.x - WIDTH; // это только
-    else if (boid.location.x < 0) boid.location.x = boid.location.x + WIDTH; // для субпиксельной версии
+
+    if (boid.location.x >= (float)WIDTH) boid.location.x -= (float)WIDTH; // это только
+    else if (boid.location.x < 0.0f)     boid.location.x += (float)WIDTH; // для субпиксельной версии
+
     CRGB color = ColorFromPalette(*curPalette, boid.colorIndex);
     drawPixelXYF(boid.location.x, boid.location.y, color);
 
-    if (boid.location.y <= 0)
-    {
-      boid.location.y = 0;
+    if (boid.location.y <= 0.0f) {
+      boid.location.y = 0.0f;
       boid.velocity.y = -boid.velocity.y;
       boid.velocity.x *= 0.9f;
-      if (!random8() || boid.velocity.y < 0.01f)
-      {
+
+      if (random8() == 0U || boid.velocity.y < 0.01f) {
 #if e_bnc_SIDEJUMP
-        boid.applyForce(PVector((float)random(127) / 255 - 0.25f, (float)random(255) / 255));
+        boid.applyForce(PVector((float)random8(127U) * inv_255 - 0.25f, (float)random8() * inv_255));
 #else
-        boid.applyForce(PVector(0, (float)random(255) / 255));
+        boid.applyForce(PVector(0.0f, (float)random8() * inv_255));
 #endif
       }
     }
-    boids[i] = boid;
   }
 }
 #endif
