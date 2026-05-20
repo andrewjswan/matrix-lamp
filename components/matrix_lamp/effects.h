@@ -2511,7 +2511,7 @@ static void fire2012WithPalette4in1() {
   }
 
   const uint8_t current_scale = modes[currentMode].Scale;
-  const CRGBPalette16* current_palette = &RainbowStripeColors_p;          // Aurora
+  const TProgmemRGBPalette16*  current_palette = &RainbowStripeColors_p;  // Aurora
   if (current_scale < 16)      current_palette = &LavaColors_p;           // Lavafall
   else if (current_scale < 32) current_palette = &HeatColors_p;           // Firefall
   else if (current_scale < 48) current_palette = &WaterfallColors4in1_p;  // Waterfall
