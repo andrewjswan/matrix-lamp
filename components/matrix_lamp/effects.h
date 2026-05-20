@@ -3438,113 +3438,125 @@ static void WaveRoutine() {
 // https://gist.github.com/StefanPetrick/819e873492f344ebebac5bcd2fdd8aa8
 // https://gist.github.com/StefanPetrick/1ba4584e534ba99ca259c1103754e4c5
 // Адаптация от (c) SottNick
+// Optimization by andrewjswan
 
 // parameters and buffer for the noise array
 // (вместо закомментированных строк используются массивы и переменные от эффекта Кометы для экономии памяти)
-//define NUM_LAYERS 2 // менять бесполезно, так как в коде чётко использовано 2 слоя
-//uint32_t noise32_x[NUM_LAYERSMAX];
-//uint32_t noise32_y[NUM_LAYERSMAX];
-//uint32_t noise32_z[NUM_LAYERSMAX];
-//uint32_t scale32_x[NUM_LAYERSMAX];
-//uint32_t scale32_y[NUM_LAYERSMAX];
-//uint8_t noise3d[NUM_LAYERSMAX][WIDTH][HEIGHT];
-//uint8_t fire18heat[NUM_LEDS]; будем использовать вместо него ledsbuff[NUM_LEDS].r
+// define NUM_LAYERS 2 // менять бесполезно, так как в коде чётко использовано 2 слоя
+// uint8_t noise3d[NUM_LAYERSMAX][WIDTH][HEIGHT];
+// uint8_t fire18heat[NUM_LEDS]; будем использовать вместо него ledsbuff[NUM_LEDS].r
 // this finds the right index within a serpentine matrix
 
 static void Fire2018_2() {
   if (loadingFlag) {
-    loadingFlag = false;
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
-        setModeSettings(1U + random8(50U), 195U+random8(44U));
+        setModeSettings(1U + random8(50U), 195U + random8(44U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+
+    loadingFlag = false;
   }
 
+  const uint32_t current_ms = millis();
+  const uint8_t current_scale = modes[currentMode].Scale;
+  
   // some changing values
-  uint16_t ctrl1 = fastled_helper::perlin16(11 * millis(), 0, 0);
-  uint16_t ctrl2 = fastled_helper::perlin16(13 * millis(), 100000, 100000);
-  uint16_t  ctrl = ((ctrl1 + ctrl2) / 2);
-
+  uint16_t ctrl1 = fastled_helper::perlin16(11U * current_ms, 0, 0);
+  uint16_t ctrl2 = fastled_helper::perlin16(13U * current_ms, 100000, 100000);
+  uint16_t  ctrl = ((ctrl1 + ctrl2) >> 1);  // / 2
+  
+  // ================= LAYER 0 =================
   // parameters for the heatmap
-  uint16_t speed = 25;
-  noise32_x[0] = 3 * ctrl * speed;
-  noise32_y[0] = 20 * millis() * speed;
-  noise32_z[0] = 5 * millis() * speed ;
-  scale32_x[0] = ctrl1 / 2;
-  scale32_y[0] = ctrl2 / 2;
+  uint16_t speed = 25U;
 
+  uint32_t base_noise_x = 3U * ctrl * speed;
+  uint32_t base_noise_y = 20U * current_ms * speed;
+  uint32_t base_noise_z = 5U * current_ms * speed;
+  uint32_t scale_x      = ctrl1 >> 1;  // / 2
+  uint32_t scale_y      = ctrl2 >> 1;  // / 2
+  
   // calculate the noise data
-  uint8_t layer = 0;
-
   for (uint8_t i = 0; i < WIDTH; i++) {
-    uint32_t ioffset = scale32_x[layer] * (i - CENTER_X_MAJOR);
+    uint32_t ioffset = scale_x * (i - CENTER_X_MAJOR);
+    uint32_t current_x_noise = base_noise_x + ioffset;
+    
     for (uint8_t j = 0; j < HEIGHT; j++) {
-      uint32_t joffset = scale32_y[layer] * (j - CENTER_Y_MAJOR);
-      uint16_t data = ((fastled_helper::perlin16(noise32_x[layer] + ioffset, noise32_y[layer] + joffset, noise32_z[layer])) + 1);
-      noise3d[layer][i][j] = data >> 8;
+      uint32_t joffset = scale_y * (j - CENTER_Y_MAJOR);
+      uint16_t data = ((fastled_helper::perlin16(current_x_noise, base_noise_y + joffset, base_noise_z)) + 1U);
+      noise3d[0][i][j] = (uint8_t)(data >> 8);
     }
   }
 
+  // ================= LAYER 1 =================
   // parameters for te brightness mask
-  speed = 20;
-  noise32_x[1] = 3 * ctrl * speed;
-  noise32_y[1] = 20 * millis() * speed;
-  noise32_z[1] = 5 * millis() * speed ;
-  scale32_x[1] = ctrl1 / 2;
-  scale32_y[1] = ctrl2 / 2;
+  speed = 20U;
 
+  base_noise_x = 3U * ctrl * speed;
+  base_noise_y = 20U * current_ms * speed;
+  base_noise_z = 5U * current_ms * speed;
+  scale_x      = ctrl1 >> 1;  // / 2;
+  scale_y      = ctrl2 >> 1;  // / 2;
+  
   // calculate the noise data
-  layer = 1;
   for (uint8_t i = 0; i < WIDTH; i++) {
-    uint32_t ioffset = scale32_x[layer] * (i - CENTER_X_MAJOR);
+    uint32_t ioffset = scale_x * (i - CENTER_X_MAJOR);
+    uint32_t current_x_noise = base_noise_x + ioffset;
+
     for (uint8_t j = 0; j < HEIGHT; j++) {
-      uint32_t joffset = scale32_y[layer] * (j - CENTER_Y_MAJOR);
-      uint16_t data = ((fastled_helper::perlin16(noise32_x[layer] + ioffset, noise32_y[layer] + joffset, noise32_z[layer])) + 1);
-      noise3d[layer][i][j] = data >> 8;
+      uint32_t joffset = scale_y * (j - CENTER_Y_MAJOR);      
+      uint16_t data = ((fastled_helper::perlin16(current_x_noise, base_noise_y + joffset, base_noise_z)) + 1U);
+      noise3d[1][i][j] = (uint8_t)(data >> 8);      
     }
   }
 
   // draw lowest line - seed the fire
+  const uint8_t lookup_y = CENTER_Y_MAJOR - 1U;  // хз, почему взято с середины. вожможно, нужно просто с 7 строки вне зависимости от высоты матрицы
+  const uint8_t max_w   = WIDTH - 1U;
+
   for (uint8_t x = 0; x < WIDTH; x++) {
-    ledsbuff[XY(x, HEIGHT - 1)].r =  noise3d[0][WIDTH - 1 - x][CENTER_Y_MAJOR - 1]; // хз, почему взято с середины. вожможно, нужно просто с 7 строки вне зависимости от высоты матрицы
+    ledsbuff[XY(x, HEIGHT - 1U)].r = noise3d[0][max_w - x][lookup_y];
   }
 
-
   // copy everything one line up
-  for (uint8_t y = 0; y < HEIGHT - 1; y++) {
+  for (uint8_t y = 0; y < HEIGHT - 1U; y++) {
     for (uint8_t x = 0; x < WIDTH; x++) {
-      ledsbuff[XY(x, y)].r = ledsbuff[XY(x, y + 1)].r;
+      ledsbuff[XY(x, y)].r = ledsbuff[XY(x, y + 1U)].r;
     }
   }
 
   // dim
-  for (uint8_t y = 0; y < HEIGHT - 1; y++) {
+  for (uint8_t y = 0; y < HEIGHT - 1U; y++) {
     for (uint8_t x = 0; x < WIDTH; x++) {
       uint8_t dim = noise3d[0][x][y];
 
       // high value = high flames
-      dim = ((uint16_t)dim * 150) >> 8; // dim / 1.7 : Умножаем на 150 и сдвигаем на 8 (аналог умножения на 0.585)
-      dim = 255 - dim;
+      dim = ((uint16_t)dim * 150U) >> 8;  // dim / 1.7 : Умножаем на 150 и сдвигаем на 8 (аналог умножения на 0.585)
+      dim = 255U - dim;
 
       uint16_t idx = XY(x, y);
       ledsbuff[idx].r = scale8(ledsbuff[idx].r, dim);
     }
   }
 
+  const uint8_t max_h = HEIGHT - 1U;
+  
   for (uint8_t y = 0; y < HEIGHT; y++) {
+    uint8_t target_y = max_h - y;
+    
     for (uint8_t x = 0; x < WIDTH; x++) {
       uint16_t idx = XY(x, y);
-
+      uint8_t r_channel = ledsbuff[idx].r;
+      uint8_t g_channel = ((uint16_t)r_channel * current_scale) / 100U;
+      
       // map the colors based on heatmap
-      // leds[XY(x, HEIGHT - 1 - y)] = CRGB(ledsbuff[idx].r, ledsbuff[idx].r * 0.153, 0);// * 0.153 - лучший оттенок
-      leds[XY(x, HEIGHT - 1 - y)] = CRGB(ledsbuff[idx].r, (float)ledsbuff[idx].r * modes[currentMode].Scale * 0.01f, 0);
+      uint16_t led_idx = XY(x, target_y);
+      leds[led_idx] = CRGB(r_channel, g_channel, 0U);
 
       // dim the result based on 2nd noise layer
-      leds[XY(x, HEIGHT - 1 - y)].nscale8(noise3d[1][x][y]);
+      leds[led_idx].nscale8(noise3d[1][x][y]);
     }
   }
-
 }
 #endif
 
