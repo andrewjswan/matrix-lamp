@@ -3962,9 +3962,9 @@ static void bounceRoutine()
 
   blurScreen(beatsin8(5U, 1U, 5U));
   dimAll(255U - modes[currentMode].Speed);
-  
+
   constexpr float inv_255 = 0.003921569f;  // (1.0f / 255.0f)
-  
+
   for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
     Boid &boid = boids[i];
 
@@ -3986,7 +3986,7 @@ static void bounceRoutine()
 #if e_bnc_SIDEJUMP
         boid.applyForce(PVector((float)random8(127U) * inv_255 - 0.25f, (float)random8() * inv_255));
 #else
-        boid.applyForce(PVector(0.0f, (float)random8() * inv_255));        
+        boid.applyForce(PVector(0.0f, (float)random8() * inv_255));
 #endif
       }
     }
