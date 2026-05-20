@@ -2487,70 +2487,66 @@ static void Sinusoid3Routine()
 
 
 #ifdef DEF_WATERFALL_4IN1
-// ============= водо/огне/лава/радуга/хренопад ===============
+// ============= водо / огне / лава / радуга / хренопад ===============
 // SPARKING: What chance (out of 255) is there that a new spark will be lit?
 // Higher chance = more roaring fire.  Lower chance = more flickery fire.
 // Default 120, suggested range 50-200.
 
 static void fire2012WithPalette4in1() {
   if (loadingFlag) {
-    loadingFlag = false;
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-    if (selectedSettings){
+    if (selectedSettings) {
       uint8_t tmp = random(3U);
       if (tmp == 0U)
-        tmp = 16U+random8(16U);
+        tmp = 16U + random8(16U);
       else if (tmp == 1U)
         tmp = 48U;
       else
-        tmp = 80U+random8(4U);
-      setModeSettings(tmp, 185U+random8(40U)); // 16-31, 48, 80-83 - остальное отстой
+        tmp = 80U + random8(4U);
+      setModeSettings(tmp, 185U + random8(40U)); // 16-31, 48, 80-83 - остальное отстой
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+
+    loadingFlag = false;
   }
 
-  uint8_t rCOOLINGNEW = constrain((uint16_t)(modes[currentMode].Scale % 16) * 32 / HEIGHT + 16, 1, 255) ;
+  const uint8_t current_scale = modes[currentMode].Scale;
+  const TProgmemRGBPalette16*  current_palette = &RainbowStripeColors_p;  // Aurora
+  if (current_scale < 16)      current_palette = &LavaColors_p;           // Lavafall
+  else if (current_scale < 32) current_palette = &HeatColors_p;           // Firefall
+  else if (current_scale < 48) current_palette = &WaterfallColors4in1_p;  // Waterfall
+  else if (current_scale < 64) current_palette = &CloudColors_p;          // Skyfall
+  else if (current_scale < 80) current_palette = &ForestColors_p;         // Forestfall
+  else if (current_scale < 96) current_palette = &RainbowColors_p;        // Rainbowfall
+
+  uint8_t rCOOLINGNEW = constrain((uint16_t)(current_scale % 16) * 32 / HEIGHT + 16, 1, 255);
+
   // Array of temperature readings at each simulation cell
   // static uint8_t heat[WIDTH][HEIGHT]; будет noise3d[0][WIDTH][HEIGHT]
 
   for (uint8_t x = 0; x < WIDTH; x++) {
     // Step 1.  Cool down every cell a little
     for (uint8_t i = 0; i < HEIGHT; i++) {
-      //noise3d[0][x][i] = qsub8(noise3d[0][x][i], random8(0, ((rCOOLINGNEW * 10) / HEIGHT) + 2));
       noise3d[0][x][i] = qsub8(noise3d[0][x][i], random8(0, rCOOLINGNEW));
     }
 
     // Step 2.  Heat from each cell drifts 'up' and diffuses a little
     for (uint8_t k = HEIGHT - 1; k >= 2; k--) {
-      noise3d[0][x][k] = (noise3d[0][x][k - 1] + noise3d[0][x][k - 2] + noise3d[0][x][k - 2]) / 3;
+      noise3d[0][x][k] = ((uint16_t)noise3d[0][x][k - 1] + noise3d[0][x][k - 2] + noise3d[0][x][k - 2]) / 3U;
     }
 
     // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
     if (random8() < SPARKINGNEW) {
-      uint8_t y = random8(2);
-      noise3d[0][x][y] = qadd8(noise3d[0][x][y], random8(160, 255));
+      uint8_t y = random8(2U);
+      noise3d[0][x][y] = qadd8(noise3d[0][x][y], random8(160U, 255U));
     }
 
     // Step 4.  Map from heat cells to LED colors
     for (uint8_t j = 0; j < HEIGHT; j++) {
       // Scale the heat value from 0-255 down to 0-240
       // for best results with color palettes.
-      uint8_t colorindex = scale8(noise3d[0][x][j], 240);
-      if  (modes[currentMode].Scale < 16) {            // Lavafall
-        leds[XY(x, (HEIGHT - 1) - j)] = ColorFromPalette(LavaColors_p, colorindex);
-      } else if (modes[currentMode].Scale < 32) {      // Firefall
-        leds[XY(x, (HEIGHT - 1) - j)] = ColorFromPalette(HeatColors_p, colorindex);
-      } else if (modes[currentMode].Scale < 48) {      // Waterfall
-        leds[XY(x, (HEIGHT - 1) - j)] = ColorFromPalette(WaterfallColors4in1_p, colorindex);
-      } else if (modes[currentMode].Scale < 64) {      // Skyfall
-        leds[XY(x, (HEIGHT - 1) - j)] = ColorFromPalette(CloudColors_p, colorindex);
-      } else if (modes[currentMode].Scale < 80) {      // Forestfall
-        leds[XY(x, (HEIGHT - 1) - j)] = ColorFromPalette(ForestColors_p, colorindex);
-      } else if (modes[currentMode].Scale < 96) {      // Rainbowfall
-        leds[XY(x, (HEIGHT - 1) - j)] = ColorFromPalette(RainbowColors_p, colorindex);
-      } else {                      // Aurora
-        leds[XY(x, (HEIGHT - 1) - j)] = ColorFromPalette(RainbowStripeColors_p, colorindex);
-      }
+      uint8_t colorindex = scale8(noise3d[0][x][j], 240U);
+      leds[XY(x, (HEIGHT - 1) - j)] = ColorFromPalette(*current_palette, colorindex);
     }
   }
 }
