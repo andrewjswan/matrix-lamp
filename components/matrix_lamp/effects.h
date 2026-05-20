@@ -2574,10 +2574,10 @@ static void PrismataRoutine() {
 
     loadingFlag = false;
   }
-  
+
   const uint8_t current_scale = modes[currentMode].Scale;
   const uint8_t current_speed = modes[currentMode].Speed;
-  
+
   hue++; // используем переменную сдвига оттенка из функций радуги, чтобы не занимать память
 
   blurScreen(20); // @Palpalych посоветовал делать размытие
@@ -2587,7 +2587,7 @@ static void PrismataRoutine() {
 
   const uint8_t max_height = HEIGHT - 1U;
   for (uint8_t x = 0; x < WIDTH; x++) {
-    // вместо 28 в оригинале было 280, умножения на .Speed не было, а вместо >> 17 было (<< 8) >>24. 
+    // вместо 28 в оригинале было 280, умножения на .Speed не было, а вместо >> 17 было (<< 8) >>24.
     // короче, оригинальная скорость достигается при бегунке .Speed = 20
     uint8_t beat = (uint8_t)((time_base * accum88(x + 1U)) >> 17);
     uint8_t y = scale8(sin8(beat), max_height);
