@@ -4686,8 +4686,8 @@ static void picassoSelector(){
 // взято откуда-то by @obliterator
 // https://github.com/DmytroKorniienko/FireLamp_JeeUI/blob/templ/src/effects.cpp
 
-//Leaper leapers[20];
-//вместо класса Leaper будем повторно использовать переменные из эффекта мячики и мотыльки
+// Leaper leapers[20];
+// вместо класса Leaper будем повторно использовать переменные из эффекта мячики и мотыльки
 // float   x, y; будет:
 // float   trackingObjectPosX[enlargedOBJECT_MAX_COUNT];
 // float   trackingObjectPosY[enlargedOBJECT_MAX_COUNT];
@@ -4698,14 +4698,16 @@ static void picassoSelector(){
 // uint8_t trackingObjectHue[enlargedOBJECT_MAX_COUNT];
 
 static void LeapersRestart_leaper(uint8_t l) {
+  constexpr float inv100 = 0.01f;
+
   // leap up and to the side with some random component
-  trackingObjectSpeedX[l] = (1.0f * (float)random8(1U, 100U) / 100.0f);
-  trackingObjectSpeedY[l] = (2.0f * (float)random8(1U, 100U) / 100.0f);
+  trackingObjectSpeedX[l] = (float)random8(1U, 100U) * inv100;
+  trackingObjectSpeedY[l] = (float)random8(1U, 100U) * inv100 * 2.0f;
 
   // for variety, sometimes go 50% faster
-  if (random8() < 12) {
-    trackingObjectSpeedX[l] += trackingObjectSpeedX[l] * 0.5f;
-    trackingObjectSpeedY[l] += trackingObjectSpeedY[l] * 0.5f;
+  if (random8() < 12U) {
+    trackingObjectSpeedX[l] *= 1.5f;
+    trackingObjectSpeedY[l] *= 1.5f;
   }
 
   // leap towards the centre of the screen
@@ -4715,33 +4717,38 @@ static void LeapersRestart_leaper(uint8_t l) {
 }
 
 static void LeapersMove_leaper(uint8_t l) {
-#define GRAVITY            (0.06f)
-#define SETTLED_THRESHOLD  (0.1f)
-#define WALL_FRICTION      (0.95f)
-#define WIND               (0.95f)    // wind resistance
+  constexpr float GRAVITY           = 0.06f;
+  constexpr float SETTLED_THRESHOLD = 0.1f;
+  constexpr float WALL_FRICTION     = 0.95f;
+  constexpr float WIND              = 0.95f;  // wind resistance
 
   trackingObjectPosX[l] += trackingObjectSpeedX[l];
   trackingObjectPosY[l] += trackingObjectSpeedY[l];
 
+  const float max_h = (float)(HEIGHT - 1U);
+  const float max_w = (float)(WIDTH - 1U);
+
   // bounce off the floor and ceiling?
-  if (trackingObjectPosY[l] < 0 || trackingObjectPosY[l] > HEIGHT - 1) {
+  if (trackingObjectPosY[l] < 0.0f || trackingObjectPosY[l] > (float)(HEIGHT - 1U)) {
     trackingObjectSpeedY[l] = (-trackingObjectSpeedY[l] * WALL_FRICTION);
     trackingObjectSpeedX[l] = (trackingObjectSpeedX[l] * WALL_FRICTION);
     trackingObjectPosY[l] += trackingObjectSpeedY[l];
-    if (trackingObjectPosY[l] < 0)
-      trackingObjectPosY[l] = 0; // settled on the floor?
+    
+    if (trackingObjectPosY[l] < 0.0f) {
+      trackingObjectPosY[l] = 0.0f; // settled on the floor?
+    }
     if (trackingObjectPosY[l] <= SETTLED_THRESHOLD && std::abs(trackingObjectSpeedY[l]) <= SETTLED_THRESHOLD) {
       LeapersRestart_leaper(l);
     }
   }
 
   // bounce off the sides of the screen?
-  if (trackingObjectPosX[l] <= 0 || trackingObjectPosX[l] >= WIDTH - 1) {
+  if (trackingObjectPosX[l] <= 0.0f || trackingObjectPosX[l] >= (float)(WIDTH - 1U)) {
     trackingObjectSpeedX[l] = (-trackingObjectSpeedX[l] * WALL_FRICTION);
-    if (trackingObjectPosX[l] <= 0) {
+    if (trackingObjectPosX[l] <= 0.0f) {
       trackingObjectPosX[l] = -trackingObjectPosX[l];
     } else {
-      trackingObjectPosX[l] = WIDTH + WIDTH - 2 - trackingObjectPosX[l];
+      trackingObjectPosX[l] = (float)(WIDTH + WIDTH - 2U) - trackingObjectPosX[l];
     }
   }
 
@@ -4752,43 +4759,37 @@ static void LeapersMove_leaper(uint8_t l) {
 
 
 static void LeapersRoutine(){
-  //unsigned num = map(scale, 0U, 255U, 6U, sizeof(boids) / sizeof(*boids));
-  if (loadingFlag)
-  {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
-        setModeSettings(random8(8U)*11U+5U+random8(7U) , 185U+random8(56U));
+        setModeSettings(random8(8U) * 11U + 5U + random8(7U) , 185U + random8(56U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     setCurrentPalette();
 
-    //ledsClear(); // esphome: FastLED.clear();
-    //enlargedObjectNUM = (modes[currentMode].Scale - 1U) / 99.0 * (enlargedOBJECT_MAX_COUNT - 1U) + 1U;
-    enlargedObjectNUM = (modes[currentMode].Scale - 1U) % 11U / 10.0f * (enlargedOBJECT_MAX_COUNT - 1U) + 1U;
-    if (enlargedObjectNUM > enlargedOBJECT_MAX_COUNT) enlargedObjectNUM = enlargedOBJECT_MAX_COUNT;
-    //if (enlargedObjectNUM < 2U) enlargedObjectNUM = 2U;
+    enlargedObjectNUM = (float)((modes[currentMode].Scale - 1U) % 11U) * 0.1f * (float)(enlargedOBJECT_MAX_COUNT - 1U) + 1U;
+    if (enlargedObjectNUM > enlargedOBJECT_MAX_COUNT) {
+      enlargedObjectNUM = enlargedOBJECT_MAX_COUNT;
+    }
 
     for (uint8_t i = 0 ; i < enlargedObjectNUM ; i++) {
       trackingObjectPosX[i] = random8(WIDTH);
       trackingObjectPosY[i] = random8(HEIGHT);
-
-      //curr->color = CHSV(random(1U, 255U), 255U, 255U);
       trackingObjectHue[i] = random8();
     }
+
+    loadingFlag = false;
   }
 
-  //myLamp.dimAll(0); накой хрен делать затухание на 100%?
   ledsClear(); // esphome: FastLED.clear();
 
   for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
     LeapersMove_leaper(i);
-    //drawPixelXYF(trackingObjectPosX[i], trackingObjectPosY[i], CHSV(trackingObjectHue[i], 255U, 255U));
     drawPixelXYF(trackingObjectPosX[i], trackingObjectPosY[i], ColorFromPalette(*curPalette, trackingObjectHue[i]));
   };
 
-  blurScreen(20);
+  blurScreen(20U);
 }
 #endif
 
