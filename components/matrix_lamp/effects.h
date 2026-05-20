@@ -3591,19 +3591,19 @@ static void fire2012again()
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    if (modes[currentMode].Scale > 100U) modes[currentMode].Scale = 100U; 
+    if (modes[currentMode].Scale > 100U) modes[currentMode].Scale = 100U;
     if (modes[currentMode].Scale > 50U) {
       curPalette = firePalettes[(uint8_t)((modes[currentMode].Scale - 50U) / 50.0f * ((sizeof(firePalettes) / sizeof(TProgmemRGBPalette16 *)) - 0.01f))];
     } else {
       curPalette = palette_arr[(uint8_t)(modes[currentMode].Scale / 50.0f * ((sizeof(palette_arr) / sizeof(TProgmemRGBPalette16 *)) - 0.01f))];
     }
-    
+
     loadingFlag = false;
   }
 
   // Add entropy to random number generator; we use a lot of it.
   random16_add_entropy(random8());
-  
+
   const uint8_t cooling_limit = ((cooling * 10U) / HEIGHT) + 2U;
 
   // Loop for each column individually
@@ -3623,10 +3623,10 @@ static void fire2012again()
       uint8_t j = random8(FIRE_BASE);
       noise3d[0][x][j] = qadd8(noise3d[0][x][j], random8(160, 255));
     }
-    
+
     // Step 4.  Map from heat cells to LED colors
     // Blend new data with previous frame. Average data between neighbouring pixels
-    uint8_t next_x = wrapX(x + 1U); 
+    uint8_t next_x = wrapX(x + 1U);
     for (uint8_t y = 0; y < HEIGHT; y++) {
       uint8_t blended_heat = scale8(noise3d[0][x][y], 179U) + scale8(noise3d[0][next_x][y], 76U);  // ((noise3d[0][x][y] * 0.7f) + (noise3d[0][next_x][y] * 0.3f))
       nblend(leds[XY(x, y)], ColorFromPalette(*curPalette, blended_heat), fireSmoothing);
