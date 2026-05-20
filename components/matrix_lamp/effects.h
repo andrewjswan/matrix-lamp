@@ -4456,79 +4456,67 @@ static void cube2dRoutine(){
 // (c) SottNick
 
 static void MultipleStreamSmoke(bool isColored){
-  if (loadingFlag)
-  {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
+      if (selectedSettings) {
         uint8_t tmp = random8(9U);
-        setModeSettings(isColored ? 1U+tmp*tmp : (random8(10U) ? 1U + random8(99U) : 100U), 145U+random8(56U));
+        setModeSettings(isColored ? 1U + tmp * tmp : (random8(10U) ? 1U + random8(99U) : 100U), 145U + random8(56U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     hue2 = 0U;
+
+    loadingFlag = false;
   }
-//if (modes[currentMode].Brightness & 0x01) // для проверки движения источника дыма можно включить
-  dimAll(254U);//(255U - modes[currentMode].Scale * 2);
-//else     ledsClear(); // esphome: FastLED.clear();
+
+  dimAll(254U);  // (255U - modes[currentMode].Scale * 2);
 
   deltaHue++;
-  CRGB color;//, color2;
-  if (isColored)
-  {
-    if (hue2 == modes[currentMode].Scale)
-      {
-        hue2 = 0U;
-        hue = random8();
-      }
-    if (deltaHue & 0x01)//((deltaHue >> 2U) == 0U) // какой-то умножитель охота подключить к задержке смены цвета, но хз какой...
+  CRGB color;
+
+  if (isColored) {
+    if (hue2 == modes[currentMode].Scale) {
+      hue2 = 0U;
+      hue = random8();
+    }
+    if (deltaHue & 0x01) {
       hue2++;
+    }
 
-    //color = CHSV(hue, 255U, 255U);
     hsv2rgb_spectrum(CHSV(hue, 255U, 127U), color);
-    //hsv2rgb_spectrum(CHSV(hue, 255U, 88U), color2);
-  }
-  else {
-    //color = CHSV((modes[currentMode].Scale - 1U) * 2.6, (modes[currentMode].Scale > 98U) ? 0U : 255U, 255U);
+  } else {
     hsv2rgb_spectrum(CHSV((modes[currentMode].Scale - 1U) * 2.6f, (modes[currentMode].Scale > 98U) ? 0U : 255U, 127U), color);
-    //hsv2rgb_spectrum(CHSV((modes[currentMode].Scale - 1U) * 2.6, (modes[currentMode].Scale > 98U) ? 0U : 255U,  88U), color2);
   }
 
-  //deltaHue2--;
-  if (random8(WIDTH) != 0U) // встречная спираль движется не всегда синхронно основной
+  if (random8(WIDTH) != 0U) { // встречная спираль движется не всегда синхронно основной
     deltaHue2--;
-
-  for (uint8_t y = 0; y < HEIGHT; y++) {
-    leds[XY((deltaHue  + y + 1U)%WIDTH, HEIGHT - 1U - y)] += color;
-    leds[XY((deltaHue  + y     )%WIDTH, HEIGHT - 1U - y)] += color; //color2
-    leds[XY((deltaHue2 + y     )%WIDTH,               y)] += color;
-    leds[XY((deltaHue2 + y + 1U)%WIDTH,               y)] += color; //color2
   }
 
-//if (modes[currentMode].Brightness & 0x01) { // для проверки движения источника дыма можно включить эту опцию
+  const uint8_t max_height_idx = HEIGHT - 1U;
+  for (uint8_t y = 0; y < HEIGHT; y++) {
+    uint8_t target_y = max_height_idx - y;
+    
+    leds[XY((deltaHue  + y + 1U) % WIDTH, target_y)] += color;
+    leds[XY((deltaHue  + y     ) % WIDTH, target_y)] += color;
+    leds[XY((deltaHue2 + y     ) % WIDTH,        y)] += color;
+    leds[XY((deltaHue2 + y + 1U) % WIDTH,        y)] += color;
+  }
+
   // Noise
+  noise32_x[0] += 1500U;
+  noise32_y[0] += 1500U;
+  noise32_z[0] += 1500U;
 
-  // скорость движения по массиву noise
-  //uint32_t mult = 500U * ((modes[currentMode].Scale - 1U) % 10U);
-  noise32_x[0] += 1500;//1000;
-  noise32_y[0] += 1500;//1000;
-  noise32_z[0] += 1500;//1000;
+  scale32_x[0] = 4000U;
+  scale32_y[0] = 4000U;
 
-  // хрен знает что
-  //mult = 1000U * ((modes[currentMode].Speed - 1U) % 10U);
-  scale32_x[0] = 4000;
-  scale32_y[0] = 4000;
   FillNoise(0);
-  //MoveX(3);
-  //MoveY(3);
 
   // допустимый отлёт зажжённого пикселя от изначально присвоенного местоположения (от 0 до указанного значения. дробное)
-  //mult = (modes[currentMode].Brightness - 1U) % 10U;
-  MoveFractionalNoiseX(3);//4
-  MoveFractionalNoiseY(3);//4
+  MoveFractionalNoiseX(3);
+  MoveFractionalNoiseY(3);
 
-  blurScreen(20); // без размытия как-то пиксельно, наверное...
-//} endif (modes[currentMode].Brightness & 0x01)
+  blurScreen(20U); // без размытия как-то пиксельно, наверное...
 }
 #endif
 
@@ -4555,8 +4543,7 @@ static void MultipleStreamSmoke(bool isColored){
 // float   trackingObjectSpeedX[trackingOBJECT_MAX_COUNT];                   // The integer position of the dot on the strip (LED index)
 
 static void PicassoGenerate(bool reset){
-  if (loadingFlag)
-  {
+  if (loadingFlag) {
     enlargedObjectNUM = std::clamp(enlargedObjectNUM, (uint16_t)2U, (uint16_t)enlargedOBJECT_MAX_COUNT);
 
     constexpr float minSpeed = 0.2f;
