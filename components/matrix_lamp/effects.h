@@ -3460,12 +3460,12 @@ static void Fire2018_2() {
 
   const uint32_t current_ms = millis();
   const uint8_t current_scale = modes[currentMode].Scale;
-  
+
   // some changing values
   uint16_t ctrl1 = fastled_helper::perlin16(11U * current_ms, 0, 0);
   uint16_t ctrl2 = fastled_helper::perlin16(13U * current_ms, 100000, 100000);
   uint16_t  ctrl = ((ctrl1 + ctrl2) >> 1);  // / 2
-  
+
   // ================= LAYER 0 =================
   // parameters for the heatmap
   uint16_t speed = 25U;
@@ -3475,12 +3475,12 @@ static void Fire2018_2() {
   uint32_t base_noise_z = 5U * current_ms * speed;
   uint32_t scale_x      = ctrl1 >> 1;  // / 2
   uint32_t scale_y      = ctrl2 >> 1;  // / 2
-  
+
   // calculate the noise data
   for (uint8_t i = 0; i < WIDTH; i++) {
     uint32_t ioffset = scale_x * (i - CENTER_X_MAJOR);
     uint32_t current_x_noise = base_noise_x + ioffset;
-    
+
     for (uint8_t j = 0; j < HEIGHT; j++) {
       uint32_t joffset = scale_y * (j - CENTER_Y_MAJOR);
       uint16_t data = ((fastled_helper::perlin16(current_x_noise, base_noise_y + joffset, base_noise_z)) + 1U);
@@ -3497,16 +3497,16 @@ static void Fire2018_2() {
   base_noise_z = 5U * current_ms * speed;
   scale_x      = ctrl1 >> 1;  // / 2;
   scale_y      = ctrl2 >> 1;  // / 2;
-  
+
   // calculate the noise data
   for (uint8_t i = 0; i < WIDTH; i++) {
     uint32_t ioffset = scale_x * (i - CENTER_X_MAJOR);
     uint32_t current_x_noise = base_noise_x + ioffset;
 
     for (uint8_t j = 0; j < HEIGHT; j++) {
-      uint32_t joffset = scale_y * (j - CENTER_Y_MAJOR);      
+      uint32_t joffset = scale_y * (j - CENTER_Y_MAJOR);
       uint16_t data = ((fastled_helper::perlin16(current_x_noise, base_noise_y + joffset, base_noise_z)) + 1U);
-      noise3d[1][i][j] = (uint8_t)(data >> 8);      
+      noise3d[1][i][j] = (uint8_t)(data >> 8);
     }
   }
 
@@ -3540,15 +3540,15 @@ static void Fire2018_2() {
   }
 
   const uint8_t max_h = HEIGHT - 1U;
-  
+
   for (uint8_t y = 0; y < HEIGHT; y++) {
     uint8_t target_y = max_h - y;
-    
+
     for (uint8_t x = 0; x < WIDTH; x++) {
       uint16_t idx = XY(x, y);
       uint8_t r_channel = ledsbuff[idx].r;
       uint8_t g_channel = ((uint16_t)r_channel * current_scale) / 100U;
-      
+
       // map the colors based on heatmap
       uint16_t led_idx = XY(x, target_y);
       leds[led_idx] = CRGB(r_channel, g_channel, 0U);
