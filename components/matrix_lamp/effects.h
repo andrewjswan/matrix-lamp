@@ -3368,10 +3368,10 @@ static void WaveRoutine() {
   dimAll(254);
 
   int n = 0;
-  
+
   const uint8_t max_x = WIDTH - 1U;
   const uint8_t max_y = HEIGHT - 1U;
-  
+
   switch (waveRotation) {
     case 0:
       for (uint8_t x = 0; x < WIDTH; x++) {
@@ -3380,7 +3380,7 @@ static void WaveRoutine() {
         if (waveCount != 1) drawPixelXY(x, max_y - n, ColorFromPalette(*curPalette, hue + x));
       }
       break;
-  
+
     case 1:
       for (uint8_t y = 0; y < HEIGHT; y++) {
         n = quadwave8((y << 1) + waveTheta) / waveScale;  // n = quadwave8(y * 2 + waveTheta) / waveScale;
@@ -3388,7 +3388,7 @@ static void WaveRoutine() {
         if (waveCount != 1) drawPixelXY(max_x - n, y, ColorFromPalette(*curPalette, hue + y));
       }
       break;
-  
+
     case 2:
       for (uint8_t x = 0; x < WIDTH; x++) {
         n = quadwave8((x << 1) - waveTheta) / waveScale;  // n = quadwave8(x * 2 - waveTheta) / waveScale;
@@ -3396,7 +3396,7 @@ static void WaveRoutine() {
         if (waveCount != 1) drawPixelXY(x, max_y - n, ColorFromPalette(*curPalette, hue + x));
       }
       break;
-  
+
     case 3:
       for (uint8_t y = 0; y < HEIGHT; y++) {
         n = quadwave8((y << 1) - waveTheta) / waveScale;  // n = quadwave8(y * 2 - waveTheta) / waveScale;
