@@ -4733,7 +4733,7 @@ static void LeapersMove_leaper(uint8_t l) {
     trackingObjectSpeedY[l] = (-trackingObjectSpeedY[l] * WALL_FRICTION);
     trackingObjectSpeedX[l] = (trackingObjectSpeedX[l] * WALL_FRICTION);
     trackingObjectPosY[l] += trackingObjectSpeedY[l];
-    
+
     if (trackingObjectPosY[l] < 0.0f) {
       trackingObjectPosY[l] = 0.0f; // settled on the floor?
     }
