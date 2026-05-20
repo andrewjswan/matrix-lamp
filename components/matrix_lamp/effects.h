@@ -3582,9 +3582,7 @@ constexpr uint8_t fireSmoothing = 80U;
 
 static void fire2012again()
 {
-  if (loadingFlag)
-  {
-    loadingFlag = false;
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
         uint8_t tmp = 17U + random8(55U);
@@ -3593,40 +3591,46 @@ static void fire2012again()
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    if (modes[currentMode].Scale > 100) modes[currentMode].Scale = 100; // чтобы не было проблем при прошивке без очистки памяти
-    if (modes[currentMode].Scale > 50)
-      //fire_p = firePalettes[(int)((float)modes[currentMode].Scale/12)];
-      //fire_p = firePalettes[(uint8_t)((modes[currentMode].Scale % 50)/5.56F)];
-      curPalette = firePalettes[(uint8_t)((modes[currentMode].Scale - 50)/50.0f * ((sizeof(firePalettes)/sizeof(TProgmemRGBPalette16 *))-0.01f))];
-    else
-      curPalette = palette_arr[(uint8_t)(modes[currentMode].Scale/50.0f * ((sizeof(palette_arr)/sizeof(TProgmemRGBPalette16 *))-0.01f))];
+    if (modes[currentMode].Scale > 100U) modes[currentMode].Scale = 100U;
+    if (modes[currentMode].Scale > 50U) {
+      curPalette = firePalettes[(uint8_t)((modes[currentMode].Scale - 50U) / 50.0f * ((sizeof(firePalettes) / sizeof(TProgmemRGBPalette16 *)) - 0.01f))];
+    } else {
+      curPalette = palette_arr[(uint8_t)(modes[currentMode].Scale / 50.0f * ((sizeof(palette_arr) / sizeof(TProgmemRGBPalette16 *)) - 0.01f))];
+    }
+
+    loadingFlag = false;
   }
 
   // Add entropy to random number generator; we use a lot of it.
-  random16_add_entropy(random(256));
+  random16_add_entropy(random8());
+
+  const uint8_t cooling_limit = ((cooling * 10U) / HEIGHT) + 2U;
 
   // Loop for each column individually
   for (uint8_t x = 0; x < WIDTH; x++) {
     // Step 1.  Cool down every cell a little
     for (uint8_t i = 0; i < HEIGHT; i++) {
-      noise3d[0][x][i] = qsub8(noise3d[0][x][i], random(0, ((cooling * 10) / HEIGHT) + 2));
+      noise3d[0][x][i] = qsub8(noise3d[0][x][i], random8(0, cooling_limit));
     }
 
     // Step 2.  Heat from each cell drifts 'up' and diffuses a little
     for (uint8_t k = HEIGHT - 1; k > 0; k--) { // fixed by SottNick
-      noise3d[0][x][k] = (noise3d[0][x][k - 1] + noise3d[0][x][k - 1] + noise3d[0][x][wrapY(k - 2)]) / 3; // fixed by SottNick
+      noise3d[0][x][k] = ((uint16_t)noise3d[0][x][k - 1] + noise3d[0][x][k - 1] + noise3d[0][x][wrapY(k - 2)]) / 3U;
     }
 
     // Step 3.  Randomly ignite new 'sparks' of heat near the bottom
     if (random8() < sparking) {
       uint8_t j = random8(FIRE_BASE);
-      noise3d[0][x][j] = qadd8(noise3d[0][x][j], random(160, 255));
+      noise3d[0][x][j] = qadd8(noise3d[0][x][j], random8(160, 255));
     }
 
     // Step 4.  Map from heat cells to LED colors
     // Blend new data with previous frame. Average data between neighbouring pixels
-    for (uint8_t y = 0; y < HEIGHT; y++)
-      nblend(leds[XY(x,y)], ColorFromPalette(*curPalette, ((noise3d[0][x][y] * 0.7f) + (noise3d[0][wrapX(x+1)][y] * 0.3f))), fireSmoothing);
+    uint8_t next_x = wrapX(x + 1U);
+    for (uint8_t y = 0; y < HEIGHT; y++) {
+      uint8_t blended_heat = scale8(noise3d[0][x][y], 179U) + scale8(noise3d[0][next_x][y], 76U);  // ((noise3d[0][x][y] * 0.7f) + (noise3d[0][next_x][y] * 0.3f))
+      nblend(leds[XY(x, y)], ColorFromPalette(*curPalette, blended_heat), fireSmoothing);
+    }
   }
 }
 #endif
