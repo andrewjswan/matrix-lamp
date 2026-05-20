@@ -2559,33 +2559,36 @@ static void fire2012WithPalette4in1() {
 // https://github.com/pixelmatix/aurora/blob/master/PatternPendulumWave.h
 // Адаптация от (c) SottNick
 static void PrismataRoutine() {
-  if (loadingFlag)
-  {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
-        setModeSettings(1U + random8(100U), 35U+random8(100U));
+      if (selectedSettings) {
+        setModeSettings(1U + random8(100U), 35U + random8(100U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     setCurrentPalette();
+
+    loadingFlag = false;
   }
 
-//  EVERY_N_MILLIS(33) { маловата задержочка
-    hue++; // используем переменную сдвига оттенка из функций радуги, чтобы не занимать память
-//  }
+  const uint8_t current_scale = modes[currentMode].Scale;
+  const uint8_t current_speed = modes[currentMode].Speed;
+
+  hue++; // используем переменную сдвига оттенка из функций радуги, чтобы не занимать память
+
   blurScreen(20); // @Palpalych посоветовал делать размытие
-  dimAll(255U - (modes[currentMode].Scale - 1U) % 11U * 3U);
+  dimAll(255U - ((current_scale - 1U) % 11U * 3U));
 
-  for (uint8_t x = 0; x < WIDTH; x++)
-  {
-    //uint8_t y = beatsin8(x + 1, 0, HEIGHT-1); // это я попытался распотрошить данную функцию до исходного кода и вставить в неё регулятор скорости
-    // вместо 28 в оригинале было 280, умножения на .Speed не было, а вместо >>17 было (<<8)>>24. короче, оригинальная скорость достигается при бегунке .Speed=20
-    uint8_t beat = (GET_MILLIS() * (accum88(x + 1)) * 28 * modes[currentMode].Speed) >> 17;
-    uint8_t y = scale8(sin8(beat), HEIGHT-1);
-    //и получилось!!!
+  uint32_t time_base = (uint32_t)GET_MILLIS() * 28U * current_speed;
 
-    drawPixelXY(x, y, ColorFromPalette(*curPalette, x * 7 + hue));
+  const uint8_t max_height = HEIGHT - 1U;
+  for (uint8_t x = 0; x < WIDTH; x++) {
+    // вместо 28 в оригинале было 280, умножения на .Speed не было, а вместо >> 17 было (<< 8) >>24.
+    // короче, оригинальная скорость достигается при бегунке .Speed = 20
+    uint8_t beat = (uint8_t)((time_base * accum88(x + 1U)) >> 17);
+    uint8_t y = scale8(sin8(beat), max_height);
+
+    drawPixelXY(x, y, ColorFromPalette(*curPalette, x * 7U + hue));
   }
 }
 #endif
