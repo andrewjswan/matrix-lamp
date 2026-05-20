@@ -3155,55 +3155,61 @@ static Boid boids[AVAILABLE_BOID_COUNT];
 // ============= ЭФФЕКТ СТАЯ ===============
 // https://github.com/pixelmatix/aurora/blob/master/PatternFlock.h
 // Адаптация от (c) SottNick и @kDn
+// Optimization by andrewjswan
 
 // Flocking
 // Daniel Shiffman <http://www.shiffman.net>
 // The Nature of Code, Spring 2009
 
-constexpr uint8_t boidCount = 10;
+constexpr uint8_t boidCount = 10U;
 
 static Boid predator;
 static PVector wind;
 static bool predatorPresent = true;
 
 static void flockRoutine(bool predatorIs) {
-  if (loadingFlag)
-  {
+  const uint8_t current_scale = modes[currentMode].Scale;
+  const uint8_t current_speed = modes[currentMode].Speed;
+  
+  // Предрасчет коэффициента скорости для float-физики
+  const float speed_factor = (float)current_speed / 127.0f;
+
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
+      if (selectedSettings) {
         //setModeSettings(random8(8U)*11U+1U + random8(11U), 1U + random8(255U));
-        uint8_t tmp = random8(5U);// 0, 1, 5, 6, 7 - остальные 4 палитры с чёрным цветом - стая будет исчезать периодически (2, 3, 4, 8)
+        uint8_t tmp = random8(5U);  // 0, 1, 5, 6, 7 - остальные 4 палитры с чёрным цветом - стая будет исчезать периодически (2, 3, 4, 8)
         if (tmp > 1U) tmp += 3U;
-        setModeSettings(tmp*11U+2U + random8(10U), 1U + random8(255U));
+        setModeSettings(tmp * 11U + 2U + random8(10U), 1U + random8(255U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     setCurrentPalette();
 
     for (int i = 0; i < boidCount; i++) {
       boids[i] = Boid(0.0f, 0.0f);  // WIDTH - 1U, HEIGHT - 1U);
-      boids[i].maxspeed = 0.380f * modes[currentMode].Speed /127.0f+0.380f/2;
-      boids[i].maxforce = 0.015f * modes[currentMode].Speed /127.0f+0.015f/2;
+      boids[i].maxspeed = 0.380f * speed_factor + 0.380f / 2.0f;
+      boids[i].maxforce = 0.015f * speed_factor + 0.015f / 2.0f;      
     }
+
     predatorPresent = predatorIs && random8(2U);
-    //if (predatorPresent) { нужно присвоить ему значения при первом запуске, иначе он с нулями будет жить
-      predator = Boid(0, 0);//WIDTH + WIDTH - 1, HEIGHT + HEIGHT - 1);
-      predator.maxspeed = 0.385f * modes[currentMode].Speed /127.0f+0.385f/2;
-      predator.maxforce = 0.020f * modes[currentMode].Speed /127.0f+0.020f/2;
-      predator.neighbordist = 8.0f; // было 16.0 и хищник гонял по одной линии всегда
-      predator.desiredseparation = 0.0f;
-    //}
+    predator = Boid(0, 0);          // WIDTH + WIDTH - 1, HEIGHT + HEIGHT - 1);
+    predator.maxspeed = 0.385f * speed_factor + 0.385f / 2.0f;
+    predator.maxforce = 0.020f * speed_factor + 0.020f / 2.0f;    
+    predator.neighbordist = 8.0f;   // было 16.0 и хищник гонял по одной линии всегда
+    predator.desiredseparation = 0.0f;
+
+    loadingFlag = false;
   }
 
   blurScreen(15); // @Palpalych советует делать размытие
 
-  dimAll(255U - (modes[currentMode].Scale - 1U) % 11U * 3);
+  dimAll(255U - ((current_scale - 1U) % 11U * 3U));
 
-  bool applyWind = random(0, 255) > 240;
+  bool applyWind = random8() > 240U;
   if (applyWind) {
-    wind.x = Boid::randomf() * 0.015f * modes[currentMode].Speed /127.0f + 0.015f / 2;
-    wind.y = Boid::randomf() * 0.015f * modes[currentMode].Speed /127.0f + 0.015f / 2;
+    wind.x = Boid::randomf() * 0.015f * speed_factor + 0.015f / 2.0f;
+    wind.y = Boid::randomf() * 0.015f * speed_factor + 0.015f / 2.0f;
   }
 
   CRGB color = ColorFromPalette(*curPalette, hue);
@@ -3230,7 +3236,7 @@ static void flockRoutine(bool predatorIs) {
   if (predatorPresent) {
     predator.run(boids, boidCount);
     predator.wrapAroundBorders();
-    color = ColorFromPalette(*curPalette, hue + 128);
+    color = ColorFromPalette(*curPalette, hue + 128U);
     PVector location = predator.location;
     drawPixelXYF(location.x, location.y, color);
   }
