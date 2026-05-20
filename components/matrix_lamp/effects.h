@@ -4020,14 +4020,14 @@ static void ringsRoutine() {
   #define ring_base_thickness     deltaHue2     // максимальне количество пикселей в кольце (толщина кольца) от 1 до CENTER_Y + 1
   #define ring_bottom_thickness   hue           // количество пикселей самого нижнего кольца
   #define ring_top_thickness      hue2          // количество пикселей самого верхнего кольца
-  
+
   #define ring_base_hue           noise3d[0][0] // массив базовых оттенков для каждого кольца [rings_count]
   #define ring_hue_shifts         shiftHue      // 4 бита на градиент внутри кольца, 4 на скорость перелива [rings_count]
   #define ring_rotation_pos       shiftValue    // местоположение (сдвиг) начала кольца от 0 до WIDTH-1 [rings_count]
-  
+
   #define active_ring_idx         deltaValue    // индекс кольца, которое в данный момент проворачивается
   #define active_ring_steps       step          // оставшееся количество шагов проворота активного кольца
-  
+
   uint8_t h, x, y;
 
   if (loadingFlag) {
@@ -4040,17 +4040,17 @@ static void ringsRoutine() {
     setCurrentPalette();
 
     // Математика вычисления толщины колец
-    ring_base_thickness = (modes[currentMode].Scale - 1U) % 11U + 1U;                                // толщина кольца от 1 до 11 для каждой из палитр 
-    rings_count = HEIGHT / ring_base_thickness + ((HEIGHT % ring_base_thickness == 0U) ? 0U : 1U);   // количество колец 
+    ring_base_thickness = (modes[currentMode].Scale - 1U) % 11U + 1U;                                // толщина кольца от 1 до 11 для каждой из палитр
+    rings_count = HEIGHT / ring_base_thickness + ((HEIGHT % ring_base_thickness == 0U) ? 0U : 1U);   // количество колец
     ring_top_thickness = ring_base_thickness - (ring_base_thickness * rings_count - HEIGHT) / 2U;    // толщина верхнего кольца. может быть меньше нижнего
     ring_bottom_thickness = HEIGHT - ring_top_thickness - (rings_count - 2U) * ring_base_thickness;  // толщина нижнего кольца = всё оставшееся
-    
+
     for (uint8_t i = 0; i < rings_count; i++) {
       ring_base_hue[i] = random8(257U - CENTER_X);  // начальный оттенок кольца из палитры 0-255 за минусом длины кольца, делённой пополам
       ring_hue_shifts[i] = random8();
       ring_rotation_pos[i] = 0U;                    // random8(WIDTH); само прокрутится постепенно
       active_ring_steps = 0U;
-      active_ring_idx = random8(rings_count);      
+      active_ring_idx = random8(rings_count);
     }
 
     loadingFlag = false;
@@ -4073,18 +4073,18 @@ static void ringsRoutine() {
         if (active_ring_steps > 127U) {
           active_ring_steps++;
           ring_rotation_pos[i]++;
-          if (ring_rotation_pos[i] >= WIDTH) ring_rotation_pos[i] = 0U;          
+          if (ring_rotation_pos[i] >= WIDTH) ring_rotation_pos[i] = 0U;
         } else {
           active_ring_steps--;
           if (ring_rotation_pos[i] == 0U) ring_rotation_pos[i] = WIDTH - 1U;
-          else                            ring_rotation_pos[i]--;          
+          else                            ring_rotation_pos[i]--;
         }
       }
     }
-    
+
     // отрисовываем кольца
     h = (ring_hue_shifts[i] >> 4) & 0x0FU; // старшие 4 бита: шаг для градиента внутри кольца
-    if (h > 8U) h = 7U - h;    
+    if (h > 8U) h = 7U - h;
 
     // Определяем точную толщину текущего кольца (нижнее, верхнее или стандартное)
     uint8_t current_ring_thickness = (i == 0U) ? ring_bottom_thickness : ((i == rings_count - 1U) ? ring_top_thickness : ring_base_thickness);
@@ -4097,16 +4097,16 @@ static void ringsRoutine() {
 
       // Вместо формул (current_rotation + k) % WIDTH мы запускаем бегущие указатели координат
       uint8_t left_x  = current_rotation; // Стартовая точка для первой половины полукольца
-      
+
       // Старт для зеркальной половины. В целых числах: (WIDTH - 1 + current_rotation) % WIDTH.
-      // Если current_rotation == 0, то (WIDTH - 1) % WIDTH = WIDTH - 1. 
+      // Если current_rotation == 0, то (WIDTH - 1) % WIDTH = WIDTH - 1.
       // Иначе это просто current_rotation - 1.
       uint8_t right_x = (current_rotation == 0U) ? (WIDTH - 1U) : (current_rotation - 1U);
 
       for (uint8_t k = 0; k < CENTER_X; k++) {
         // Отрисовка первой половины полукольца (сдвигается вправо)
         leds[XY(left_x, y)] = ColorFromPalette(*curPalette, current_base_hue + k * h);
-        
+
         // Отрисовка второй половины полукольца (зеркально сдвигается влево)
         leds[XY(right_x, y)] = ColorFromPalette(*curPalette, current_base_hue + k * h);
 
@@ -4124,8 +4124,8 @@ static void ringsRoutine() {
         x = (current_rotation + CENTER_X);
         if (x >= WIDTH) x -= WIDTH; // Оптимизированная замена % WIDTH
         leds[XY(x, y)] = ColorFromPalette(*curPalette, current_base_hue + CENTER_X * h);
-      }          
-    }    
+      }
+    }
   }
 
   #undef rings_count
@@ -4136,7 +4136,7 @@ static void ringsRoutine() {
   #undef ring_hue_shifts
   #undef ring_rotation_pos
   #undef active_ring_idx
-  #undef active_ring_steps  
+  #undef active_ring_steps
 }
 #endif
 
