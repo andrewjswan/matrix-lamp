@@ -586,6 +586,7 @@ static void poolRoutine()
 #ifdef DEF_COLORS
 // ------------- цвета - 2 -----------------
 #define DELAY_MULTIPLIER (20U) //при задержке между кадрами примерно в 50 мс с этим множителем получится 1 с на единицу бегунка Скорость
+
 static void colorsRoutine2()
 {
   if (loadingFlag) {
@@ -878,9 +879,9 @@ static void butterflysRoutine(bool isColored)
     for (uint8_t i = 0U; i < trackingOBJECT_MAX_COUNT; i++) {
       trackingObjectPosX[i] = random8(WIDTH);
       trackingObjectPosY[i] = random8(HEIGHT);
-      trackingObjectSpeedX[i] = 0;
-      trackingObjectSpeedY[i] = 0;
-      trackingObjectShift[i] = 0;
+      trackingObjectSpeedX[i] = 0.0f;
+      trackingObjectSpeedY[i] = 0.0f;
+      trackingObjectShift[i] = 0.0f;
       trackingObjectHue[i] = (isColored) ? random8() : 255U;
       trackingObjectState[i] = 255U;
     }
@@ -3637,12 +3638,12 @@ static void fire2012again()
 // https://github.com/marcmerlin/FastLED_NeoMatrix_SmartMatrix_LEDMatrix_GFX_Demos/blob/master/FastLED/Sublime_Demos/Sublime_Demos.ino
 // там по ссылке ещё остались эффекты с 3 по 9 (в SimplePatternList перечислены)
 
-//прикольная процедура добавляет блеск почти к любому эффекту после его отрисовки https://www.youtube.com/watch?v=aobtR1gIyIo
-//void addGlitter(uint8_t chanceOfGlitter){
-//  if (random8() < chanceOfGlitter) leds[ random16(NUM_LEDS) ] += CRGB::White;
-//}
+// прикольная процедура добавляет блеск почти к любому эффекту после его отрисовки https://www.youtube.com/watch?v=aobtR1gIyIo
+// void addGlitter(uint8_t chanceOfGlitter){
+//   if (random8() < chanceOfGlitter) leds[ random16(NUM_LEDS) ] += CRGB::White;
+// }
 
-//static uint8_t intensity = 42;  // будет бегунок масштаба
+// static uint8_t intensity = 42;  // будет бегунок масштаба
 
 // Array of temp cells (used by fire, theMatrix, coloredRain, stormyRain)
 // uint8_t **tempMatrix; = noise3d[0][WIDTH][HEIGHT]
@@ -3657,15 +3658,22 @@ static void rain(uint8_t backgroundDepth, uint8_t maxBrightness, uint8_t spawnFr
 
   CRGB lightningColor = CRGB(72, 72, 80);
   CRGBPalette16 rain_p(CRGB::Black, rainColor);
+
 #ifdef SMARTMATRIX
   CRGBPalette16 rainClouds_p(CRGB::Black, CRGB(75, 84, 84), CRGB(49, 75, 75), CRGB::Black);
 #else
   CRGBPalette16 rainClouds_p(CRGB::Black, CRGB(15, 24, 24), CRGB(9, 15, 15), CRGB::Black);
 #endif
 
-  //fadeToBlackBy(leds, NUM_LEDS, 255-tailLength);
   dimAll(tailLength);
 
+  constexpr uint8_t max_width_idx  = WIDTH - 1U;
+  constexpr uint8_t max_height_idx = HEIGHT - 1U;
+  
+  // ledsbuff[].r - Канал молнии
+  // ledsbuff[].b - Канал облаков
+  memset(ledsbuff, 0, sizeof(ledsbuff));
+  
   // Loop for each column individually
   for (uint8_t x = 0; x < WIDTH; x++) {
     // Step 1.  Move each dot down one cell
@@ -3680,13 +3688,13 @@ static void rain(uint8_t backgroundDepth, uint8_t maxBrightness, uint8_t spawnFr
 
     // Step 2.  Randomly spawn new dots at top
     if (random8() < spawnFreq) {
-      noise3d[0][x][HEIGHT-1] = random(backgroundDepth, maxBrightness);
+      noise3d[0][x][max_height_idx] = random8(backgroundDepth, maxBrightness);
     }
 
     // Step 3. Map from tempMatrix cells to LED colors
     for (uint8_t y = 0; y < HEIGHT; y++) {
       if (noise3d[0][x][y] >= backgroundDepth) {  // Don't write out empty cells
-        leds[XY(x,y)] = ColorFromPalette(rain_p, noise3d[0][x][y]);
+        leds[XY(x, y)] = ColorFromPalette(rain_p, noise3d[0][x][y]);
       }
     }
 
@@ -3697,153 +3705,153 @@ static void rain(uint8_t backgroundDepth, uint8_t maxBrightness, uint8_t spawnFr
       uint8_t v = noise3d[0][x][0];
 
       if (j >= backgroundDepth) {
-        leds[XY(wrapX(x-2),0)] = ColorFromPalette(rain_p, j/3);
-        leds[XY(wrapX(x+2),0)] = ColorFromPalette(rain_p, j/3);
+        leds[XY(wrapX(x - 2), 0)] = ColorFromPalette(rain_p, j / 3U);
+        leds[XY(wrapX(x + 2), 0)] = ColorFromPalette(rain_p, j / 3U);
         line[x] = 0;   // Reset splash
       }
 
       if (v >= backgroundDepth) {
-        leds[XY(wrapX(x-1),1)] = ColorFromPalette(rain_p, v/2);
-        leds[XY(wrapX(x+1),1)] = ColorFromPalette(rain_p, v/2);
+        leds[XY(wrapX(x - 1), 1)] = ColorFromPalette(rain_p, v >> 1);  // / 2
+        leds[XY(wrapX(x + 1), 1)] = ColorFromPalette(rain_p, v >> 1);  // / 2
         line[x] = v; // Prep splash for next frame
       }
     }
 
     // Step 5. Add lightning if called for
     if (storm) {
-      // uint8_t lightning[WIDTH][HEIGHT];
-      // ESP32 does not like static arrays  https://github.com/espressif/arduino-esp32/issues/2567
-      uint8_t *lightning = (uint8_t *) malloc(NUM_LEDS);
-      if (lightning == NULL) {
-        ESP_LOGD("EFF", "Lightning malloc failed");
-        return;
-      }
+      if (random16() < 72U) {    // Odds of a lightning bolt
+        constexpr uint16_t lightning_top_offset = (uint16_t)max_height_idx * WIDTH;
 
-      if (random16() < 72) {    // Odds of a lightning bolt
-        lightning[scale8(random8(), WIDTH-1) + (HEIGHT-1) * WIDTH] = 255;  // Random starting location
-        for(uint8_t ly = HEIGHT-1; ly > 1; ly--) {
-          for (uint8_t lx = 1; lx < WIDTH-1; lx++) {
-            if (lightning[lx + ly * WIDTH] == 255) {
-              lightning[lx + ly * WIDTH] = 0;
-              uint8_t dir = random8(4);
+        uint16_t start_idx = scale8(random8(), max_width_idx) + lightning_top_offset;
+        ledsbuff[start_idx].r = 255U; // Random starting location
+
+        for(uint8_t ly = max_height_idx; ly > 1; ly--) {
+          for (uint8_t lx = 1; lx < max_width_idx; lx++) {
+            if (ledsbuff[lx + ly * WIDTH].r == 255U) {
+              ledsbuff[lx + ly * WIDTH].r = 0U;
+
+              uint8_t dir = random8(4U);
               switch (dir) {
                 case 0:
-                  leds[XY(lx+1,ly-1)] = lightningColor;
-                  lightning[(lx+1) + (ly-1) * WIDTH] = 255; // move down and right
-                break;
+                  leds[XY(lx + 1U, ly - 1U)] = lightningColor;
+                  ledsbuff[(lx + 1U) + (ly - 1U) * WIDTH].r = 255U;  // move down and right
+                  break;
                 case 1:
-                  leds[XY(lx,ly-1)] = CRGB(128,128,128);    // я без понятия, почему у верхней молнии один оттенок, а у остальных - другой
-                  lightning[lx + (ly-1) * WIDTH] = 255;     // move down
-                break;
+                  leds[XY(lx, ly - 1U)] = CRGB(128, 128, 128);       // я без понятия, почему у верхней молнии один оттенок, а у остальных - другой
+                  ledsbuff[lx + (ly - 1U) * WIDTH].r = 255U;         // move down
+                  break;
                 case 2:
-                  leds[XY(lx-1,ly-1)] = CRGB(128,128,128);
-                  lightning[(lx-1) + (ly-1) * WIDTH] = 255; // move down and left
-                break;
+                  leds[XY(lx - 1U, ly - 1U)] = CRGB(128, 128, 128);
+                  ledsbuff[(lx - 1U) + (ly - 1U) * WIDTH].r = 255U;  // move down and left
+                  break;
                 case 3:
-                  leds[XY(lx-1,ly-1)] = CRGB(128,128,128);
-                  lightning[(lx-1) + (ly-1) * WIDTH] = 255; // fork down and left
-                  leds[XY(lx-1,ly-1)] = CRGB(128,128,128);
-                  lightning[(lx+1) + (ly-1) * WIDTH] = 255; // fork down and right
-                break;
+                  leds[XY(lx - 1U, ly - 1U)] = CRGB(128, 128, 128);
+                  ledsbuff[(lx - 1U) + (ly - 1U) * WIDTH].r = 255U;  // fork down and left
+                  leds[XY(lx - 1U, ly - 1U)] = CRGB(128, 128, 128);
+                  ledsbuff[(lx + 1U) + (ly - 1U) * WIDTH].r = 255U;  // fork down and right 
+                  break;                
               }
             }
           }
         }
       }
-
-      free(lightning);
     }
 
     // Step 6. Add clouds if called for
     if (clouds) {
-      constexpr uint16_t noiseScale = 250;                                      // A value of 1 will be so zoomed in, you'll mostly see solid colors.
+      constexpr uint16_t noiseScale = 250U;                                     // A value of 1 will be so zoomed in, you'll mostly see solid colors.
                                                                                 // A value of 4011 will be very zoomed out and shimmery
-      constexpr uint8_t cloudHeight = static_cast<uint8_t>(HEIGHT * 0.4f) + 1;  // это уже 40% c лишеним, но на высоких матрицах будет чуть меньше
-
-      // This is the array that we keep our computed noise values in
-      static uint8_t *noise = (uint8_t *) malloc(WIDTH * cloudHeight);
-      if (noise == NULL) {
-        ESP_LOGD("EFF", "Noise malloc failed");
-        return;
-      }
-
+      constexpr uint8_t cloudHeight = ((HEIGHT * 4U) / 10U) + 1U;               // это уже 40% c лишеним, но на высоких матрицах будет чуть меньше
       int xoffset = noiseScale * x + hue;
+      
       for(uint8_t z = 0; z < cloudHeight; z++) {
         int yoffset = noiseScale * z - hue;
         constexpr uint8_t dataSmoothing = 192;
-        uint8_t noiseData = qsub8(fastled_helper::perlin8(ff_x + xoffset,ff_y + yoffset,ff_z),16);
-        noiseData = qadd8(noiseData, scale8(noiseData,39));
-        noise[x * cloudHeight + z] = scale8(noise[x * cloudHeight + z], dataSmoothing) + scale8(noiseData, 256 - dataSmoothing);
-        nblend(leds[XY(x,HEIGHT-z-1)], ColorFromPalette(rainClouds_p, noise[x * cloudHeight + z]), (cloudHeight-z)*(250/cloudHeight));
+        
+        uint8_t noiseData = qsub8(fastled_helper::perlin8(ff_x + xoffset, ff_y + yoffset, ff_z), 16U);
+        noiseData = qadd8(noiseData, scale8(noiseData, 39U));
+        
+        uint16_t buf_idx = (uint16_t)x * cloudHeight + z;
+        ledsbuff[buf_idx].b = scale8(ledsbuff[buf_idx].b, dataSmoothing) + scale8(noiseData, 256U - dataSmoothing);
+        nblend(leds[XY(x, max_height_idx - z)], ColorFromPalette(rainClouds_p, ledsbuff[buf_idx].b), (cloudHeight - z) * (250U / cloudHeight));
       }
       ff_z ++;
     }
   }
 }
 
-static uint8_t myScale8(uint8_t x) { // даёт масштабировать каждые 8 градаций (от 0 до 7) бегунка Масштаб в значения от 0 до 255 по типа синусоиде
-  uint8_t x8 = x % 8U;
-  uint8_t x4 = x8 % 4U;
-  if (x4 == 0U)
-    if (x8 == 0U)       return 0U;
-    else                return 255U;
-  else if (x8 < 4U)     return (1U   + x4 * 72U); // всего 7шт по 36U + 3U лишних = 255U (чтобы восхождение по синусоиде не было зеркально спуску)
-//else
-                        return (253U - x4 * 72U); // 253U = 255U - 2U
+// Даёт масштабировать каждые 8 градаций (от 0 до 7) бегунка Масштаб в значения от 0 до 255 по типа синусоиде
+static uint8_t myScale8(uint8_t x) {
+  uint8_t x8 = x & 0x07U;  // то же самое, что x % 8U
+  uint8_t x4 = x8 & 0x03U; // то же самое, что x8 % 4U
+
+  if (x4 == 0U) {
+    return (x8 == 0U) ? 0U : 255U; // Линейный быстрый тернарный оператор
+  }
+  if (x8 < 4U) {
+    return (1U + x4 * 72U);        // Восхождение по синусоиде (всего 7шт по 36U + 3U лишних = 255U)
+  }
+  return (253U - x4 * 72U);        // Спуск по синусоиде (253U = 255U - 2U)
 }
 
 static void coloredRain() // внимание! этот эффект заточен на работу бегунка Масштаб в диапазоне от 0 до 255. пока что единственный.
 {
   if (loadingFlag) {
-    loadingFlag = false;
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-    if (selectedSettings){
+    if (selectedSettings) {
       uint8_t tmp = 1U + random8(255U);
       if ((tmp % 4U == 0U) && (tmp % 8U != 0U)) tmp--;
       setModeSettings(tmp, 165U + random8(76U));
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+
+    loadingFlag = false;
   }
+
+  const uint8_t current_scale = modes[currentMode].Scale;
+  uint8_t tail_length = myScale8(current_scale);
+
+  constexpr uint8_t spawn_frequency = map8(42U, 5U, 100U);
 
   // я хз, как прикрутить а 1 регулятор и длину хвостов и цвет капель
   // ( Depth of dots, maximum brightness, frequency of new dots, length of tails, color, splashes, clouds, ligthening )
-  //rain(60, 200, map8(intensity,5,100), 195, CRGB::Green, false, false, false); // было CRGB::Green
-  if (modes[currentMode].Scale > 247U)
-    rain(60, 200, map8(42,5,100), myScale8(modes[currentMode].Scale), solidRainColor, false, false, false);
-  else
-    rain(60, 200, map8(42,5,100), myScale8(modes[currentMode].Scale), CHSV(modes[currentMode].Scale, 255U, 255U), false, false, false);
+  if (current_scale > 247U) {
+    rain(60U, 200U, spawn_frequency, tail_length, solidRainColor, false, false, false);
+  } else {
+    rain(60U, 200U, spawn_frequency, tail_length, CHSV(current_scale, 255U, 255U), false, false, false);
+  }
 }
 
 static void simpleRain()
 {
   if (loadingFlag) {
-    loadingFlag = false;
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings){
-      setModeSettings(random8(2U) ? 2U + random8(7U) : 9U+random8(70U), 220U+random8(22U));
+      setModeSettings(random8(2U) ? 2U + random8(7U) : 9U + random8(70U), 220U + random8(22U));
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+
+    loadingFlag = false;
   }
 
   // ( Depth of dots, maximum brightness, frequency of new dots, length of tails, color, splashes, clouds, ligthening )
-  //rain(60, 200, map8(intensity,2,60), 10, solidRainColor, true, true, false);
-  rain(60, 180,(modes[currentMode].Scale-1) * 2.58f, 30, solidRainColor, true, true, false);
+  rain(60U, 180U, ((uint16_t)(current_scale - 1U) * 258U) / 100U, 30U, solidRainColor, true, true, false);  //  2.58f
 }
 
 static void stormyRain()
 {
   if (loadingFlag) {
-    loadingFlag = false;
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings){
-      setModeSettings(random8(2U) ? 2U + random8(15U) : 17U+random8(64U), 220U+random8(22U));
+      setModeSettings(random8(2U) ? 2U + random8(15U) : 17U + random8(64U), 220U + random8(22U));
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+
+    loadingFlag = false;
   }
 
   // ( Depth of dots, maximum brightness, frequency of new dots, length of tails, color, splashes, clouds, ligthening )
-  //rain(0, 90, map8(intensity,0,150)+60, 10, solidRainColor, true, true, true);
-  rain(60, 160, (modes[currentMode].Scale - 1) * 2.58f, 30, solidRainColor, true, true, true);
+  rain(60U, 160U, ((uint16_t)(current_scale - 1U) * 258U) / 100U, 30U, solidRainColor, true, true, true);  //  2.58f
 }
 #endif
 
