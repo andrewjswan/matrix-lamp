@@ -6402,10 +6402,10 @@ static void pacifica_one_layer(CRGB *leds_ptr, const TProgmemRGBPalette16& p, ui
     uint16_t s16 = sin16(waveangle) + 32768U;
     uint16_t cs  = scale16(s16, wavescale_half) + wavescale_half;
     ci += cs;
-    
+
     uint16_t sindex16 = sin16(ci) + 32768U;
     uint8_t  sindex8  = scale16(sindex16, 240U);
-    
+
     leds_ptr[i] += ColorFromPalette(p, sindex8, bri, LINEARBLEND);
   }
 }
@@ -6419,12 +6419,12 @@ static void pacifica_add_whitecaps(CRGB *leds_ptr) {
   for(uint16_t i = 0U; i < NUM_LEDS; i++) {
     uint8_t threshold = scale8(sin8(wave), 20U) + basethreshold;
     wave += 7U;
-    
+
     uint8_t l = leds_ptr[i].getAverageLight();
     if(l > threshold) {
       uint8_t overage = l - threshold;
       uint8_t overage2 = qadd8(overage, overage);
-      
+
       leds_ptr[i].r = qadd8(leds_ptr[i].r, overage);
       leds_ptr[i].g = qadd8(leds_ptr[i].g, overage2);
       leds_ptr[i].b = qadd8(leds_ptr[i].b, qadd8(overage2, overage2));
@@ -6438,7 +6438,7 @@ static void pacifica_deepen_colors(CRGB *leds_ptr) {
   for(uint16_t i = 0U; i < NUM_LEDS; i++) {
     leds_ptr[i].blue  = scale8(leds_ptr[i].blue,  145U);
     leds_ptr[i].green = scale8(leds_ptr[i].green, 200U);
-    
+
     leds_ptr[i].r |= 2U;
     leds_ptr[i].g |= 5U;
     leds_ptr[i].b |= 7U;
@@ -6460,14 +6460,14 @@ static void pacificRoutine() {
   // Each is incremented at a different speed, and the speeds vary over time.
   static uint16_t sCIStart1, sCIStart2, sCIStart3, sCIStart4;
   static uint32_t sLastms = 0U;
-  
+
   const uint32_t ms = millis();
   const uint32_t deltams = ms - sLastms;
   sLastms = ms;
-  
+
   const uint16_t speedfactor1 = beatsin16(3U, 179U, 269U);
   const uint16_t speedfactor2 = beatsin16(4U, 179U, 269U);
-  
+
   const long speed_divider = map(modes[currentMode].Speed, 1, 255, 620, 60);
   const uint32_t deltams1 = (deltams * speedfactor1) / map(modes[currentMode].Speed, 1, 255, 620, 60);
   const uint32_t deltams2 = (deltams * speedfactor2) / map(modes[currentMode].Speed, 1, 255, 620, 60);
@@ -6477,7 +6477,7 @@ static void pacificRoutine() {
   sCIStart2 -= (deltams21 * beatsin88(777U, 8U, 11U));
   sCIStart3 -= (deltams1 * beatsin88(501U, 5U, 7U));
   sCIStart4 -= (deltams2 * beatsin88(257U, 4U, 6U));
-  
+
   // Clear out the LED array to a dim background blue-green
   fill_solid(leds, NUM_LEDS, CRGB(2U, 6U, 10U));
 
