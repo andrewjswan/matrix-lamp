@@ -5912,7 +5912,7 @@ constexpr uint8_t SPARKLES_NUM = OCTANT_X;   // не более чем  enlarged
 
 static void fire2020Routine2(){
   const uint8_t max_h = HEIGHT - 1U;
-  
+
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings) {
@@ -5926,11 +5926,11 @@ static void fire2020Routine2(){
       curPalette =  palette_arr[deltaValue];
     else
       curPalette = firePalettes[deltaValue];
-    
+
     deltaValue = (((modes[currentMode].Scale - 1U) % 11U + 1U) << 4U) - 8U; // ширина языков пламени (масштаб шума Перлина)
     deltaHue = map(deltaValue, 8U, 168U, 8U, 84U);                          // высота языков пламени должна уменьшаться не так быстро, как ширина
     step = map(255U - deltaValue, 87U, 247U, 4U, 32U);                      // вероятность смещения искорки по оси ИКС
-    
+
     const float inv_max_h = 255.0f / (float)max_h;
     for (uint8_t j = 0; j < HEIGHT; j++) {
       shiftHue[j] = (uint8_t)((float)(max_h - j) * inv_max_h);              // init colorfade table
@@ -5940,7 +5940,7 @@ static void fire2020Routine2(){
       trackingObjectPosY[i] = random8(HEIGHT);
       trackingObjectPosX[i] = random8(WIDTH);
     }
-    
+
     loadingFlag = false;
   }
 
@@ -5950,18 +5950,18 @@ static void fire2020Routine2(){
 
     for (uint8_t j = 0; j < HEIGHT; j++) {
       uint16_t noise_y = (j + ff_y + random8(2U)) * deltaHue;
-     
+
       uint8_t raw_noise = fastled_helper::perlin8(noise_x, noise_y, ff_z);
       uint8_t color_index = qsub8(raw_noise, shiftHue[j]);
       CRGB fire_color = ColorFromPalette(palette, color_index, 255U);
-      
+
       nblend(leds[XY(i, max_h - j)], fire_color, 160U);
     }
   }
 
   // вставляем искорки из отдельного массива
   const uint8_t max_w = WIDTH - 1U;
-  
+
   for (uint8_t i = 0; i < SPARKLES_NUM; i++) {
     if (trackingObjectPosY[i] > 3U){
       leds[XY(trackingObjectPosX[i], trackingObjectPosY[i])] = leds[XY(trackingObjectPosX[i], 3U)];
@@ -5975,7 +5975,7 @@ static void fire2020Routine2(){
     if (!random8(step))
       trackingObjectPosX[i] = (WIDTH + (uint8_t)trackingObjectPosX[i] + 1U - random8(3U)) % WIDTH;
   }
-  
+
   for (uint8_t i = 0; i < SPARKLES_NUM; i++) {
     uint8_t px = (uint8_t)trackingObjectPosX[i];
     uint8_t py = (uint8_t)trackingObjectPosY[i];
@@ -5984,7 +5984,7 @@ static void fire2020Routine2(){
       leds[XY(px, py)] = leds[XY(px, 3U)];
       leds[XY(px, py)].fadeToBlackBy(py << 1U);
     }
-    
+
     py++;
     if (py >= HEIGHT) {
       py = random8(4U);
