@@ -6183,9 +6183,13 @@ static void newMatrixRoutine()
       color = rgb2hsv_approximate(CRGB::Gray);
       color.val = trackingObjectState[i];
     } else if (modes[currentMode].Scale == 1U) {
-      color = CHSV(++hue, 255, trackingObjectState[i]);
+      color.hue = ++hue;
+      color.sat = 255U;
+      color.val = trackingObjectState[i];
     } else {
-      color = CHSV(hue, 255, trackingObjectState[i]);
+      color.hue = hue;
+      color.sat = 255U;
+      color.val = trackingObjectState[i];
     }
 
     drawPixelXYF(trackingObjectPosX[i], trackingObjectPosY[i], color);
