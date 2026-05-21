@@ -6291,9 +6291,9 @@ static void nexusReset(uint8_t i) {
 
   trackingObjectHue[i] = random8();
   trackingObjectState[i] = random8(4U);
-  
+
   trackingObjectSpeedX[i] = (float)random8(5U, 11U) * inv70 + speedfactor;  // делаем частицам немного разное ускорение и сразу пересчитываем под общую скорость
-  
+
   switch (trackingObjectState[i]) {
     case 0b01:
       trackingObjectPosY[i] = (float)HEIGHT;
@@ -6347,7 +6347,7 @@ static void nexusRoutine() {
   CHSV color;
   color.sat = 255U;
   color.val = 255U;
-  
+
   for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
     switch (trackingObjectState[i]) {
       case 0b01:
@@ -6373,7 +6373,7 @@ static void nexusRoutine() {
     }
 
     color.hue = trackingObjectHue[i];
-    drawPixelXYF(trackingObjectPosX[i], trackingObjectPosY[i], color);    
+    drawPixelXYF(trackingObjectPosX[i], trackingObjectPosY[i], color);
   }
 }
 #endif
