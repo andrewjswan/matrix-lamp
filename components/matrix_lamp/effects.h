@@ -6900,7 +6900,7 @@ static void spiderRoutine() {
 
     deltaValue = 255U / pcnt;      // шаг смещения цвета для каждой линии
     emitterX = 1.0f / speedfactor; // сохраняем inv_speed в свободный float-буфер
-    
+
     loadingFlag = false;
   }
 
