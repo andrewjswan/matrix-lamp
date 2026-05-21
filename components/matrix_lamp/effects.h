@@ -6804,75 +6804,96 @@ static void fairyRoutine(){
 #ifdef DEF_SAND
 // ============= Эффект Цветные драже ===============
 // (c) SottNick
-//по мотивам визуала эффекта by Yaroslaw Turbin 14.12.2020
-//https://vk.com/ldirko программный код которого он запретил брать
+// по мотивам визуала эффекта by Yaroslaw Turbin 14.12.2020
+// https://vk.com/ldirko программный код которого он запретил брать
 
 static void sandRoutine(){
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
-        setModeSettings(1U + random8(100U) , 140U+random8(100U));
+        setModeSettings(1U + random8(100U) , 140U + random8(100U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-    //setCurrentPalette();
+    pcnt = 0U; // = HEIGHT;
 
-    pcnt = 0U;// = HEIGHT;
+    loadingFlag = false;
   }
 
+  constexpr uint8_t max_h = HEIGHT - 1U;
+  constexpr uint8_t max_w = WIDTH - 1U;
+
+  // Разрушение/осыпание излишков песка (если насыпалось выше порога)
   // если насыпалось уже достаточно, бахаем рандомные песчинки
   uint8_t temp = map8(random8(), modes[currentMode].Scale * 2.55f, 255U);
-  if (pcnt >= map8(temp, 2U, HEIGHT - 3U)){
-    //temp = 255U - temp + 2;
-    //if (temp < 2) temp = 255;
+  if (pcnt >= map8(temp, 2U, HEIGHT - 3U)) {
     temp = HEIGHT + 1U - pcnt;
-    if (!random8(4U)) // иногда песка осыпается до половины разом
-      if (random8(2U))
-        temp = 2U;
-      else
-        temp = 3U;
-    //for (uint16_t i = 0U; i < NUM_LEDS; i++)
-    for (uint8_t y = 0; y < pcnt; y++)
-      for (uint8_t x = 0; x < WIDTH; x++)
-        if (!random8(temp))
-          leds[XY(x,y)] = 0;
+    if (random8(4U) == 0U) { // Случайные обвалы песка до половины
+      temp = random8(2U) ? 2U : 3U;
+    }
+
+    for (uint8_t y = 0U; y < pcnt; y++) {
+      for (uint8_t x = 0U; x < WIDTH; x++) {
+        if (random8(temp) == 0U) {
+          leds[XY(x, y)] = 0U;
+        }
+      }
+    }
   }
 
   pcnt = 0U;
+
   // осыпаем всё, что есть на экране
-  for (uint8_t y = 1; y < HEIGHT; y++)
-    for (uint8_t x = 0; x < WIDTH; x++)
-      if (leds[XY(x,y)])                                                           // проверяем для каждой песчинки
-        if (!leds[XY(x,y-1)]){                                                     // если под нами пусто, просто падаем
-          leds[XY(x,y-1)] = leds[XY(x,y)];
-          leds[XY(x,y)] = 0;
+  for (uint8_t y = 1U; y < HEIGHT; y++) {
+    const uint16_t idx_y_minus = y - 1U;
+
+    for (uint8_t x = 0U; x < WIDTH; x++) {
+      const uint16_t current_idx = XY(x, y);
+
+      // Если в текущей ячейке есть песчинка
+      if (leds[current_idx]) {
+        const uint16_t bottom_idx = XY(x, idx_y_minus);
+
+        // Если под нами строго пусто — падаем вниз
+        if (!leds[bottom_idx]) {
+          leds[bottom_idx] = leds[current_idx];
+          leds[current_idx] = 0U;
         }
-        else if (x>0U && !leds[XY(x-1,y-1)] && x<WIDTH-1 && !leds[XY(x+1,y-1)]){   // если под нами пик
-          if (random8(2U))
-            leds[XY(x-1,y-1)] = leds[XY(x,y)];
-          else
-            leds[XY(x-1,y-1)] = leds[XY(x,y)];
-          leds[XY(x,y)] = 0;
-          pcnt = y-1;
+        // Под нами пик (свободно и слева-снизу, и справа-снизу)
+        else if (x > 0U && !leds[XY(x - 1U, idx_y_minus)] && x < max_w && !leds[XY(x + 1U, idx_y_minus)]) {
+          if (random8(2U) == 0U) {
+            leds[XY(x - 1U, idx_y_minus)] = leds[current_idx];
+          } else {
+            leds[XY(x + 1U, idx_y_minus)] = leds[current_idx];
+          }
+          leds[current_idx] = 0U;
+          pcnt = idx_y_minus;
         }
-        else if (x>0U && !leds[XY(x-1,y-1)]){                                      // если под нами склон налево
-          leds[XY(x-1,y-1)] = leds[XY(x,y)];
-          leds[XY(x,y)] = 0;
-          pcnt = y-1;
+        // Под нами склон налево
+        else if (x > 0U && !leds[XY(x - 1U, idx_y_minus)]) {
+          leds[XY(x - 1U, idx_y_minus)] = leds[current_idx];
+          leds[current_idx] = 0U;
+          pcnt = idx_y_minus;
         }
-        else if (x<WIDTH-1 && !leds[XY(x+1,y-1)]){                                 // если под нами склон направо
-          leds[XY(x+1,y-1)] = leds[XY(x,y)];
-          leds[XY(x,y)] = 0;
-          pcnt = y-1;
+        // Под нами склон направо
+        else if (x < max_w && !leds[XY(x + 1U, idx_y_minus)]) {
+          leds[XY(x + 1U, idx_y_minus)] = leds[current_idx];
+          leds[current_idx] = 0U;
+          pcnt = idx_y_minus;
         }
-        else                                                                       // если под нами плато
+        // Под нами плоское плато из песка
+        else {
           pcnt = y;
+        }
+      }
+    }
+  }
 
   // эмиттер новых песчинок
-  if (!leds[XY(CENTER_X_MINOR,HEIGHT-2)] && !leds[XY(CENTER_X_MAJOR,HEIGHT-2)] && !random8(3)){
-    temp = random8(2) ? CENTER_X_MINOR : CENTER_X_MAJOR;
-    leds[XY(temp,HEIGHT-1)] = CHSV(random8(), 255U, 255U);
+  constexpr uint8_t spawn_y = HEIGHT - 2U;
+  if (!leds[XY(CENTER_X_MINOR, spawn_y)] && !leds[XY(CENTER_X_MAJOR, spawn_y)] && random8(3U) == 0U) {
+    temp = random8(2U) ? CENTER_X_MINOR : CENTER_X_MAJOR;
+    leds[XY(temp, max_h)] = CHSV(random8(), 255U, 255U);
   }
 }
 #endif
