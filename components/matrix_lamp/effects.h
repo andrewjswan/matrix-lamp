@@ -7088,7 +7088,7 @@ static float randomf(float min, float max) {
   // constexpr float inv4095 = 1.0f / 4095.0f;
   // Вычисляется на ПК при сборке. 4096 дает честный диапазон [0.0f, 1.0f]
   constexpr float inv4096 = 1.0f / 4096.0f;
-  
+
   // float k = (float)random16(4095U) * inv4096;
   float k = (float)random16(4096U) * inv4096;
 
@@ -7139,7 +7139,7 @@ static void spheresRoutine() {
   const float pulse_coeff = 0.1f * speedfactor;
   constexpr float limit_h = (float)(HEIGHT - 1U);
   constexpr float limit_w = (float)(WIDTH - 1U);
-  
+
   for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
     const float max_speed = std::max(std::abs(trackingObjectSpeedX[i]), std::abs(trackingObjectSpeedY[i]));
     const float radius_step = max_speed * pulse_coeff;
@@ -7156,7 +7156,7 @@ static void spheresRoutine() {
         trackingObjectHue[i] = random8();
       }
     }
-    
+
     if (trackingObjectShift[i] > 1.0f) {
       ballsfill_circle(trackingObjectPosY[i], trackingObjectPosX[i], trackingObjectShift[i], ColorFromPalette(*curPalette, trackingObjectHue[i]));
     } else {
@@ -7187,7 +7187,7 @@ static void spheresRoutine() {
     if (trackingObjectPosX[i] < 0.01f) {
       trackingObjectSpeedX[i] = randomf(0.5f, 1.1f) * speedfactor;
       trackingObjectPosX[i] = 0.01f;
-    } 
+    }
     else if (trackingObjectPosX[i] > HEIGHT - 1.01f) {
       trackingObjectSpeedX[i] = -randomf(0.5f, 1.1f) * speedfactor;
       trackingObjectPosX[i] = HEIGHT - 1.01f;
@@ -7196,7 +7196,7 @@ static void spheresRoutine() {
     if (trackingObjectPosY[i] < 0.01f) {
       trackingObjectSpeedY[i] = randomf(0.5f, 1.1f) * speedfactor;
       trackingObjectPosY[i] = 0.01f;
-    } 
+    }
     else if (trackingObjectPosY[i] > WIDTH - 1.01f) {
       trackingObjectSpeedY[i] = -randomf(0.5f, 1.1f) * speedfactor;
       trackingObjectPosY[i] = WIDTH - 1.01f;
