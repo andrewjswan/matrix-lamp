@@ -5985,24 +5985,24 @@ static void LLandRoutine(){
 
     loadingFlag = false;
   }
-  
+
   hue2 += 32U;
   if (hue2 < 32U)
     hue++;
   ff_y += 16U;
 
   const float inv_max_h = 255.0f / (float)(HEIGHT - 1U);
-  
+
   for (uint8_t y = 0; y < HEIGHT; y++) {
     const uint16_t noise_y = y * deltaValue - ff_y;
     const uint8_t height_fade = (uint8_t)((float)y * inv_max_h);
 
     for (uint16_t x = 0; x < WIDTH; x++) {
       const uint16_t noise_x = x * deltaValue;
-      
+
       // Генерация базового шума
       uint8_t raw_noise = fastled_helper::perlin8(noise_x, noise_y, ff_z);
-      
+
       // Вычитание градиента высоты
       uint8_t value = raw_noise - height_fade;
 
@@ -6012,7 +6012,7 @@ static void LLandRoutine(){
       drawPixelXY(x, y, ColorFromPalette(*curPalette, color_index, 255U));
     }
   }
-  
+
   ff_z++;
 }
 #endif
