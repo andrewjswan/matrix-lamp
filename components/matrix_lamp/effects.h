@@ -5360,26 +5360,26 @@ static void LiquidLampPosition() {
 
 static void LiquidLampPhysic() {
   const float boundary_top = (float)(HEIGHT - 1U) - BOUNDARY_MARGIN;
-  
+
   for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
     float pi_y = trackingObjectPosY[i];
 
     // Отключаем физику у границ
     if (pi_y < BOUNDARY_MARGIN || pi_y > boundary_top) continue;
-    
+
     const float pi_x = trackingObjectPosX[i];
     const float rad_i = trackingObjectShift[i];
     const float mass_i = trackingObjectState[i];
-    
+
     for (uint8_t j = i + 1; j < enlargedObjectNUM; j++) {
       float pj_y = trackingObjectPosY[j];
 
       // Отключаем физику у границ
       if (pj_y < BOUNDARY_MARGIN || pj_y > boundary_top) continue;
-      
+
       // Радиус взаимодействия масштабируется с размером матрицы
       float radius = (rad_i + trackingObjectShift[j]) * 0.5f;
-      
+
       float abs_diff_x = std::abs(pi_x - trackingObjectPosX[j]);
       float abs_diff_y = std::abs(pi_y - pj_y);
 
@@ -5387,7 +5387,7 @@ static void LiquidLampPhysic() {
       if (abs_diff_x > radius * 2.0f || abs_diff_y > radius * 2.0f) {
         continue;
       }
-      
+
       // Бесшовное расстояние по X
       float dx = min(abs_diff_x, (float)WIDTH - abs_diff_x);
       float dy = abs_diff_y;
@@ -5433,7 +5433,7 @@ static void fillMyPal16(uint8_t hue, bool isInvert = false){
     hsv2rgb_spectrum(CHSV((uint8_t)(hue - h_offset0), sat0, val0), rgbstart);
   } else {
     hsv2rgb_spectrum(CHSV((uint8_t)(hue + h_offset0), sat0, val0), rgbstart);
-  }  
+  }
 
   uint8_t indexstart = 0U;
   for (uint8_t i = 1U; i < 5U; i++) {  // в палитре @obliterator всего 5 строчек
@@ -5548,7 +5548,7 @@ static void LiquidLampRoutine(bool isColored){
         const float obj_x = trackingObjectPosX[i];
         const float obj_y = trackingObjectPosY[i];
         const float tr_limit = (float)liquidLampTR[i];
-        
+
         // Быстрое отсечение: если пиксель далеко от пузыря — пропускаем
         if (std::abs(x - obj_x) > tr_limit || std::abs(y - obj_y) > tr_limit) {
           continue;
@@ -5581,7 +5581,7 @@ static void LiquidLampRoutine(bool isColored){
 
       // Минимальная яркость для избежания артефактов палитры
       if (sum < 16.0f) sum = 16.0f;
-      
+
       leds[XY(x, y)] = ColorFromPalette(myPal, (uint8_t)sum);
     }
   }
