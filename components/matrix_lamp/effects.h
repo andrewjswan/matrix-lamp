@@ -6161,7 +6161,7 @@ static void newMatrixRoutine()
       trackingObjectPosX[i] = random8(WIDTH);
       trackingObjectPosY[i] = random8(HEIGHT);
       trackingObjectSpeedY[i] = (float)random8(150U, 250U) * 0.01f;
-      trackingObjectState[i] = random8(127U, 255U);      
+      trackingObjectState[i] = random8(127U, 255U);
     }
     hue = modes[currentMode].Scale * 2.55f;
 
@@ -6175,7 +6175,7 @@ static void newMatrixRoutine()
   CHSV color;
   const uint8_t max_w = WIDTH - 1U;
   const uint8_t spawn_min_y = HEIGHT - HEIGHT / 2U;
-  
+
   for (uint8_t i = 0U; i < enlargedObjectNUM; i++) {
     trackingObjectPosY[i] -= trackingObjectSpeedY[i]*speedfactor;
 
