@@ -6526,6 +6526,8 @@ static void starfield2Emit(uint8_t i) {
   if (hue++ & 0x01)
     hue2++;  //counter++;
 
+  speedfactor = remap(modes[currentMode].Speed, (uint8_t)1U, (uint8_t)255U, 0.1f, 1.0f);
+  
   trackingObjectPosX[i] = CENTER_X_F;  // CENTER_X_MINOR; // * RENDERER_RESOLUTION; // particle->x = source->x;
   trackingObjectPosY[i] = CENTER_Y_F;  // CENTER_Y_MINOR; // * RENDERER_RESOLUTION; // particle->y = source->y;
 
