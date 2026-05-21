@@ -6033,7 +6033,7 @@ static void attractRoutine() {
         boids[i].velocity.x = -boids[i].velocity.x;
       }
       boids[i].velocity.y = 0.0f;
-      boids[i].colorIndex = random8();      
+      boids[i].colorIndex = random8();
     }
 
     loadingFlag = false;
@@ -6046,7 +6046,7 @@ static void attractRoutine() {
 
   for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
     Boid &boid = boids[i];
-    
+
     PVector force = attractLocation - boid.location;    // Calculate direction of force // и вкорячиваем сюда регулировку скорости
     float d = force.mag();                              // Distance between objects
     d = constrain(d, 5.0f, max_d);                      // Limiting the distance to eliminate "extreme" results for very close or very far objects
@@ -6059,7 +6059,7 @@ static void attractRoutine() {
 
     drawPixelXYF(boid.location.x, boid.location.y, ColorFromPalette(*curPalette, boid.colorIndex + hue));
   }
-  
+
   EVERY_N_MILLIS(200) {
     hue++;
   }
