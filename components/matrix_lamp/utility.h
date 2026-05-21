@@ -46,8 +46,7 @@ using coord_t = int16_t;
 #else
 using coord_t = int8_t;
 #endif
-static void drawPixelXY(coord_t x, coord_t y, CRGB color)
-{
+static void drawPixelXY(coord_t x, coord_t y, const CRGB& color) {
   if (x < 0 || x >= (coord_t)WIDTH || y < 0 || y >= (coord_t)HEIGHT) return;
   leds[XY(x, y)] = color;
 }
@@ -235,8 +234,7 @@ static uint8_t wrapY(int16_t y){
 // ------------------------------ Дополнительные функции рисования ----------------------
 // по мотивам
 // https://gist.github.com/sutaburosu/32a203c2efa2bb584f4b846a91066583
-static void drawPixelXYF(float x, float y, const CRGB& color)
-{
+static void drawPixelXYF(float x, float y, const CRGB& color) {
   // extract the fractional parts and derive their inverses
   // Получаем целую часть координат
   int16_t x_int = (int16_t)x;
@@ -512,7 +510,7 @@ static void drawRec(uint8_t startX, uint8_t startY, uint8_t endX, uint8_t endY, 
 }
 
 // ------------------------------------------------
-static void drawRecCHSV(uint8_t startX, uint8_t startY, uint8_t endX, uint8_t endY, CHSV color) {
+static void drawRecCHSV(uint8_t startX, uint8_t startY, uint8_t endX, uint8_t endY, const CHSV& color) {
   for (uint8_t y = startY; y < endY; y++) {
     for (uint8_t x = startX; x < endX; x++) {
       drawPixelXY(x, y, color);
@@ -600,7 +598,7 @@ static void gradientVertical(uint8_t startX, uint8_t startY, uint8_t endX, uint8
 
 // ------------------------------------------------
 // gradientDownTop • более плавный градиент в отличие от gradientVertical
-static void gradientDownTop(uint8_t bottom, CHSV bottom_color, uint8_t top, CHSV top_color) {
+static void gradientDownTop(uint8_t bottom, CHSV bottom_color, uint8_t top, const CHSV& top_color) {
   // 1. Рассчитываем реальные индексы строк (с учетом возможных смещений)
   uint8_t yStart = bottom;
   uint8_t yEnd = top;

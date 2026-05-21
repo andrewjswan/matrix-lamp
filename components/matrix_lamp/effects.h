@@ -7030,26 +7030,26 @@ static void polarRoutine() {
 // (c) stepko and kostyamat https://wokwi.com/arduino/projects/289839434049782281
 // 07.02.2021
 
-// static float randomf(float min, float max) {
-//   return remap((float)random16(4095), 0.0f, 4095.0f, min, max);
-// }
-
 static float randomf(float min, float max) {
-  // 1.0f / 4095.0f вычисляется компилятором на этапе сборки.
-  // random16(4095) выдает случайное число от 0 до 4094.
-  // Умножение дает идеальный коэффициент от 0.0f до ~0.9997f.
-  float k = static_cast<float>(random16(4095)) * (1.0f / 4095.0f);
+  // Вычисляется на ПК при сборке. 4095 дает честный диапазон [0.0f, ~0.9997f]
+  // constexpr float inv4095 = 1.0f / 4095.0f;
+  // Вычисляется на ПК при сборке. 4096 дает честный диапазон [0.0f, 1.0f]
+  constexpr float inv4096 = 1.0f / 4096.0f;
+
+  // float k = (float)random16(4095U) * inv4096;
+  float k = (float)random16(4096U) * inv4096;
 
   // Быстрый Lerp (линейная интерполяция)
   return min + k * (max - min);
 }
 
-static void ballsfill_circle(float cx, float cy, float radius, CRGB col) {
+static void ballsfill_circle(float cx, float cy, float radius, const CRGB& col) {
   radius -= 0.5f;
-  for (int y = -radius; y <= radius; y++) {
-    for (int x = -radius; x <= radius; x++) {
-      if (x * x + y * y <= radius * radius)
+  for (int16_t y = -radius; y <= radius; y++) {
+    for (int16_t x = -radius; x <= radius; x++) {
+      if (x * x + y * y <= radius * radius) {
         drawPixelXYF(cx + x, cy + y, col);
+      }
     }
   }
 }
@@ -7059,18 +7059,15 @@ static void spheresRoutine() {
   {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
-        setModeSettings(random8(8U)*11U+6U+random8(6U), 1U + random8(255U));
+        setModeSettings(random8(8U) * 11U + 6U + random8(6U), 1U + random8(255U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     setCurrentPalette();
 
     speedfactor = remap(modes[currentMode].Speed, (uint8_t)1, (uint8_t)255, 0.15f, 0.5f);
-
     enlargedObjectNUM = (modes[currentMode].Scale - 1U) % 11U + 1U;
-    //if (enlargedObjectNUM > AVAILABLE_BOID_COUNT) enlargedObjectNUM = AVAILABLE_BOID_COUNT;
-    emitterY = 0.5f + QUARTER_Y / (2.0f - 1.0f / enlargedObjectNUM); // radiusMax
+    emitterY = 0.5f + QUARTER_Y / (2.0f - 1.0f / (float)enlargedObjectNUM);  // radiusMax
 
     for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
       trackingObjectShift[i] = randomf(0.5f, emitterY);            // radius[i] = randomf(0.5, radiusMax);
@@ -7080,67 +7077,80 @@ static void spheresRoutine() {
       trackingObjectPosY[i] = random8(HEIGHT);                     // ball[i][1] = random(0, HEIGHT);
       trackingObjectHue[i] = random8();                            // color[i] = random(0, 255);
     }
+
+    loadingFlag = false;
   }
 
-  dimAll(255-map(modes[currentMode].Speed, 1, 255, 5, 20)); //fadeToBlackBy(leds, NUM_LEDS, map(speed, 1, 255, 5, 20));
+  dimAll(255U - map(modes[currentMode].Speed, 1, 255, 5, 20)); // fadeToBlackBy(leds, NUM_LEDS, map(speed, 1, 255, 5, 20));
+
+  const float pulse_coeff = 0.1f * speedfactor;
+  constexpr float limit_h = (float)(HEIGHT - 1U);
+  constexpr float limit_w = (float)(WIDTH - 1U);
 
   for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
-    if (trackingObjectIsShift[i]) {  // тут у нас шарики надуваются\сдуваются по ходу движения
-      trackingObjectShift[i] += (std::abs(trackingObjectSpeedX[i]) > std::abs(trackingObjectSpeedY[i])? std::abs(trackingObjectSpeedX[i]) : std::abs(trackingObjectSpeedY[i])) * 0.1f * speedfactor;
+    const float max_speed = std::max(std::abs(trackingObjectSpeedX[i]), std::abs(trackingObjectSpeedY[i]));
+    const float radius_step = max_speed * pulse_coeff;
+
+    if (trackingObjectIsShift[i]) {
+      trackingObjectShift[i] += radius_step;
       if (trackingObjectShift[i] >= emitterY) {
         trackingObjectIsShift[i] = false;
       }
     } else {
-      trackingObjectShift[i] -= (std::abs(trackingObjectSpeedX[i]) > std::abs(trackingObjectSpeedY[i])? std::abs(trackingObjectSpeedX[i]) : std::abs(trackingObjectSpeedY[i])) * 0.1f * speedfactor;
+      trackingObjectShift[i] -= radius_step;
       if (trackingObjectShift[i] < 1.0f) {
         trackingObjectIsShift[i] = true;
-        trackingObjectHue[i] = random(0, 255);
+        trackingObjectHue[i] = random8();
       }
     }
 
-
-    //EffectMath::drawCircleF(trackingObjectPosY[i], trackingObjectPosX[i], trackingObjectShift[i], ColorFromPalette(*curPalette, trackingObjectHue[i]), 0.5);
-    if (trackingObjectShift[i] > 1)
+    if (trackingObjectShift[i] > 1.0f) {
       ballsfill_circle(trackingObjectPosY[i], trackingObjectPosX[i], trackingObjectShift[i], ColorFromPalette(*curPalette, trackingObjectHue[i]));
-    else
+    } else {
       drawPixelXYF(trackingObjectPosY[i], trackingObjectPosX[i], ColorFromPalette(*curPalette, trackingObjectHue[i]));
+    }
 
+    const float inv_radius = 1.0f / trackingObjectShift[i];
 
-    if (trackingObjectPosX[i] + trackingObjectShift[i] >= HEIGHT - 1)
-      trackingObjectPosX[i] += (trackingObjectSpeedX[i] * ((HEIGHT - 1 - trackingObjectPosX[i]) / trackingObjectShift[i] + 0.005f));
-    else if (trackingObjectPosX[i] - trackingObjectShift[i] <= 0)
-      trackingObjectPosX[i] += (trackingObjectSpeedX[i] * (trackingObjectPosX[i] / trackingObjectShift[i] + 0.005f));
-    else
+    // Симуляция движения по оси X (сглаживание у краев HEIGHT)
+    if (trackingObjectPosX[i] + trackingObjectShift[i] >= limit_h) {
+      trackingObjectPosX[i] += trackingObjectSpeedX[i] * ((limit_h - trackingObjectPosX[i]) * inv_radius + 0.005f);
+    } else if (trackingObjectPosX[i] - trackingObjectShift[i] <= 0.0f) {
+      trackingObjectPosX[i] += trackingObjectSpeedX[i] * (trackingObjectPosX[i] * inv_radius + 0.005f);
+    } else {
       trackingObjectPosX[i] += trackingObjectSpeedX[i];
-    //-----------------------
-    if (trackingObjectPosY[i] + trackingObjectShift[i] >= WIDTH - 1)
-      trackingObjectPosY[i] += (trackingObjectSpeedY[i] * ((WIDTH - 1 - trackingObjectPosY[i]) / trackingObjectShift[i] + 0.005f));
-    else if (trackingObjectPosY[i] - trackingObjectShift[i] <= 0)
-      trackingObjectPosY[i] += (trackingObjectSpeedY[i] * (trackingObjectPosY[i] / trackingObjectShift[i] + 0.005f));
-    else
+    }
+
+    // Симуляция движения по оси Y (сглаживание у краев WIDTH)
+    if (trackingObjectPosY[i] + trackingObjectShift[i] >= limit_w) {
+      trackingObjectPosY[i] += trackingObjectSpeedY[i] * ((limit_w - trackingObjectPosY[i]) * inv_radius + 0.005f);
+    } else if (trackingObjectPosY[i] - trackingObjectShift[i] <= 0.0f) {
+      trackingObjectPosY[i] += trackingObjectSpeedY[i] * (trackingObjectPosY[i] * inv_radius + 0.005f);
+    } else {
       trackingObjectPosY[i] += trackingObjectSpeedY[i];
-    //------------------------
+    }
+
+    // Идеальное сохранение физики жестких отскоков (Правило 5)
     if (trackingObjectPosX[i] < 0.01f) {
       trackingObjectSpeedX[i] = randomf(0.5f, 1.1f) * speedfactor;
       trackingObjectPosX[i] = 0.01f;
     }
     else if (trackingObjectPosX[i] > HEIGHT - 1.01f) {
-      trackingObjectSpeedX[i] = randomf(0.5f, 1.1f) * speedfactor;
-      trackingObjectSpeedX[i] = -trackingObjectSpeedX[i];
+      trackingObjectSpeedX[i] = -randomf(0.5f, 1.1f) * speedfactor;
       trackingObjectPosX[i] = HEIGHT - 1.01f;
     }
-    //----------------------
+
     if (trackingObjectPosY[i] < 0.01f) {
       trackingObjectSpeedY[i] = randomf(0.5f, 1.1f) * speedfactor;
       trackingObjectPosY[i] = 0.01f;
     }
     else if (trackingObjectPosY[i] > WIDTH - 1.01f) {
-      trackingObjectSpeedY[i] = randomf(0.5f, 1.1f) * speedfactor;
-      trackingObjectSpeedY[i] = -trackingObjectSpeedY[i];
+      trackingObjectSpeedY[i] = -randomf(0.5f, 1.1f) * speedfactor;
       trackingObjectPosY[i] = WIDTH - 1.01f;
     }
   }
-  blurScreen(48);
+
+  blurScreen(48U);
 }
 #endif
 
