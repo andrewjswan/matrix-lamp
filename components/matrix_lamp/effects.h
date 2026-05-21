@@ -5598,15 +5598,15 @@ static void popcornRestart_rocket(uint8_t r) {
   // deltaHue = !deltaHue; // "Мальчик" <> "Девочка"
   trackingObjectSpeedX[r] = (float)(random(-(NUM_LEDS + (WIDTH * 2)), NUM_LEDS + (WIDTH * 2))) * inv256; // * (deltaHue ? 1 : -1); // Наклон. "Мальчики" налево, "девочки" направо. :)
 
-  if ((trackingObjectPosX[r] < 0.0f && trackingObjectSpeedX[r] < 0.0f) || 
+  if ((trackingObjectPosX[r] < 0.0f && trackingObjectSpeedX[r] < 0.0f) ||
       (trackingObjectPosX[r] > (float)(WIDTH - 1U) && trackingObjectSpeedX[r] > 0.0f)) {  // меняем направление только после выхода за пределы экрана
     trackingObjectSpeedX[r] = -trackingObjectSpeedX[r];
   }
-  
+
   // controls the leap height
   trackingObjectSpeedY[r] = (float)(random8() * 8U + HEIGHT * 10U) * inv256;
   trackingObjectHue[r] = random8();
-  trackingObjectPosX[r] = random8(WIDTH);  
+  trackingObjectPosX[r] = random8(WIDTH);
 }
 
 static void popcornRoutine() {
@@ -5625,13 +5625,13 @@ static void popcornRoutine() {
     if (enlargedObjectNUM > enlargedOBJECT_MAX_COUNT) {
       enlargedObjectNUM = enlargedOBJECT_MAX_COUNT;
     }
-    
+
     for (uint8_t r = 0; r < enlargedObjectNUM; r++) {
       trackingObjectPosX[r] = random8(WIDTH);
       trackingObjectPosY[r] = random8(HEIGHT);
       trackingObjectSpeedX[r] = 0.0f;
       trackingObjectSpeedY[r] = -1.0f;
-      trackingObjectHue[r] = random8();      
+      trackingObjectHue[r] = random8();
     }
 
     loadingFlag = false;
@@ -5644,25 +5644,25 @@ static void popcornRoutine() {
   const float max_h = (float)(HEIGHT - 1U);
   const float double_h_minus_2 = (float)(HEIGHT + HEIGHT - 2U);
   const bool is_speed_odd = (modes[currentMode].Speed & 0x01);
-  
+
   for (uint8_t r = 0; r < enlargedObjectNUM; r++) {
     // add the X & Y velocities to the positions
     trackingObjectPosX[r] += trackingObjectSpeedX[r];
-    
+
     if (trackingObjectPosX[r] > max_w) {
       trackingObjectPosX[r] -= max_w;
     }
     if (trackingObjectPosX[r] < 0.0f) {
       trackingObjectPosX[r] += max_w;
     }
-    
+
     trackingObjectPosY[r] += trackingObjectSpeedY[r] * speedfactor;
 
     if (trackingObjectPosY[r] > max_h) {
       trackingObjectPosY[r] = double_h_minus_2 - trackingObjectPosY[r];
       trackingObjectSpeedY[r] = -trackingObjectSpeedY[r];
     }
-    
+
     // bounce off the floor?
     if (trackingObjectPosY[r] < 0.0f && trackingObjectSpeedY[r] < -0.7f) {  // 0.7 вычислено в экселе. скорость свободного падения ниже этой не падает. если ниже, значит ещё есть ускорение
       trackingObjectSpeedY[r] = (-trackingObjectSpeedY[r]) * 0.9375f;       // V * 0.9375 это 15/16. Можно сделать (V * 15) / 16, или (V * 240) >> 8
@@ -5688,7 +5688,7 @@ static void popcornRoutine() {
     } else {
       color = is_speed_odd ? CRGB::Gray : ColorFromPalette(*curPalette, trackingObjectHue[r]);
     }
-    
+
     drawPixelXYF(trackingObjectPosX[r], trackingObjectPosY[r], color);
   }
 }
