@@ -5270,7 +5270,7 @@ static void fillMyPal16(uint8_t hue, bool isInvert, const uint8_t* colors_arr) {
     const uint8_t h_offset = pgm_read_byte(colors_arr + row_offset + 1U);
     const uint8_t sat      = pgm_read_byte(colors_arr + row_offset + 2U);
     const uint8_t val      = pgm_read_byte(colors_arr + row_offset + 3U);
-    
+
     // Исправлен баг автора: теперь инверсия работает симметрично стартовой точке
     if (isInvert) {
       hsv2rgb_spectrum(CHSV((uint8_t)(256U + hue - h_offset), sat, val), rgbend);
