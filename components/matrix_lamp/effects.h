@@ -6219,7 +6219,7 @@ static void smokeballsRoutine() {
 
     enlargedObjectNUM = enlargedObjectNUM = (modes[currentMode].Scale - 1U) % 11U + 1U;
     speedfactor = remap(modes[currentMode].Speed, (uint8_t)1, (uint8_t)255, 0.02f, 0.1f); // попробовал разные способы управления скоростью. Этот максимально приемлемый, хотя и сильно тупой.
-    
+
     for (uint8_t j = 0; j < enlargedObjectNUM; j++) {
       trackingObjectShift[j] =  random((WIDTH * 10) - (THIRD_X * 20)); // сумма trackingObjectState + trackingObjectShift не должна выскакивать за макс.Х
       trackingObjectSpeedX[j] = (float)random(25, 80 * WIDTH) * 0.2f;  // / 5.0f;
@@ -6239,12 +6239,12 @@ static void smokeballsRoutine() {
   }
 
   constexpr uint8_t fade_val = 128U / HEIGHT;
-  fadeToBlackBy(leds, NUM_LEDS, fade_val);  
-  
+  fadeToBlackBy(leds, NUM_LEDS, fade_val);
+
   if (modes[currentMode].Speed & 0x01) {
     blurScreen(20);
   }
-  
+
   for (uint8_t j = 0; j < enlargedObjectNUM; j++) {
     uint16_t phase = (uint16_t)trackingObjectHue[j] << 8U;
     uint16_t b_speed = (uint16_t)(trackingObjectSpeedX[j] * (speedfactor * 5.0f));
