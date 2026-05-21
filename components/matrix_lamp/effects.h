@@ -6905,35 +6905,45 @@ static void sandRoutine(){
 // плюс выбор палитры и багфикс (c) SottNick
 
 static void spiderRoutine() {
- if (loadingFlag) {
-   #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-     if (selectedSettings){
-       uint8_t tmp = random8(5U);
-       if (tmp > 1U) tmp += 3U;
-       setModeSettings(tmp*11U+3U+random8(7U), 1U + random8(180U));
-     }
-   #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+  if (loadingFlag) {
+    #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+      if (selectedSettings) {
+        uint8_t tmp = random8(5U);
+        if (tmp > 1U) tmp += 3U;
+        setModeSettings(tmp * 11U + 3U + random8(7U), 1U + random8(180U));
+      }
+    #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-   loadingFlag = false;
-   setCurrentPalette();
+    setCurrentPalette();
 
-   pcnt = (modes[currentMode].Scale - 1U) % 11U + 1U; // количество линий от 1 до 11 для каждой из 9 палитр
-   speedfactor = remap(modes[currentMode].Speed, (uint8_t)1, (uint8_t)255, 20.0f, 2.0f);
- }
+    pcnt = (modes[currentMode].Scale - 1U) % 11U + 1U; // количество линий от 1 до 11 для каждой из 9 палитр
+    speedfactor = remap(modes[currentMode].Speed, (uint8_t)1U, (uint8_t)255U, 20.0f, 2.0f);
 
- if (hue2++ & 0x01 && deltaHue++ & 0x01 && deltaHue2++ & 0x01) hue++; // хз. как с 60ю кадрами в секунду скорость замедлять...
- dimAll(205);
- float time_shift = millis() & 0x7FFFFF; // overflow protection proper by SottNick
- time_shift /= speedfactor;
- for (uint8_t c = 0; c < pcnt; c++) {
-   float xx = 2.0f + sin8(time_shift + 6000 * c) / 12.0f;
-   float yy = 2.0f + cos8(time_shift + 9000 * c) / 12.0f;
-   //DrawLineF(xx, yy, (float)WIDTH - xx - 1, (float)HEIGHT - yy - 1, CHSV(c * (256 / pcnt), 200, 255)); // так было в оригинале
-   //if (modes[currentMode].Speed & 0x01)
-   //DrawLineF(xx, yy, (float)WIDTH - xx - 1, (float)HEIGHT - yy - 1, ColorFromPalette(*curPalette, hue + c * (255 / pcnt)).nscale8(200)); // кажется, это не работает, хотя и компилируется
-   //else
-   DrawLineF(xx, yy, (float)WIDTH - xx - 1, (float)HEIGHT - yy - 1, ColorFromPalette(*curPalette, hue + c * (255 / pcnt)));
- }
+    deltaValue = 255U / pcnt;      // шаг смещения цвета для каждой линии
+    emitterX = 1.0f / speedfactor; // сохраняем inv_speed в свободный float-буфер
+
+    loadingFlag = false;
+  }
+
+  if (hue2++ & 0x01 && deltaHue++ & 0x01 && deltaHue2++ & 0x01) { // хз. как с 60ю кадрами в секунду скорость замедлять...
+    hue++;
+  }
+
+  dimAll(205U);
+
+  float time_shift = (float)(millis() & 0x7FFFFFU) * emitterX;
+
+  constexpr float inv12 = 0.0833333f; // 1.0f / 12.0f
+  const float max_w = (float)WIDTH - 1.0f;
+  const float max_h = (float)HEIGHT - 1.0f;
+
+  for (uint8_t c = 0; c < pcnt; c++) {
+    // Вращение Лиссажу на базе быстрых FastLED-функций sin8/cos8
+    float xx = 2.0f + (float)sin8(time_shift + 6000.0f * (float)c) * inv12;
+    float yy = 2.0f + (float)cos8(time_shift + 9000.0f * (float)c) * inv12;
+
+    DrawLineF(xx, yy, max_w - xx, max_h - yy, ColorFromPalette(*curPalette, hue + c * deltaValue));
+  }
 }
 #endif
 
