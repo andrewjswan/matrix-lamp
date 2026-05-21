@@ -5953,7 +5953,7 @@ static void fire2020Routine2(){
 
       uint8_t raw_noise = fastled_helper::perlin8(noise_x, noise_y, ff_z);
       uint8_t color_index = qsub8(raw_noise, shiftHue[j]);
-      CRGB fire_color = ColorFromPalette(palette, color_index, 255U);
+      CRGB fire_color = ColorFromPalette(*curPalette, color_index, 255U);
 
       nblend(leds[XY(i, max_h - j)], fire_color, 160U);
     }
