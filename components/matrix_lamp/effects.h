@@ -5103,7 +5103,7 @@ static void snakesRoutine() {
     if (enlargedObjectNUM > enlargedOBJECT_MAX_COUNT) {
       enlargedObjectNUM = enlargedOBJECT_MAX_COUNT;
     }
-    
+
     for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
       enlargedObjectTime[i] = 0;
       trackingObjectPosX[i] = random8(WIDTH);
@@ -5116,7 +5116,7 @@ static void snakesRoutine() {
                                            // B10     B11
                                            //     B01
     }
-    
+
     loadingFlag = false;
   }
 
@@ -5125,10 +5125,10 @@ static void snakesRoutine() {
   int8_t dx = 0, dy = 0;
   const uint8_t max_h = HEIGHT - 1U;
   const uint8_t max_w = WIDTH - 1U;
-  
+
 for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
     trackingObjectSpeedY[i] += trackingObjectSpeedX[i] * speedfactor;
-    
+
     if (trackingObjectSpeedY[i] >= 1.0f) {
       trackingObjectSpeedY[i] -= 1.0f; // Быстрое отсечение целой части
 
@@ -5184,7 +5184,7 @@ for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
         }
       }
     }
-  
+
     switch (trackingObjectState[i]) {
       case 0b01: dy = 1;  dx = 0;  break;
       case 0b00: dy = -1; dx = 0;  break;
@@ -5204,7 +5204,7 @@ for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
     for (uint8_t m = 0; m < SNAKES_LENGTH; m++) { // 16 бит распаковываем, 14 ещё остаётся без дела в запасе, 2 на хвостик
       x += dx;
       if (x >= WIDTH) x = 0U; else if (x < 0) x = max_w;
-      
+
       y += dy;
       if (y >= HEIGHT) y = 0U; else if (y < 0) y = max_h;
 
@@ -5226,13 +5226,13 @@ for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
     // Хвостик
     x += dx;
     if (x >= WIDTH) x = 0U; else if (x < 0) x = max_w;
-    
+
     y += dy;
     if (y >= HEIGHT) y = 0U; else if (y < 0) y = max_h;
 
     leds[XY(x, y)] += CHSV(trackingObjectHue[i] + (SNAKES_LENGTH + (uint8_t)speedY) * 4U, 255U, (uint8_t)((1.0f - speedY) * 255.0f));
   }
-}  
+}
 #endif
 
 
