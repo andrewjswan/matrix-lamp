@@ -5088,7 +5088,7 @@ static void DNARoutine()
 
 #define SNAKES_LENGTH (8U) // длина червяка от 2 до 15 (+ 1 пиксель голова/хвостик), ограничена размером переменной для хранения трактории тела червяка
 
-static void snakesRoutine(){
+static void snakesRoutine() {
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings) {
@@ -5100,8 +5100,11 @@ static void snakesRoutine(){
     speedfactor = (float)modes[currentMode].Speed / 555.0f + 0.001f;
 
     enlargedObjectNUM = (modes[currentMode].Scale - 1U) / 99.0f * (enlargedOBJECT_MAX_COUNT - 1U) + 1U;
-    if (enlargedObjectNUM > enlargedOBJECT_MAX_COUNT) enlargedObjectNUM = enlargedOBJECT_MAX_COUNT;
-    for (uint8_t i = 0; i < enlargedObjectNUM; i++){
+    if (enlargedObjectNUM > enlargedOBJECT_MAX_COUNT) {
+      enlargedObjectNUM = enlargedOBJECT_MAX_COUNT;
+    }
+
+    for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
       enlargedObjectTime[i] = 0;
       trackingObjectPosX[i] = random8(WIDTH);
       trackingObjectPosY[i] = random8(HEIGHT);
@@ -5113,173 +5116,121 @@ static void snakesRoutine(){
                                            // B10     B11
                                            //     B01
     }
+
     loadingFlag = false;
   }
 
   ledsClear(); // esphome: FastLED.clear();
 
-  int8_t dx, dy;
-  for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
-   trackingObjectSpeedY[i] += trackingObjectSpeedX[i] * speedfactor;
-   if (trackingObjectSpeedY[i] >= 1) {
-    trackingObjectSpeedY[i] = trackingObjectSpeedY[i] - (int)trackingObjectSpeedY[i];
-    if (random8(9U) == 0U) // вероятность поворота
-      if (random8(2U)) { // <- поворот налево
-        enlargedObjectTime[i] = (enlargedObjectTime[i] << 2) | 0b01; // младший бит = поворот
-        switch (trackingObjectState[i]) {
-          case 0b10:
-            trackingObjectState[i] = 0b01;
-            if (trackingObjectPosY[i] == 0U)
-              trackingObjectPosY[i] = HEIGHT - 1U;
-            else
-              trackingObjectPosY[i]--;
-            break;
-          case 0b11:
-            trackingObjectState[i] = 0b00;
-            if (trackingObjectPosY[i] >= HEIGHT - 1U)
-              trackingObjectPosY[i] = 0U;
-            else
-              trackingObjectPosY[i]++;
-            break;
-          case 0b00:
-            trackingObjectState[i] = 0b10;
-            if (trackingObjectPosX[i] == 0U)
-              trackingObjectPosX[i] = WIDTH - 1U;
-            else
-              trackingObjectPosX[i]--;
-            break;
-          case 0b01:
-            trackingObjectState[i] = 0b11;
-            if (trackingObjectPosX[i] >= WIDTH - 1U)
-              trackingObjectPosX[i] = 0U;
-            else
-              trackingObjectPosX[i]++;
-            break;
+  int8_t dx = 0, dy = 0;
+  const uint8_t max_h = HEIGHT - 1U;
+  const uint8_t max_w = WIDTH - 1U;
+
+for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
+    trackingObjectSpeedY[i] += trackingObjectSpeedX[i] * speedfactor;
+
+    if (trackingObjectSpeedY[i] >= 1.0f) {
+      trackingObjectSpeedY[i] -= 1.0f; // Быстрое отсечение целой части
+
+      if (random8(9U) == 0U) { // Вероятность поворота
+        if (random8(2U)) {    // Поворот налево
+          enlargedObjectTime[i] = (enlargedObjectTime[i] << 2) | 0b01;
+          switch (trackingObjectState[i]) {
+            case 0b10:
+              trackingObjectState[i] = 0b01;
+              if (trackingObjectPosY[i] == 0U) trackingObjectPosY[i] = max_h; else trackingObjectPosY[i]--;
+              break;
+            case 0b11:
+              trackingObjectState[i] = 0b00;
+              if (trackingObjectPosY[i] >= max_h) trackingObjectPosY[i] = 0U; else trackingObjectPosY[i]++;
+              break;
+            case 0b00:
+              trackingObjectState[i] = 0b10;
+              if (trackingObjectPosX[i] == 0U) trackingObjectPosX[i] = max_w; else trackingObjectPosX[i]--;
+              break;
+            case 0b01:
+              trackingObjectState[i] = 0b11;
+              if (trackingObjectPosX[i] >= max_w) trackingObjectPosX[i] = 0U; else trackingObjectPosX[i]++;
+              break;
+          }
+        } else { // Поворот направо
+          enlargedObjectTime[i] = (enlargedObjectTime[i] << 2) | 0b11;
+          switch (trackingObjectState[i]) {
+            case 0b11:
+              trackingObjectState[i] = 0b01;
+              if (trackingObjectPosY[i] == 0U) trackingObjectPosY[i] = max_h; else trackingObjectPosY[i]--;
+              break;
+            case 0b10:
+              trackingObjectState[i] = 0b00;
+              if (trackingObjectPosY[i] >= max_h) trackingObjectPosY[i] = 0U; else trackingObjectPosY[i]++;
+              break;
+            case 0b01:
+              trackingObjectState[i] = 0b10;
+              if (trackingObjectPosX[i] == 0U) trackingObjectPosX[i] = max_w; else trackingObjectPosX[i]--;
+              break;
+            case 0b00:
+              trackingObjectState[i] = 0b11;
+              if (trackingObjectPosX[i] >= max_w) trackingObjectPosX[i] = 0U; else trackingObjectPosX[i]++;
+              break;
+          }
         }
-      } else { // -> поворот направо
-        enlargedObjectTime[i] = (enlargedObjectTime[i] << 2) | 0b11; // младший бит = поворот, старший = направо
-        switch (trackingObjectState[i]) {
-          case 0b11:
-            trackingObjectState[i] = 0b01;
-            if (trackingObjectPosY[i] == 0U)
-              trackingObjectPosY[i] = HEIGHT - 1U;
-            else
-              trackingObjectPosY[i]--;
-            break;
-          case 0b10:
-            trackingObjectState[i] = 0b00;
-            if (trackingObjectPosY[i] >= HEIGHT - 1U)
-              trackingObjectPosY[i] = 0U;
-            else
-              trackingObjectPosY[i]++;
-            break;
-          case 0b01:
-            trackingObjectState[i] = 0b10;
-            if (trackingObjectPosX[i] == 0U)
-              trackingObjectPosX[i] = WIDTH - 1U;
-            else
-              trackingObjectPosX[i]--;
-            break;
-          case 0b00:
-            trackingObjectState[i] = 0b11;
-            if (trackingObjectPosX[i] >= WIDTH - 1U)
-              trackingObjectPosX[i] = 0U;
-            else
-              trackingObjectPosX[i]++;
-            break;
-        }
-      } else { // двигаем без поворота
+      } else { // Движение без поворота
         enlargedObjectTime[i] = (enlargedObjectTime[i] << 2);
         switch (trackingObjectState[i]) {
-          case 0b01:
-            if (trackingObjectPosY[i] == 0U)
-              trackingObjectPosY[i] = HEIGHT - 1U;
-            else
-              trackingObjectPosY[i]--;
-            break;
-          case 0b00:
-            if (trackingObjectPosY[i] >= HEIGHT - 1U)
-              trackingObjectPosY[i] = 0U;
-            else
-              trackingObjectPosY[i]++;
-            break;
-          case 0b10:
-            if (trackingObjectPosX[i] == 0U)
-              trackingObjectPosX[i] = WIDTH - 1U;
-            else
-              trackingObjectPosX[i]--;
-            break;
-          case 0b11:
-            if (trackingObjectPosX[i] >= WIDTH - 1U)
-              trackingObjectPosX[i] = 0U;
-            else
-              trackingObjectPosX[i]++;
-            break;
+          case 0b01: if (trackingObjectPosY[i] == 0U) trackingObjectPosY[i] = max_h; else trackingObjectPosY[i]--; break;
+          case 0b00: if (trackingObjectPosY[i] >= max_h) trackingObjectPosY[i] = 0U; else trackingObjectPosY[i]++; break;
+          case 0b10: if (trackingObjectPosX[i] == 0U) trackingObjectPosX[i] = max_w; else trackingObjectPosX[i]--; break;
+          case 0b11: if (trackingObjectPosX[i] >= max_w) trackingObjectPosX[i] = 0U; else trackingObjectPosX[i]++; break;
         }
       }
-   }
+    }
 
     switch (trackingObjectState[i]) {
-     case 0b01:
-       dy = 1;
-       dx = 0;
-       break;
-     case 0b00:
-       dy = -1;
-       dx = 0;
-       break;
-     case 0b10:
-       dy = 0;
-       dx = 1;
-       break;
-     case 0b11:
-       dy = 0;
-       dx = -1;
-       break;
+      case 0b01: dy = 1;  dx = 0;  break;
+      case 0b00: dy = -1; dx = 0;  break;
+      case 0b10: dy = 0;  dx = 1;  break;
+      case 0b11: dy = 0;  dx = -1; break;
     }
 
     long temp = enlargedObjectTime[i];
     uint8_t x = trackingObjectPosX[i];
     uint8_t y = trackingObjectPosY[i];
+    float speedY = trackingObjectSpeedY[i];
 
-    leds[XY(x,y)] += CHSV(trackingObjectHue[i], 255U, trackingObjectSpeedY[i] * 255); // тут рисуется голова
+    // Голова
+    leds[XY(x, y)] += CHSV(trackingObjectHue[i], 255U, (uint8_t)(speedY * 255.0f));
 
+    // Тело
     for (uint8_t m = 0; m < SNAKES_LENGTH; m++) { // 16 бит распаковываем, 14 ещё остаётся без дела в запасе, 2 на хвостик
-      x = (WIDTH + x + dx) % WIDTH;
-      y = (HEIGHT + y + dy) % HEIGHT;
-      leds[XY(x,y)] += CHSV(trackingObjectHue[i] + (m + trackingObjectSpeedY[i])*4U, 255U, 255U); // тут рисуется тело
+      x += dx;
+      if (x >= WIDTH) x = 0U; else if (x < 0) x = max_w;
 
-      if (temp & 0b01){ // младший бит = поворот, старший = направо
-        temp = temp >> 1;
-        if (temp & 0b01){ // старший бит = направо
-          if (dx == 0){
-            dx = 0 - dy;
-            dy = 0;
-          }
-          else{
-            dy = dx;
-            dx = 0;
-          }
+      y += dy;
+      if (y >= HEIGHT) y = 0U; else if (y < 0) y = max_h;
+
+      leds[XY(x, y)] += CHSV(trackingObjectHue[i] + (uint8_t)((float)m + speedY) * 4U, 255U, 255U);
+
+      if (temp & 0b01) { // младший бит = поворот, старший = направо
+        temp >>= 1;
+        if (temp & 0b01) { // старший бит = направо
+          if (dx == 0) { dx = -dy; dy = 0; } else { dy = dx; dx = 0; }
+        } else { // иначе налево
+          if (dx == 0) { dx = dy; dy = 0; } else { dy = -dx; dx = 0; }
         }
-        else{ // иначе налево
-          if (dx == 0){
-            dx = dy;
-            dy = 0;
-          }
-          else{
-            dy = 0 - dx;
-            dx = 0;
-          }
-        }
-        temp = temp >> 1;
+        temp >>= 1;
       } else { // если без поворота
-        temp = temp >> 2;
+        temp >>= 2;
       }
     }
-    x = (WIDTH + x + dx) % WIDTH;
-    y = (HEIGHT + y + dy) % HEIGHT;
 
-    leds[XY(x,y)] += CHSV(trackingObjectHue[i] + (SNAKES_LENGTH + trackingObjectSpeedY[i])*4U, 255U, (1 - trackingObjectSpeedY[i]) * 255); // хвостик
+    // Хвостик
+    x += dx;
+    if (x >= WIDTH) x = 0U; else if (x < 0) x = max_w;
+
+    y += dy;
+    if (y >= HEIGHT) y = 0U; else if (y < 0) y = max_h;
+
+    leds[XY(x, y)] += CHSV(trackingObjectHue[i] + (SNAKES_LENGTH + (uint8_t)speedY) * 4U, 255U, (uint8_t)((1.0f - speedY) * 255.0f));
   }
 }
 #endif
