@@ -5318,7 +5318,9 @@ constexpr float BOUNDARY_MARGIN = std::max(2.0f, 0.1875f * static_cast<float>(HE
 //        unsigned tr = 0;
 //unsigned liquidLampTR[enlargedOBJECT_MAX_COUNT];
 
-static void LiquidLampPosition(){
+static void LiquidLampPosition() {
+  const float max_h = (float)(HEIGHT - 1U);
+
   for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
     // Термический подъём: масштабируется с высотой матрицы
     liquidLampHot[i] += mapcurve(trackingObjectPosY[i], 0, HEIGHT - 1, 5, -5, InOutQuad) * speedfactor;
@@ -5333,57 +5335,62 @@ static void LiquidLampPosition(){
       trackingObjectSpeedY[i] -= 0.07f * SCALE;
     }
 
-    if (trackingObjectSpeedY[i]) {
-      trackingObjectSpeedY[i] *= 0.85f;
-    }
-
+    trackingObjectSpeedY[i] *= 0.85f;
     trackingObjectPosY[i] += trackingObjectSpeedY[i] * speedfactor;
 
     // Горизонтальное движение
-    if (trackingObjectSpeedX[i]) {
-      trackingObjectSpeedX[i] *= 0.7f;
-    }
+    trackingObjectSpeedX[i] *= 0.7f;
     trackingObjectPosX[i] += trackingObjectSpeedX[i] * speedfactor;
 
     // Бесшовное зацикливание по X
     if (trackingObjectPosX[i] >= WIDTH) {
-      trackingObjectPosX[i] -= WIDTH - 1;
-    } else if (trackingObjectPosX[i] < 0) {
-      trackingObjectPosX[i] += WIDTH - 1;
+      trackingObjectPosX[i] -= WIDTH;
+    } else if (trackingObjectPosX[i] < 0.0f) {
+      trackingObjectPosX[i] += WIDTH;
     }
 
     // Ограничение по Y
     if (trackingObjectPosY[i] >= HEIGHT) {
-      trackingObjectPosY[i] = HEIGHT - 1;
-    } else if (trackingObjectPosY[i] < 0) {
-      trackingObjectPosY[i] = 0;
+      trackingObjectPosY[i] = max_h;
+    } else if (trackingObjectPosY[i] < 0.0f) {
+      trackingObjectPosY[i] = 0.0f;
     }
   }
 }
 
 static void LiquidLampPhysic() {
+  const float boundary_top = (float)(HEIGHT - 1U) - BOUNDARY_MARGIN;
+  
   for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
+    float pi_y = trackingObjectPosY[i];
+
     // Отключаем физику у границ
-    if (trackingObjectPosY[i] < BOUNDARY_MARGIN || trackingObjectPosY[i] > HEIGHT - 1 - BOUNDARY_MARGIN) {
-      continue;
-    }
-
+    if (pi_y < BOUNDARY_MARGIN || pi_y > boundary_top) continue;
+    
+    const float pi_x = trackingObjectPosX[i];
+    const float rad_i = trackingObjectShift[i];
+    const float mass_i = trackingObjectState[i];
+    
     for (uint8_t j = i + 1; j < enlargedObjectNUM; j++) {
-      if (trackingObjectPosY[j] < BOUNDARY_MARGIN || trackingObjectPosY[j] > HEIGHT - 1 - BOUNDARY_MARGIN) {
-        continue;
-      }
+      float pj_y = trackingObjectPosY[j];
 
+      // Отключаем физику у границ
+      if (pj_y < BOUNDARY_MARGIN || pj_y > boundary_top) continue;
+      
       // Радиус взаимодействия масштабируется с размером матрицы
-      float radius = (trackingObjectShift[i] + trackingObjectShift[j]) * 0.5f;
+      float radius = (rad_i + trackingObjectShift[j]) * 0.5f;
+      
+      float abs_diff_x = std::abs(pi_x - trackingObjectPosX[j]);
+      float abs_diff_y = std::abs(pi_y - pj_y);
 
       // Быстрая проверка коллизий
-      if (std::abs(trackingObjectPosX[i] - trackingObjectPosX[j]) > radius * 2.0f ||
-          std::abs(trackingObjectPosY[i] - trackingObjectPosY[j]) > radius * 2.0f) continue;
-
+      if (abs_diff_x > radius * 2.0f || abs_diff_y > radius * 2.0f) {
+        continue;
+      }
+      
       // Бесшовное расстояние по X
-      float dx = min((float)std::abs(trackingObjectPosX[i] - trackingObjectPosX[j]),
-                     (float)WIDTH - (float)std::abs(trackingObjectPosX[i] - trackingObjectPosX[j]));
-      float dy = (float)std::abs(trackingObjectPosY[i] - trackingObjectPosY[j]);
+      float dx = min(abs_diff_x, (float)WIDTH - abs_diff_x);
+      float dy = abs_diff_y;
       float dist = SQRT_VARIANT(dx * dx + dy * dy);
 
       if (dist <= radius && dist > 0.01f) {
@@ -5417,51 +5424,52 @@ static void fillMyPal16(uint8_t hue, bool isInvert = false){
   CRGB rgbstart, rgbend;
 
   // начинаем с нуля
-  if (isInvert)
-    // с неявным преобразованием оттенков цвета получаются, как в фотошопе, но для данного эффекта не красиво выглядят
-    hsv2rgb_spectrum(CHSV(256 + hue - pgm_read_byte(&MBVioletColors_arr[0][1]),
-                          pgm_read_byte(&MBVioletColors_arr[0][2]),
-                          pgm_read_byte(&MBVioletColors_arr[0][3])),
-                     rgbstart);
-  else
-    hsv2rgb_spectrum(CHSV(hue + pgm_read_byte(&MBVioletColors_arr[0][1]),
-                          pgm_read_byte(&MBVioletColors_arr[0][2]),
-                          pgm_read_byte(&MBVioletColors_arr[0][3])),
-                     rgbstart);
+  const uint8_t h_offset0 = pgm_read_byte(&MBVioletColors_arr[0][1]);
+  const uint8_t sat0      = pgm_read_byte(&MBVioletColors_arr[0][2]);
+  const uint8_t val0      = pgm_read_byte(&MBVioletColors_arr[0][3]);
 
-  uint8_t indexstart = 0;
+  if (isInvert) {
+    // с неявным преобразованием оттенков цвета получаются, как в фотошопе, но для данного эффекта не красиво выглядят
+    hsv2rgb_spectrum(CHSV((uint8_t)(hue - h_offset0), sat0, val0), rgbstart);
+  } else {
+    hsv2rgb_spectrum(CHSV((uint8_t)(hue + h_offset0), sat0, val0), rgbstart);
+  }  
+
+  uint8_t indexstart = 0U;
   for (uint8_t i = 1U; i < 5U; i++) {  // в палитре @obliterator всего 5 строчек
-    uint8_t indexend = pgm_read_byte(&MBVioletColors_arr[i][0]);
-    if (isInvert)
-      hsv2rgb_spectrum(CHSV(256 + hue - pgm_read_byte(&MBVioletColors_arr[i][1]),
-                            pgm_read_byte(&MBVioletColors_arr[i][2]),
-                            pgm_read_byte(&MBVioletColors_arr[i][3])),
-                       rgbend);
-    else
-      hsv2rgb_spectrum(CHSV(hue + pgm_read_byte(&MBVioletColors_arr[i][1]),
-                            pgm_read_byte(&MBVioletColors_arr[i][2]),
-                            pgm_read_byte(&MBVioletColors_arr[i][3])),
-                       rgbend);
-    istart8 = indexstart / 16;
-    iend8   = indexend   / 16;
+    const uint8_t indexend = pgm_read_byte(&MBVioletColors_arr[i][0]);
+    const uint8_t h_offset = pgm_read_byte(&MBVioletColors_arr[i][1]);
+    const uint8_t sat      = pgm_read_byte(&MBVioletColors_arr[i][2]);
+    const uint8_t val      = pgm_read_byte(&MBVioletColors_arr[i][3]);
+
+    if (isInvert) {
+      hsv2rgb_spectrum(CHSV((uint8_t)(hue - h_offset), sat, val), rgbend);
+    } else {
+      hsv2rgb_spectrum(CHSV((uint8_t)(hue + h_offset), sat, val), rgbend);
+    }
+
+    istart8 = indexstart >> 4U;  // / 16;
+    iend8   = indexend   >> 4U;  // / 16;
+
     if ((istart8 <= lastSlotUsed) && (lastSlotUsed < 15)) {
       istart8 = lastSlotUsed + 1;
       if (iend8 < istart8) {
         iend8 = istart8;
       }
     }
+
     lastSlotUsed = iend8;
     fill_gradient_RGB(myPal, istart8, rgbstart, iend8, rgbend);
+
     indexstart = indexend;
     rgbstart = rgbend;
   }
 }
 
 static void LiquidLampRoutine(bool isColored){
-  if (loadingFlag)
-  {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
+      if (selectedSettings) {
         uint8_t tmp = random8(28U);
         if (tmp > 9U) tmp += 21U;
         if (tmp > 38U) tmp += 7U;
@@ -5470,30 +5478,24 @@ static void LiquidLampRoutine(bool isColored){
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-
     speedfactor = ((float)modes[currentMode].Speed / 64.0f + 0.1f) / SCALE;
 
     if (isColored) {
       fillMyPal16((modes[currentMode].Scale - 1U) * 2.55f, !(modes[currentMode].Scale & 0x01));
-
       // Количество объектов пропорционально площади матрицы
-      enlargedObjectNUM = (uint8_t)(NUM_LEDS / 2U) - 2U;
-      // enlargedObjectNUM = (uint8_t)(WIDTH * 7 / 8);
-      // enlargedObjectNUM = (uint8_t)(1.5f * WIDTH - 10);
+      enlargedObjectNUM = (uint8_t)(NUM_LEDS >> 1U) - 2U; // / 2
     } else {
       hue = random8();
       deltaHue = random8(2U);
       fillMyPal16(hue, deltaHue);
-
-      enlargedObjectNUM = (uint8_t)((modes[currentMode].Scale - 1U) / 99.0f * (enlargedOBJECT_MAX_COUNT - 1U) + 1U);
+      enlargedObjectNUM = (uint8_t)((float)(modes[currentMode].Scale - 1U) / 99.9f * (float)(enlargedOBJECT_MAX_COUNT - 1U) + 1U);
     }
     enlargedObjectNUM = clamp(enlargedObjectNUM, (uint16_t)2U, (uint16_t)enlargedOBJECT_MAX_COUNT);
 
     // Инициализация пузырей с масштабируемыми параметрами
     for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
       trackingObjectPosX[i] = random8(WIDTH);
-      trackingObjectPosY[i] = 0;
+      trackingObjectPosY[i] = 0.0f;
 
       // Масса: в диапазоне MASS_MIN..MASS_MAX
       trackingObjectState[i] = random(MASS_MIN, MASS_MAX);
@@ -5519,8 +5521,10 @@ static void LiquidLampRoutine(bool isColored){
                                         BASE_DISTURB_MIN, BASE_DISTURB_MAX);
 
       // Порог оптимизации (2/3 от радиуса возмущения)
-      liquidLampTR[i] = (unsigned)(liquidLampSC[i] * 2.0f / 3.0f);
+      liquidLampTR[i] = (unsigned)((float)liquidLampSC[i] * 2.0f / 3.0f);
     }
+
+    loadingFlag = false;
   }
 
   LiquidLampPosition();
@@ -5529,7 +5533,7 @@ static void LiquidLampRoutine(bool isColored){
   // Анимация палитры для монохромного режима
   if (!isColored) {
     hue2++;
-    if (hue2 % 0x10 == 0U) {
+    if (hue2 % 16U == 0U) { // 0x10 = 16U
       hue++;
       fillMyPal16(hue, deltaHue);
     }
@@ -5541,33 +5545,44 @@ static void LiquidLampRoutine(bool isColored){
       float sum = 0;
 
       for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
+        const float obj_x = trackingObjectPosX[i];
+        const float obj_y = trackingObjectPosY[i];
+        const float tr_limit = (float)liquidLampTR[i];
+        
         // Быстрое отсечение: если пиксель далеко от пузыря — пропускаем
-        if (std::abs(x - trackingObjectPosX[i]) > liquidLampTR[i] ||
-            std::abs(y - trackingObjectPosY[i]) > liquidLampTR[i]) continue;
-        // Бесшовное расстояние по X
-        float dx = min(std::abs(trackingObjectPosX[i] - (float)x),
-                       WIDTH - std::abs(trackingObjectPosX[i] - (float)x));
-        float dy = std::abs(trackingObjectPosY[i] - (float)y);
-        float d = SQRT_VARIANT(dx * dx + dy * dy);
-
-        if (d < trackingObjectShift[i]) {
-          // Внутри пузыря: яркость растёт к центру
-          sum += mapcurve(d, 0, trackingObjectShift[i], 255, liquidLampMX[i], InQuad);
-        } else if (d < liquidLampSC[i]) {
-          // В зоне возмущения: яркость спадает к краям
-          sum += mapcurve(d, trackingObjectShift[i], liquidLampSC[i], liquidLampMX[i], 0, OutQuart);
+        if (std::abs(x - obj_x) > tr_limit || std::abs(y - obj_y) > tr_limit) {
+          continue;
         }
 
-        if (sum >= 255) {
-          sum = 255;
+        // Бесшовное расстояние по X
+        float abs_dx = std::abs(obj_x - (float)x);
+        float dx = min(abs_dx, (float)WIDTH - abs_dx);
+        float dy = std::abs(obj_y - (float)y);
+        float d = SQRT_VARIANT(dx * dx + dy * dy);
+
+        const float r_shift = trackingObjectShift[i];
+
+        if (d < r_shift) {
+          // Внутри пузыря: яркость растёт к центру
+          sum += mapcurve(d, 0.0f, r_shift, 255.0f, (float)liquidLampMX[i], InQuad);
+        } else {
+          // В зоне возмущения: яркость спадает к краям
+          const float r_sc = (float)liquidLampSC[i];
+          if (d < r_sc) {
+            sum += mapcurve(d, r_shift, r_sc, (float)liquidLampMX[i], 0.0f, OutQuart);
+          }
+        }
+
+        if (sum >= 255.0f) {
+          sum = 255.0f;
           break;
         }
       }
 
       // Минимальная яркость для избежания артефактов палитры
-      if (sum < 16) sum = 16;
-      CRGB color = ColorFromPalette(myPal, (uint8_t)sum);
-      drawPixelXY(x, y, color);
+      if (sum < 16.0f) sum = 16.0f;
+      
+      leds[XY(x, y)] = ColorFromPalette(myPal, (uint8_t)sum);
     }
   }
 }
