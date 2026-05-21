@@ -5608,14 +5608,18 @@ static void LiquidLampRoutine(bool isColored){
 // float trackingObjectSpeedY[trackingOBJECT_MAX_COUNT];
 
 static void popcornRestart_rocket(uint8_t r) {
-  //deltaHue = !deltaHue; // "Мальчик" <> "Девочка"
-  trackingObjectSpeedX[r] = (float)(random(-(NUM_LEDS + (WIDTH * 2)), NUM_LEDS + (WIDTH * 2))) / 256.0f; // * (deltaHue ? 1 : -1); // Наклон. "Мальчики" налево, "девочки" направо. :)
-  if ((trackingObjectPosX[r] < 0 && trackingObjectSpeedX[r] < 0) || (trackingObjectPosX[r] > (WIDTH - 1) && trackingObjectSpeedX[r] > 0)) { // меняем направление только после выхода за пределы экрана
-    // leap towards the centre of the screen
+  constexpr float inv256 = 0.00390625f; // 1.0f / 256.0f
+
+  // deltaHue = !deltaHue; // "Мальчик" <> "Девочка"
+  trackingObjectSpeedX[r] = (float)(random(-(NUM_LEDS + (WIDTH * 2)), NUM_LEDS + (WIDTH * 2))) * inv256; // * (deltaHue ? 1 : -1); // Наклон. "Мальчики" налево, "девочки" направо. :)
+
+  if ((trackingObjectPosX[r] < 0.0f && trackingObjectSpeedX[r] < 0.0f) ||
+      (trackingObjectPosX[r] > (float)(WIDTH - 1U) && trackingObjectSpeedX[r] > 0.0f)) {  // меняем направление только после выхода за пределы экрана
     trackingObjectSpeedX[r] = -trackingObjectSpeedX[r];
   }
+
   // controls the leap height
-  trackingObjectSpeedY[r] = (float)(random8() * 8 + HEIGHT * 10) / 256.0f;
+  trackingObjectSpeedY[r] = (float)(random8() * 8U + HEIGHT * 10U) * inv256;
   trackingObjectHue[r] = random8();
   trackingObjectPosX[r] = random8(WIDTH);
 }
@@ -5623,57 +5627,67 @@ static void popcornRestart_rocket(uint8_t r) {
 static void popcornRoutine() {
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
-        setModeSettings(random8(9U)*11U+3U+random8(9U), 5U+random8(67U)*2U+(random8(4U)?0U:1U));
+      if (selectedSettings) {
+        setModeSettings(random8(9U) * 11U + 3U + random8(9U), 5U + random8(67U) * 2U + (random8(4U) ? 0U : 1U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     setCurrentPalette();
 
-    speedfactor = remap(modes[currentMode].Speed, (uint8_t)1, (uint8_t)255, 0.25f, 1.0f);
+    speedfactor = remap(modes[currentMode].Speed, (uint8_t)1U, (uint8_t)255U, 0.25f, 1.0f);
 
-    enlargedObjectNUM = (modes[currentMode].Scale - 1U) % 11U / 10.0f * (enlargedOBJECT_MAX_COUNT - 1U) + 1U;
-    if (enlargedObjectNUM > enlargedOBJECT_MAX_COUNT) enlargedObjectNUM = enlargedOBJECT_MAX_COUNT;
+    enlargedObjectNUM = (float)((modes[currentMode].Scale - 1U) % 11U) * 0.1f * (float)(enlargedOBJECT_MAX_COUNT - 1U) + 1U;
+    if (enlargedObjectNUM > enlargedOBJECT_MAX_COUNT) {
+      enlargedObjectNUM = enlargedOBJECT_MAX_COUNT;
+    }
 
     for (uint8_t r = 0; r < enlargedObjectNUM; r++) {
       trackingObjectPosX[r] = random8(WIDTH);
       trackingObjectPosY[r] = random8(HEIGHT);
-      trackingObjectSpeedX[r] = 0;
-      trackingObjectSpeedY[r] = -1;
+      trackingObjectSpeedX[r] = 0.0f;
+      trackingObjectSpeedY[r] = -1.0f;
       trackingObjectHue[r] = random8();
     }
+
+    loadingFlag = false;
   }
 
   float popcornGravity = 0.1f * speedfactor;
-  //if (modes[currentMode].Speed & 0x01) // теперь чётностью скорости определяется белый/цветной попкорн, а чётностью яркости больше ничего
-    fadeToBlackBy(leds, NUM_LEDS, 60);
-  //else ledsClear(); // esphome: FastLED.clear();// fadeToBlackBy(leds, NUM_LEDS, 250);
+  fadeToBlackBy(leds, NUM_LEDS, 60);
 
-//void popcornMove(float popcornGravity) {
+  const float max_w = (float)(WIDTH - 1U);
+  const float max_h = (float)(HEIGHT - 1U);
+  const float double_h_minus_2 = (float)(HEIGHT + HEIGHT - 2U);
+  const bool is_speed_odd = (modes[currentMode].Speed & 0x01);
+
   for (uint8_t r = 0; r < enlargedObjectNUM; r++) {
     // add the X & Y velocities to the positions
-    trackingObjectPosX[r] += trackingObjectSpeedX[r] ;
-    if (trackingObjectPosX[r] > WIDTH - 1)
-      trackingObjectPosX[r] = trackingObjectPosX[r] - (WIDTH - 1);
-    if (trackingObjectPosX[r] < 0)
-      trackingObjectPosX[r] = WIDTH - 1 + trackingObjectPosX[r];
+    trackingObjectPosX[r] += trackingObjectSpeedX[r];
+
+    if (trackingObjectPosX[r] > max_w) {
+      trackingObjectPosX[r] -= max_w;
+    }
+    if (trackingObjectPosX[r] < 0.0f) {
+      trackingObjectPosX[r] += max_w;
+    }
+
     trackingObjectPosY[r] += trackingObjectSpeedY[r] * speedfactor;
 
-    if (trackingObjectPosY[r] > HEIGHT - 1){
-      trackingObjectPosY[r] = HEIGHT+HEIGHT - 2 - trackingObjectPosY[r];
+    if (trackingObjectPosY[r] > max_h) {
+      trackingObjectPosY[r] = double_h_minus_2 - trackingObjectPosY[r];
       trackingObjectSpeedY[r] = -trackingObjectSpeedY[r];
     }
 
     // bounce off the floor?
-    if (trackingObjectPosY[r] < 0 && trackingObjectSpeedY[r] < -0.7f) {  // 0.7 вычислено в экселе. скорость свободного падения ниже этой не падает. если ниже, значит ещё есть ускорение
-      trackingObjectSpeedY[r] = (-trackingObjectSpeedY[r]) * 0.9375f;    // V * 0.9375 это 15/16. Можно сделать (V * 15) / 16, или (V * 240) >> 8
+    if (trackingObjectPosY[r] < 0.0f && trackingObjectSpeedY[r] < -0.7f) {  // 0.7 вычислено в экселе. скорость свободного падения ниже этой не падает. если ниже, значит ещё есть ускорение
+      trackingObjectSpeedY[r] = (-trackingObjectSpeedY[r]) * 0.9375f;       // V * 0.9375 это 15/16. Можно сделать (V * 15) / 16, или (V * 240) >> 8
       trackingObjectPosY[r] = -trackingObjectPosY[r];
     }
 
     // settled on the floor?
-    if (trackingObjectPosY[r] <= -1)
+    if (trackingObjectPosY[r] <= -1.0f) {
       popcornRestart_rocket(r);
+    }
 
     // popcornGravity
     trackingObjectSpeedY[r] -= popcornGravity;
@@ -5682,17 +5696,15 @@ static void popcornRoutine() {
     trackingObjectSpeedX[r] *= 0.875f;
     trackingObjectSpeedY[r] *= 0.875f;
 
-
-//void popcornPaint() {
     // make the acme gray, because why not
-    if (-0.004f > trackingObjectSpeedY[r] and trackingObjectSpeedY[r] < 0.004f)
-      drawPixelXYF(trackingObjectPosX[r], trackingObjectPosY[r], (modes[currentMode].Speed & 0x01) ?
-                ColorFromPalette(*curPalette, trackingObjectHue[r])
-              : CRGB::Pink);
-    else
-      drawPixelXYF(trackingObjectPosX[r], trackingObjectPosY[r], (modes[currentMode].Speed & 0x01) ?
-                CRGB::Gray
-              : ColorFromPalette(*curPalette, trackingObjectHue[r]));
+    CRGB color;
+    if (trackingObjectSpeedY[r] < 0.004f && trackingObjectSpeedY[r] > -0.004f) {
+      color = is_speed_odd ? ColorFromPalette(*curPalette, trackingObjectHue[r]) : CRGB::Pink;
+    } else {
+      color = is_speed_odd ? CRGB::Gray : ColorFromPalette(*curPalette, trackingObjectHue[r]);
+    }
+
+    drawPixelXYF(trackingObjectPosX[r], trackingObjectPosY[r], color);
   }
 }
 #endif
