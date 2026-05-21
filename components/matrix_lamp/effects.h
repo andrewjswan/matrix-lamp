@@ -5962,41 +5962,57 @@ static void fire2020Routine2(){
 #ifdef DEF_LLAND
 // ============= Эффект Кипение ===============
 // (c) SottNick
-//по мотивам LDIRKO Ленд - эффект номер 10
-//...ldir... Yaroslaw Turbin, 18.11.2020
-//https://vk.com/ldirko
-//https://www.reddit.com/user/ldirko/
+// по мотивам LDIRKO Ленд - эффект номер 10
+// ...ldir... Yaroslaw Turbin, 18.11.2020
+// https://vk.com/ldirko
+// https://www.reddit.com/user/ldirko/
 
 static void LLandRoutine(){
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
+      if (selectedSettings) {
         uint8_t tmp = random8(6U);
         if (tmp > 1U) tmp += 3U;
-        tmp = tmp*11U+4U+random8(8U);
+        tmp = tmp * 11U + 4U + random8(8U);
         if (tmp > 97U) tmp = 94U;
-        setModeSettings(tmp, 200U+random8(46U));// масштаб 4-11, палитры 0, 1, 5, 6, 7, 8 (кроме 2, 3, 4)
+        setModeSettings(tmp, 200U + random8(46U));  // масштаб 4-11, палитры 0, 1, 5, 6, 7, 8 (кроме 2, 3, 4)
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     setCurrentPalette();
 
-    //speedfactor = remap(modes[currentMode].Speed, 1., 255., 20., 1.) / 16.;
-    deltaValue = 10U * ((modes[currentMode].Scale - 1U) % 11U + 1U);// значения от 1 до 11
-    // значения от 0 до 10 = ((modes[currentMode].Scale - 1U) % 11U)
+    deltaValue = 10U * ((modes[currentMode].Scale - 1U) % 11U + 1U);  // значения от 1 до 11
 
+    loadingFlag = false;
   }
+  
   hue2 += 32U;
   if (hue2 < 32U)
     hue++;
-  //float t = (float)millis() / speedfactor;
   ff_y += 16U;
 
-  for (uint8_t y = 0; y < HEIGHT; y++)
-    for (uint16_t x = 0; x < WIDTH; x++)
-      //drawPixelXY(x, y, ColorFromPalette (*curPalette, map(fastled_helper::perlin8(x * 50, y * 50 - t, 0) - y * 255 / (HEIGHT - 1), 0, 255, 205, 255) + hue, 255));
-      drawPixelXY(x, y, ColorFromPalette (*curPalette, map(fastled_helper::perlin8(x * deltaValue, y * deltaValue - ff_y, ff_z) - y * 255 / (HEIGHT - 1), 0, 255, 205, 255) + hue, 255));
+  const float inv_max_h = 255.0f / (float)(HEIGHT - 1U);
+  
+  for (uint8_t y = 0; y < HEIGHT; y++) {
+    const uint16_t noise_y = y * deltaValue - ff_y;
+    const uint8_t height_fade = (uint8_t)((float)y * inv_max_h);
+
+    for (uint16_t x = 0; x < WIDTH; x++) {
+      const uint16_t noise_x = x * deltaValue;
+      
+      // Генерация базового шума
+      uint8_t raw_noise = fastled_helper::perlin8(noise_x, noise_y, ff_z);
+      
+      // Вычитание градиента высоты
+      uint8_t value = raw_noise - height_fade;
+
+      // Быстрая замена map(value, 0, 255, 205, 255) -> scale8(value, 50) + 205
+      uint8_t color_index = scale8(value, 50U) + 205U + hue;
+
+      drawPixelXY(x, y, ColorFromPalette(*curPalette, color_index, 255U));
+    }
+  }
+  
   ff_z++;
 }
 #endif
