@@ -315,11 +315,11 @@ static void drawPixelXYFseamless(float x, float y, const CRGB& color) {
     }
 
     CRGB clr = getPixColorXY(xn, yn);
-    
+
     clr.r = qadd8(clr.r, ((uint16_t)color.r * weight) >> 8U);
     clr.g = qadd8(clr.g, ((uint16_t)color.g * weight) >> 8U);
     clr.b = qadd8(clr.b, ((uint16_t)color.b * weight) >> 8U);
-    
+
     drawPixelXY(xn, yn, clr);
   }
 }
