@@ -5498,7 +5498,7 @@ static void LiquidLampRoutine(bool isColored){
       trackingObjectPosY[i] = 0.0f;
 
       // Масса: в диапазоне MASS_MIN..MASS_MAX
-      trackingObjectState[i] = random(MASS_MIN, MASS_MAX);
+      trackingObjectState[i] = random16(MASS_MIN, MASS_MAX);
 
       // Скорость плавучести: обратно пропорциональна массе, с учётом масштаба
       liquidLampSpf[i] = remap(trackingObjectState[i],
@@ -5611,10 +5611,12 @@ static void popcornRestart_rocket(uint8_t r) {
   constexpr float inv256 = 0.00390625f; // 1.0f / 256.0f
 
   // deltaHue = !deltaHue; // "Мальчик" <> "Девочка"
-  trackingObjectSpeedX[r] = (float)(random(-(NUM_LEDS + (WIDTH * 2)), NUM_LEDS + (WIDTH * 2))) * inv256; // * (deltaHue ? 1 : -1); // Наклон. "Мальчики" налево, "девочки" направо. :)
+  constexpr float inv256 = 0.00390625f; // 1.0f / 256.0f
+  constexpr int32_t range = NUM_LEDS + (WIDTH * 2U);
+  trackingObjectSpeedX[r] = (float)random(-range, range) * inv256;  // * (deltaHue ? 1 : -1);  // Наклон. "Мальчики" налево, "девочки" направо. :)
 
   if ((trackingObjectPosX[r] < 0.0f && trackingObjectSpeedX[r] < 0.0f) ||
-      (trackingObjectPosX[r] > (float)(WIDTH - 1U) && trackingObjectSpeedX[r] > 0.0f)) {  // меняем направление только после выхода за пределы экрана
+      (trackingObjectPosX[r] > (float)(WIDTH - 1U) && trackingObjectSpeedX[r] > 0.0f)) {       // меняем направление только после выхода за пределы экрана
     trackingObjectSpeedX[r] = -trackingObjectSpeedX[r];
   }
 
@@ -6228,11 +6230,11 @@ static void smokeballsRoutine() {
     speedfactor = remap(modes[currentMode].Speed, (uint8_t)1, (uint8_t)255, 0.02f, 0.1f); // попробовал разные способы управления скоростью. Этот максимально приемлемый, хотя и сильно тупой.
 
     for (uint8_t j = 0; j < enlargedObjectNUM; j++) {
-      trackingObjectShift[j] =  random((WIDTH * 10) - (THIRD_X * 20)); // сумма trackingObjectState + trackingObjectShift не должна выскакивать за макс.Х
-      trackingObjectSpeedX[j] = (float)random(25, 80 * WIDTH) * 0.2f;  // / 5.0f;
-      trackingObjectState[j] = random(CENTER_X * 10, THIRD_X * 20);
-      trackingObjectHue[j] = random8();
-      trackingObjectPosX[j] = trackingObjectShift[j];
+      trackingObjectShift[j]  = random16((WIDTH * 10) - (THIRD_X * 20));  // сумма trackingObjectState + trackingObjectShift не должна выскакивать за макс.Х
+      trackingObjectSpeedX[j] = (float)random16(25U, 80 * WIDTH) * 0.2f;  // / 5.0f;
+      trackingObjectState[j]  = random16(CENTER_X * 10, THIRD_X * 20);
+      trackingObjectHue[j]    = random8();
+      trackingObjectPosX[j]   = trackingObjectShift[j];
     }
 
     loadingFlag = false;
@@ -6263,7 +6265,7 @@ static void smokeballsRoutine() {
   // Таймер мутации шаров
   EVERY_N_SECONDS(20U) {
     for (uint8_t j = 0; j < enlargedObjectNUM; j++) {
-      trackingObjectShift[j] += random(-20, 20);
+      trackingObjectShift[j] += (int16_t)random8(40U) - 20;  // random(-20, 20);
       trackingObjectHue[j] += 28U;
     }
   }
@@ -6500,20 +6502,18 @@ static void starfield2Emit(uint8_t i){
     hue2++;//counter++;
   //source->update(g); хз зачем это было в оригинале - там только смерть source.isAlive высчитывается, вроде
 
-  trackingObjectPosX[i] = CENTER_X_F;  //CENTER_X_MINOR;// * RENDERER_RESOLUTION; //  particle->x = source->x;
-  trackingObjectPosY[i] = CENTER_Y_F; //CENTER_Y_MINOR;// * RENDERER_RESOLUTION; //  // particle->y = source->y;
+  trackingObjectPosX[i] = CENTER_X_F;  // CENTER_X_MINOR; // * RENDERER_RESOLUTION; // particle->x = source->x;
+  trackingObjectPosY[i] = CENTER_Y_F;  // CENTER_Y_MINOR; // * RENDERER_RESOLUTION; // particle->y = source->y;
 
-  //trackingObjectSpeedX[i] = ((float)random8()-127.)/512./0.25*speedfactor; // random(_hVar)-_constVel; // particle->vx
-  trackingObjectSpeedX[i] = ((float)random8()-127.0f)/512.0f; // random(_hVar)-_constVel; // particle->vx
-  //trackingObjectSpeedY[i] = SQRT_VARIANT((speedfactor*speedfactor+0.0001)-trackingObjectSpeedX[i]*trackingObjectSpeedX[i]); // SQRT_VARIANT(pow(_constVel,2)-pow(trackingObjectSpeedX[i],2)); // particle->vy зависит от particle->vx - не ошибка
-  trackingObjectSpeedY[i] = SQRT_VARIANT(0.0626f-trackingObjectSpeedX[i]*trackingObjectSpeedX[i]); // SQRT_VARIANT(pow(_constVel,2)-pow(trackingObjectSpeedX[i],2)); // particle->vy зависит от particle->vx - не ошибка
-  if(random8(2U)) { trackingObjectSpeedY[i]=-trackingObjectSpeedY[i]; }
-  trackingObjectState[i] = random8(50, 250); // random8(minLife, maxLife);// particle->ttl
+  trackingObjectSpeedX[i] = ((float)random8() - 127.0f) / 512.0f;                                      // random(_hVar) - _constVel; // particle->vx
+  trackingObjectSpeedY[i] = SQRT_VARIANT(0.0626f - trackingObjectSpeedX[i] * trackingObjectSpeedX[i]); // SQRT_VARIANT(pow(_constVel, 2) - pow(trackingObjectSpeedX[i], 2));  // particle -> vy зависит от particle -> vx - не ошибка
+  if(random8(2U)) { trackingObjectSpeedY[i]= -trackingObjectSpeedY[i]; }
+  trackingObjectState[i] = random8(50, 250);                                                           // random8(minLife, maxLife); // particle -> ttl
   if (modes[currentMode].Speed & 0x01)
-    trackingObjectHue[i] = hue2;// (counter/2)%255; // particle->hue
+    trackingObjectHue[i] = hue2;                                                                       // (counter / 2) % 255; // particle->hue
   else
     trackingObjectHue[i] = random8();
-  trackingObjectIsShift[i] = true; // particle->isAlive
+  trackingObjectIsShift[i] = true;                                                                     // particle -> isAlive
 }
 
 static void starfield2Routine(){
