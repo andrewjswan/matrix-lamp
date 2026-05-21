@@ -6601,17 +6601,17 @@ static void fairyEmit(uint8_t i) {
       hue2++;
     }
   }
-  
+
   trackingObjectPosX[i] = boids[0].location.x;
   trackingObjectPosY[i] = boids[0].location.y;
 
   constexpr float inv512 = 0.001953125f;  // 1.0f / 512.0f
   trackingObjectSpeedX[i] = ((float)random8() - 127.0f) * inv512;                                        // particle->vx
-  
+
   // Круговая тригонометрия шлейфа
   trackingObjectSpeedY[i] = SQRT_VARIANT(0.0626f - trackingObjectSpeedX[i] * trackingObjectSpeedX[i]);   // particle->vy зависит от particle->vx - не ошибка
-  if (random8(2U)) { 
-    trackingObjectSpeedY[i] = -trackingObjectSpeedY[i]; 
+  if (random8(2U)) {
+    trackingObjectSpeedY[i] = -trackingObjectSpeedY[i];
   }
 
   trackingObjectState[i] = random8(20U, 80U);                                                            // particle->ttl
@@ -6627,17 +6627,17 @@ static void fairyRoutine(){
         setModeSettings(14U + random8(87U), 190U + random8(40U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-   
+
     speedfactor = remap(modes[currentMode].Speed, (uint8_t)1U, (uint8_t)255U, 0.02f, 0.25f);
 
     deltaValue = 10Г; // количество зарождающихся частиц за 1 цикл // perCycle = 1;
-    
+
     // enlargedObjectNUM = (modes[currentMode].Scale - 1U) / 99.0f * (trackingOBJECT_MAX_COUNT - 1U) + 1U;
     enlargedObjectNUM = (float)(modes[currentMode].Scale - 1U) * 0.010101f * (float)(trackingOBJECT_MAX_COUNT - 1U) + 1U;
     if (enlargedObjectNUM > trackingOBJECT_MAX_COUNT) {
       enlargedObjectNUM = trackingOBJECT_MAX_COUNT;
     }
-    
+
     for (uint8_t i = 0U; i < enlargedObjectNUM; i++) {
       trackingObjectIsShift[i] = false; // particle->isAlive
     }
@@ -6648,7 +6648,7 @@ static void fairyRoutine(){
     boids[0].velocity.x = (float)random8(46U, 100U) * 0.002f;
     if (random8(2U)) boids[0].velocity.x = -boids[0].velocity.x;
     boids[0].velocity.y = 0.0f;
-    
+
     hue = random8();
     #ifdef FAIRY_BEHAVIOR
       deltaHue2 = 1U;
@@ -6671,21 +6671,21 @@ static void fairyRoutine(){
     // Быстрое умножение вместо делений (1/4080 и 1/2040)
     boids[1].velocity.x = ((float)random8() + 255.0f) * 0.000245098f;  //  / 4080.0f;
     boids[1].velocity.y = ((float)random8() + 255.0f) * 0.000490196f;  //  / 2040.0f;
-    
+
     if (boids[0].location.x > CENTER_X_F) boids[1].velocity.x = -boids[1].velocity.x;
     if (boids[0].location.y > CENTER_Y_F) boids[1].velocity.y = -boids[1].velocity.y;
   }
-  
+
   if (!deltaHue2) {
     step = 1U;
 
     // Умножаем смещение на speedfactor
     boids[0].location.x += boids[1].velocity.x * speedfactor;
     boids[0].location.y += boids[1].velocity.y * speedfactor;
-    
-    deltaHue2 = (boids[0].location.x <= 0.0f || boids[0].location.x >= limit_w || 
+
+    deltaHue2 = (boids[0].location.x <= 0.0f || boids[0].location.x >= limit_w ||
                  boids[0].location.y <= 0.0f || boids[0].location.y >= limit_h);
-  } else    
+  } else
 #endif // FAIRY_BEHAVIOR
   {
     PVector attractLocation = PVector(CENTER_X_F, CENTER_Y_F);
@@ -6694,7 +6694,7 @@ static void fairyRoutine(){
     // перемножаем и получаем 5.
 
     Boid &boid = boids[0];
-    
+
     PVector force = attractLocation - boid.location;      // Calculate direction of force
     float d = force.mag();                                // Distance between objects
     d = constrain(d, 5.0f, max_h);                        // Limiting the distance to eliminate "extreme" results for very close or very far objects
@@ -6712,7 +6712,7 @@ static void fairyRoutine(){
     } else if (boid.location.x >= max_w) {
       boid.location.x = -boid.location.x + max_w + max_w;
     }
-    
+
     if (boid.location.y <= -1.0f) {
       boid.location.y = -boid.location.y;
     } else if (boid.location.y >= max_h) {
@@ -6739,21 +6739,21 @@ static void fairyRoutine(){
 
   CHSV hsv_color;
   hsv_color.sat = 255U;
-  hsv_color.val = 255U;  
-  
+  hsv_color.val = 255U;
+
   // go over particles and update matrix cells on the way
   for (uint8_t i = 0U; i < enlargedObjectNUM; i++) {
     if (!trackingObjectIsShift[i] && step) {
       fairyEmit(i);
       step--;
     }
-    
+
     if (trackingObjectIsShift[i]) {  // particle->isAlive
       // Гравитация частиц с учетом скорости кадра
       if (modes[currentMode].Scale & 0x01 && trackingObjectSpeedY[i] > -1.0f) {
         trackingObjectSpeedY[i] -= 0.05f * speedfactor;  // apply acceleration
       }
-      
+
       particlesUpdate2(i);
 
       // generate RGB values for particle
@@ -6765,10 +6765,10 @@ static void fairyRoutine(){
       drawPixelXYF(trackingObjectPosX[i], trackingObjectPosY[i], baseRGB);
     }
   }
-  
+
   // Отрисовка самой феи
   drawPixelXYF(boids[0].location.x, boids[0].location.y, CHSV(hue, 160U, 255U));
-}  
+}
 #endif
 
 
