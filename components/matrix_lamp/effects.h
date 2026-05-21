@@ -6621,146 +6621,182 @@ static void starfield2Routine() {
 #ifdef DEF_FAIRY
 // ============= ЭФФЕКТ ФЕЯ ===============
 // (c) SottNick
-#define FAIRY_BEHAVIOR //типа сложное поведение
 
-static void fairyEmit(uint8_t i) //particlesEmit(Particle_Abstract *particle, ParticleSysConfig *g)
-{
-    if (deltaHue++ & 0x01)
-      if (hue++ & 0x01)
-        hue2++;//counter++;
-    trackingObjectPosX[i] = boids[0].location.x;
-    trackingObjectPosY[i] = boids[0].location.y;
+#define FAIRY_BEHAVIOR // типа сложное поведение
 
-    //хотите навставлять speedfactor? - тут не забудьте
-    //trackingObjectSpeedX[i] = ((float)random8()-127.)/512./0.25*speedfactor; // random(_hVar)-_constVel; // particle->vx
-    trackingObjectSpeedX[i] = ((float)random8()-127.0f)/512.0f; // random(_hVar)-_constVel; // particle->vx
-    //trackingObjectSpeedY[i] = SQRT_VARIANT((speedfactor*speedfactor+0.0001)-trackingObjectSpeedX[i]*trackingObjectSpeedX[i]); // SQRT_VARIANT(pow(_constVel,2)-pow(trackingObjectSpeedX[i],2)); // particle->vy зависит от particle->vx - не ошибка
-    trackingObjectSpeedY[i] = SQRT_VARIANT(0.0626f-trackingObjectSpeedX[i]*trackingObjectSpeedX[i]); // SQRT_VARIANT(pow(_constVel,2)-pow(trackingObjectSpeedX[i],2)); // particle->vy зависит от particle->vx - не ошибка
-    if(random8(2U)) { trackingObjectSpeedY[i]=-trackingObjectSpeedY[i]; }
+static void fairyEmit(uint8_t i) {
+  if (deltaHue++ & 0x01) {
+    if (hue++ & 0x01) {
+      hue2++;
+    }
+  }
 
-    trackingObjectState[i] = random8(20, 80); // random8(minLife, maxLife);// particle->ttl
-    trackingObjectHue[i] = hue2;// (counter/2)%255; // particle->hue
-    trackingObjectIsShift[i] = true; // particle->isAlive
+  trackingObjectPosX[i] = boids[0].location.x;
+  trackingObjectPosY[i] = boids[0].location.y;
+
+  constexpr float inv512 = 0.001953125f;  // 1.0f / 512.0f
+  trackingObjectSpeedX[i] = ((float)random8() - 127.0f) * inv512;                                        // particle->vx
+
+  // Круговая тригонометрия шлейфа
+  trackingObjectSpeedY[i] = SQRT_VARIANT(0.0626f - trackingObjectSpeedX[i] * trackingObjectSpeedX[i]);   // particle->vy зависит от particle->vx - не ошибка
+  if (random8(2U)) {
+    trackingObjectSpeedY[i] = -trackingObjectSpeedY[i];
+  }
+
+  trackingObjectState[i] = random8(20U, 80U);                                                            // particle->ttl
+  trackingObjectHue[i] = hue2;                                                                           // particle->hue
+  trackingObjectIsShift[i] = true;                                                                       // particle->isAlive
 }
 
+
 static void fairyRoutine(){
-  if (loadingFlag)
-  {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
-        setModeSettings(14U+random8(87U), 190U + random8(40U));
+      if (selectedSettings) {
+        setModeSettings(14U + random8(87U), 190U + random8(40U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
+    speedfactor = remap(modes[currentMode].Speed, (uint8_t)1U, (uint8_t)255U, 0.02f, 0.25f);
 
-    deltaValue = 10; // количество зарождающихся частиц за 1 цикл //perCycle = 1;
-    enlargedObjectNUM = (modes[currentMode].Scale - 1U) / 99.0f * (trackingOBJECT_MAX_COUNT - 1U) + 1U;
-    if (enlargedObjectNUM > trackingOBJECT_MAX_COUNT) enlargedObjectNUM = trackingOBJECT_MAX_COUNT;
-    for(int i = 0; i<enlargedObjectNUM; i++)
+    deltaValue = 10U; // количество зарождающихся частиц за 1 цикл // perCycle = 1;
+
+    // enlargedObjectNUM = (modes[currentMode].Scale - 1U) / 99.0f * (trackingOBJECT_MAX_COUNT - 1U) + 1U;
+    enlargedObjectNUM = (float)(modes[currentMode].Scale - 1U) * 0.010101f * (float)(trackingOBJECT_MAX_COUNT - 1U) + 1U;
+    if (enlargedObjectNUM > trackingOBJECT_MAX_COUNT) {
+      enlargedObjectNUM = trackingOBJECT_MAX_COUNT;
+    }
+
+    for (uint8_t i = 0U; i < enlargedObjectNUM; i++) {
       trackingObjectIsShift[i] = false; // particle->isAlive
+    }
 
-      // лень было придумывать алгоритм для траектории феи, поэтому это будет нулевой "бойд" из эффекта Притяжение
-      boids[0] = Boid(random8(WIDTH), random8(HEIGHT));//WIDTH - 1, HEIGHT - 1);
-      //boids[0].location.x = random8(WIDTH);
-      //boids[0].location.y = random8(HEIGHT);
-      boids[0].mass = 0.5f;//((float)random8(33U, 134U)) / 100.; // random(0.1, 2); // сюда можно поставить регулятор разлёта. чем меньше число, тем дальше от центра будет вылет
-      boids[0].velocity.x = ((float) random8(46U, 100U)) / 500.0f;
-      if (random8(2U)) boids[0].velocity.x = -boids[0].velocity.x;
-      boids[0].velocity.y = 0;
-      hue = random8();//boids[0].colorIndex =
-      #ifdef FAIRY_BEHAVIOR
-        deltaHue2 = 1U;
-      #endif
+    // лень было придумывать алгоритм для траектории феи, поэтому это будет нулевой "бойд" из эффекта Притяжение
+    boids[0] = Boid(random8(WIDTH), random8(HEIGHT));
+    boids[0].mass = 0.5f;  // сюда можно поставить регулятор разлёта. чем меньше число, тем дальше от центра будет вылет
+    boids[0].velocity.x = (float)random8(46U, 100U) * 0.002f;
+    if (random8(2U)) boids[0].velocity.x = -boids[0].velocity.x;
+    boids[0].velocity.y = 0.0f;
+
+    hue = random8();
+    #ifdef FAIRY_BEHAVIOR
+      deltaHue2 = 1U;
+    #endif
+
+    loadingFlag = false;
   }
+
   step = deltaValue; //счётчик количества частиц в очереди на зарождение в этом цикле
+
+  constexpr float max_w = (float)WIDTH;
+  constexpr float max_h = (float)HEIGHT;
+  constexpr float limit_w = (float)(WIDTH - 1U);
+  constexpr float limit_h = (float)(HEIGHT - 1U);
 
 #ifdef FAIRY_BEHAVIOR
   if (!deltaHue && deltaHue2 && std::abs(boids[0].velocity.x) + std::abs(boids[0].velocity.y) < 0.15f) {
     deltaHue2 = 0U;
 
-    boids[1].velocity.x = ((float)random8()+255.0f) / 4080.0f;
-    boids[1].velocity.y = ((float)random8()+255.0f) / 2040.0f;
+    // Быстрое умножение вместо делений (1/4080 и 1/2040)
+    boids[1].velocity.x = ((float)random8() + 255.0f) * 0.000245098f;  //  / 4080.0f;
+    boids[1].velocity.y = ((float)random8() + 255.0f) * 0.000490196f;  //  / 2040.0f;
+
     if (boids[0].location.x > CENTER_X_F) boids[1].velocity.x = -boids[1].velocity.x;
     if (boids[0].location.y > CENTER_Y_F) boids[1].velocity.y = -boids[1].velocity.y;
   }
-  if (!deltaHue2){
+
+  if (!deltaHue2) {
     step = 1U;
 
-    boids[0].location.x += boids[1].velocity.x;
-    boids[0].location.y += boids[1].velocity.y;
-    deltaHue2 = (boids[0].location.x <= 0 || boids[0].location.x >= WIDTH-1 || boids[0].location.y <= 0 || boids[0].location.y >= HEIGHT-1);
-  }
-  else
+    // Умножаем смещение на speedfactor
+    boids[0].location.x += boids[1].velocity.x * speedfactor;
+    boids[0].location.y += boids[1].velocity.y * speedfactor;
+
+    deltaHue2 = (boids[0].location.x <= 0.0f || boids[0].location.x >= limit_w ||
+                 boids[0].location.y <= 0.0f || boids[0].location.y >= limit_h);
+  } else
 #endif // FAIRY_BEHAVIOR
   {
     PVector attractLocation = PVector(CENTER_X_F, CENTER_Y_F);
-    //float attractMass = 10;
-    //float attractG = .5;
+    // float attractMass = 10;
+    // float attractG = .5;
     // перемножаем и получаем 5.
-    Boid boid = boids[0];
+
+    Boid &boid = boids[0];
+
     PVector force = attractLocation - boid.location;      // Calculate direction of force
     float d = force.mag();                                // Distance between objects
-    d = constrain(d, 5.0f, HEIGHT);//видео снято на 5.0f  // Limiting the distance to eliminate "extreme" results for very close or very far objects
-//d = constrain(d, modes[currentMode].Scale / 10.0, HEIGHT);
+    d = constrain(d, 5.0f, max_h);                        // Limiting the distance to eliminate "extreme" results for very close or very far objects
+                                                          // видео снято на 5.0f
 
     force.normalize();                                    // Normalize vector (distance doesn't matter here, we just want this vector for direction)
-    float strength = (5.0f * boid.mass) / (d * d);          // Calculate gravitional force magnitude 5.=attractG*attractMass
-//float attractMass = (modes[currentMode].Scale) / 10.0 * .5;
-//strength = (attractMass * boid.mass) / (d * d);
+    float strength = (5.0f * boid.mass) / (d * d);        // Calculate gravitional force magnitude 5.=attractG*attractMass
     force *= strength;                                    // Get force vector --> magnitude * direction
+
     boid.applyForce(force);
     boid.update();
 
-    if (boid.location.x <= -1) boid.location.x = -boid.location.x;
-    else if (boid.location.x >= WIDTH) boid.location.x = -boid.location.x+WIDTH+WIDTH;
-    if (boid.location.y <= -1) boid.location.y = -boid.location.y;
-    else if (boid.location.y >= HEIGHT) boid.location.y = -boid.location.y+HEIGHT+HEIGHT;
-    boids[0] = boid;
+    if (boid.location.x <= -1.0f) {
+      boid.location.x = -boid.location.x;
+    } else if (boid.location.x >= max_w) {
+      boid.location.x = -boid.location.x + max_w + max_w;
+    }
 
-    //EVERY_N_SECONDS(20)
-    if (!deltaHue){
-      if (random8(3U)){
-        d = ((random8(2U)) ? boids[0].velocity.x : boids[0].velocity.y) * ((random8(2U)) ? 0.2f : -0.2f);
-        boids[0].velocity.x += d;
-        boids[0].velocity.y -= d;
-      }
-      else {
-        if (std::abs(boids[0].velocity.x) < 0.02f)
-          boids[0].velocity.x = -boids[0].velocity.x;
-        else if (std::abs(boids[0].velocity.y) < 0.02f)
-          boids[0].velocity.y = -boids[0].velocity.y;
+    if (boid.location.y <= -1.0f) {
+      boid.location.y = -boid.location.y;
+    } else if (boid.location.y >= max_h) {
+      boid.location.y = -boid.location.y + max_h + max_h;
+    }
+
+    if (!deltaHue) {
+      if (random8(3U)) {
+        d = ((random8(2U)) ? boid.velocity.x : boid.velocity.y) * ((random8(2U)) ? 0.2f : -0.2f);
+        boid.velocity.x += d;
+        boid.velocity.y -= d;
+      } else {
+        if (std::abs(boid.velocity.x) < 0.02f) {
+          boid.velocity.x = -boid.velocity.x;
+        } else if (std::abs(boid.velocity.y) < 0.02f) {
+          boid.velocity.y = -boid.velocity.y;
+        }
       }
     }
   }
 
-  //renderer.fade(leds); = fadeToBlackBy(128); = dimAll(255-128)
-  //dimAll(255-128/.25*speedfactor); очередной эффект, к которому нужно будет "подобрать коэффициенты"
-  //if (modes[currentMode].Speed & 0x01)
-    dimAll(127);
-  //else ledsClear(); // esphome: FastLED.clear();
+  // dimAll(255 - 128 / 0.25f * speedfactor); очередной эффект, к которому нужно будет "подобрать коэффициенты"
+  dimAll(127);
 
-  //go over particles and update matrix cells on the way
-  for(int i = 0; i<enlargedObjectNUM; i++) {
+  CHSV hsv_color;
+  hsv_color.sat = 255U;
+  hsv_color.val = 255U;
+
+  // go over particles and update matrix cells on the way
+  for (uint8_t i = 0U; i < enlargedObjectNUM; i++) {
     if (!trackingObjectIsShift[i] && step) {
-      //emitter->emit(&particles[i], this->g);
       fairyEmit(i);
       step--;
     }
-    if (trackingObjectIsShift[i]){ // particle->isAlive
-      //particles[i].update(this->g);
-      if (modes[currentMode].Scale & 0x01 && trackingObjectSpeedY[i] > -1) trackingObjectSpeedY[i] -= 0.05f; //apply acceleration
+
+    if (trackingObjectIsShift[i]) {  // particle->isAlive
+      // Гравитация частиц с учетом скорости кадра
+      if (modes[currentMode].Scale & 0x01 && trackingObjectSpeedY[i] > -1.0f) {
+        trackingObjectSpeedY[i] -= 0.05f * speedfactor;  // apply acceleration
+      }
+
       particlesUpdate2(i);
 
-      //generate RGB values for particle
-      CRGB baseRGB = CHSV(trackingObjectHue[i], 255,255); // particles[i].hue
+      // generate RGB values for particle
+      hsv_color.hue = trackingObjectHue[i];
+      CRGB baseRGB;
+      hsv2rgb_spectrum(hsv_color, baseRGB);
 
-      //baseRGB.fadeToBlackBy(255-trackingObjectState[i]);
-      baseRGB.nscale8(trackingObjectState[i]);//эквивалент
+      baseRGB.nscale8(trackingObjectState[i]);
       drawPixelXYF(trackingObjectPosX[i], trackingObjectPosY[i], baseRGB);
     }
   }
-  drawPixelXYF(boids[0].location.x, boids[0].location.y, CHSV(hue, 160U, 255U));//boid.colorIndex + hue
+
+  // Отрисовка самой феи
+  drawPixelXYF(boids[0].location.x, boids[0].location.y, CHSV(hue, 160U, 255U));
 }
 #endif
 
