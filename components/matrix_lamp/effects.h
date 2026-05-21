@@ -6206,54 +6206,62 @@ static void newMatrixRoutine()
 // (c) Stepko
 // https://editor.soulmatelights.com/gallery/505
 // https://github.com/DmytroKorniienko/FireLamp_JeeUI/blob/master/src/effects.cpp
-static void smokeballsRoutine(){
-  if (loadingFlag)
-  {
+
+static void smokeballsRoutine() {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
-        setModeSettings(random8(9U)*11U+3U+random8(9U), 1U + random8(255U));
+        setModeSettings(random8(9U) * 11U + 3U + random8(9U), 1U + random8(255U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     setCurrentPalette();
 
     enlargedObjectNUM = enlargedObjectNUM = (modes[currentMode].Scale - 1U) % 11U + 1U;
     speedfactor = remap(modes[currentMode].Speed, (uint8_t)1, (uint8_t)255, 0.02f, 0.1f); // попробовал разные способы управления скоростью. Этот максимально приемлемый, хотя и сильно тупой.
-    //randomSeed(millis());
+    
     for (uint8_t j = 0; j < enlargedObjectNUM; j++) {
       trackingObjectShift[j] =  random((WIDTH * 10) - (THIRD_X * 20)); // сумма trackingObjectState + trackingObjectShift не должна выскакивать за макс.Х
-      //trackingObjectSpeedX[j] = EffectMath::randomf(5., (float)(16 * WIDTH)); //random(50, 16 * WIDTH) / random(1, 10);
-      trackingObjectSpeedX[j] = (float)random(25, 80 * WIDTH) / 5.0f;
+      trackingObjectSpeedX[j] = (float)random(25, 80 * WIDTH) * 0.2f;  // / 5.0f;
       trackingObjectState[j] = random(CENTER_X * 10, THIRD_X * 20);
-      trackingObjectHue[j] = random8();//(9) * 28;
+      trackingObjectHue[j] = random8();
       trackingObjectPosX[j] = trackingObjectShift[j];
     }
+
+    loadingFlag = false;
   }
 
-  //shiftUp();
-  for (uint8_t x = 0; x < WIDTH; x++) {
-    for (float y = (float)HEIGHT; y > 0.0f; y-= speedfactor) {
-      drawPixelXY(x, y, getPixColorXY(x, y - 1));
-    }
+  static float subPixelAccumulator = 0.0f;
+  subPixelAccumulator += speedfactor;
+  if (subPixelAccumulator >= 1.0f) {
+    shiftUp();
+    subPixelAccumulator -= 1.0f; // Сбрасываем накопленный пиксель
   }
 
-  fadeToBlackBy(leds, NUM_LEDS, 128U / HEIGHT);
-  if (modes[currentMode].Speed & 0x01)
+  constexpr uint8_t fade_val = 128U / HEIGHT;
+  fadeToBlackBy(leds, NUM_LEDS, fade_val);  
+  
+  if (modes[currentMode].Speed & 0x01) {
     blurScreen(20);
+  }
+  
   for (uint8_t j = 0; j < enlargedObjectNUM; j++) {
-    trackingObjectPosX[j] = beatsin16((uint8_t)(trackingObjectSpeedX[j] * (speedfactor * 5.0f)), trackingObjectShift[j], trackingObjectState[j] + trackingObjectShift[j], trackingObjectHue[j]*256, trackingObjectHue[j]*8);
-    drawPixelXYF(trackingObjectPosX[j] / 10.0f, 0.05f, ColorFromPalette(*curPalette, trackingObjectHue[j]));
+    uint16_t phase = (uint16_t)trackingObjectHue[j] << 8U;
+    uint16_t b_speed = (uint16_t)(trackingObjectSpeedX[j] * (speedfactor * 5.0f));
+
+    trackingObjectPosX[j] = beatsin16(b_speed, trackingObjectShift[j], trackingObjectState[j] + trackingObjectShift[j], phase, trackingObjectHue[j] * 8U);
+    drawPixelXYF(trackingObjectPosX[j] * 0.1f, 0.05f, ColorFromPalette(*curPalette, trackingObjectHue[j]));
   }
 
-  EVERY_N_SECONDS(20){
+  // Таймер мутации шаров
+  EVERY_N_SECONDS(20U) {
     for (uint8_t j = 0; j < enlargedObjectNUM; j++) {
-      trackingObjectShift[j] += random(-20,20);
-      trackingObjectHue[j] += 28;
+      trackingObjectShift[j] += random(-20, 20);
+      trackingObjectHue[j] += 28U;
     }
   }
 
-  loadingFlag = random8() > 253U;
+  loadingFlag = (random8() > 253U);
 }
 #endif
 
