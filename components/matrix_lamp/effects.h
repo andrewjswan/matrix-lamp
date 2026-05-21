@@ -6493,7 +6493,7 @@ static void particlesUpdate2(uint8_t i) {
   if (trackingObjectShift[i] >= 1.0f) {
     uint8_t decrement = (uint8_t)trackingObjectShift[i];
     trackingObjectShift[i] -= (float)decrement;
-    
+
     if (trackingObjectState[i] > decrement) {
       trackingObjectState[i] -= decrement;
     } else {
@@ -6508,8 +6508,8 @@ static void particlesUpdate2(uint8_t i) {
   constexpr float max_w = (float)WIDTH;
   constexpr float max_h = (float)HEIGHT;
 
-  if (trackingObjectState[i] == 0U || 
-      trackingObjectPosX[i] < 0.0f || trackingObjectPosX[i] >= max_w || 
+  if (trackingObjectState[i] == 0U ||
+      trackingObjectPosX[i] < 0.0f || trackingObjectPosX[i] >= max_w ||
       trackingObjectPosY[i] < 0.0f || trackingObjectPosY[i] >= max_h) {
     trackingObjectIsShift[i] = false;
   }
@@ -6564,7 +6564,7 @@ static void starfield2Routine() {
 
     loadingFlag = false;
   }
-  
+
   step = deltaValue; // счётчик количества частиц в очереди на зарождение в этом цикле
   dimAll(127);
 
@@ -6579,14 +6579,14 @@ static void starfield2Routine() {
       starfield2Emit(i);
       step--;
     }
-    
+
     if (trackingObjectIsShift[i]){ // particle->isAlive
       particlesUpdate2(i);
 
       // generate RGB values for particle
       hsv_color.hue = trackingObjectHue[i];
       CRGB baseRGB;
-      hsv2rgb_spectrum(hsv_color, baseRGB);      
+      hsv2rgb_spectrum(hsv_color, baseRGB);
 
       // Плавное угасание яркости звезды в зависимости от её TTL
       baseRGB.nscale8(trackingObjectState[i]);
