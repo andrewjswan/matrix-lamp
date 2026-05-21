@@ -6630,7 +6630,7 @@ static void fairyRoutine(){
 
     speedfactor = remap(modes[currentMode].Speed, (uint8_t)1U, (uint8_t)255U, 0.02f, 0.25f);
 
-    deltaValue = 10Г; // количество зарождающихся частиц за 1 цикл // perCycle = 1;
+    deltaValue = 10U; // количество зарождающихся частиц за 1 цикл // perCycle = 1;
 
     // enlargedObjectNUM = (modes[currentMode].Scale - 1U) / 99.0f * (trackingOBJECT_MAX_COUNT - 1U) + 1U;
     enlargedObjectNUM = (float)(modes[currentMode].Scale - 1U) * 0.010101f * (float)(trackingOBJECT_MAX_COUNT - 1U) + 1U;
