@@ -5236,6 +5236,66 @@ for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
 #endif
 
 
+#if defined(DEF_LIQUIDLAMP) || defined(DEF_LIQUIDLAMP_AUTO) || defined(DEF_AURORA) || defined(DEF_SPECTRUM)
+
+// генератор палитр для Жидкой лампы (c) SottNick
+// генератор палитр для Северного сияния (c) SottNick
+// static const uint8_t MBVioletColors_arr[5][4] PROGMEM = // та же палитра, но в формате CHSV
+
+static CRGBPalette16 myPal;
+
+// Передаем указатель на PROGMEM-массив как третий параметр (c) andrewjswan
+static void fillMyPal16(uint8_t hue, bool isInvert, const uint8_t (*colors_arr)[4]) {
+  int8_t lastSlotUsed = -1;
+  uint8_t istart8, iend8;
+  CRGB rgbstart, rgbend;
+
+  // Строка 0 (индекс 0)
+  const uint8_t h_offset0 = pgm_read_byte(&colors_arr[0][1]);
+  const uint8_t sat0      = pgm_read_byte(&colors_arr[0][2]);
+  const uint8_t val0      = pgm_read_byte(&colors_arr[0][3]);
+
+  if (isInvert) {
+    hsv2rgb_spectrum(CHSV((uint8_t)(256U + hue - h_offset0), sat0, val0), rgbstart);
+  } else {
+    hsv2rgb_spectrum(CHSV((uint8_t)(hue + h_offset0), sat0, val0), rgbstart);
+  }
+
+  uint8_t indexstart = 0U;
+  for (uint8_t i = 1U; i < 5U; i++) {  // В палитре всего 5 строчек
+    const uint8_t indexend = pgm_read_byte(&colors_arr[i][0]);
+    const uint8_t h_offset = pgm_read_byte(&colors_arr[i][1]);
+    const uint8_t sat      = pgm_read_byte(&colors_arr[i][2]);
+    const uint8_t val      = pgm_read_byte(&colors_arr[i][3]);
+
+    // Исправлен баг автора: теперь инверсия работает симметрично стартовой точке
+    if (isInvert) {
+      hsv2rgb_spectrum(CHSV((uint8_t)(256U + hue - h_offset), sat, val), rgbend);
+    } else {
+      hsv2rgb_spectrum(CHSV((uint8_t)(hue + h_offset), sat, val), rgbend);
+    }
+
+    // Быстрый побитовый сдвиг вместо деления на 16 (Правило 2)
+    istart8 = indexstart >> 4U;
+    iend8   = indexend   >> 4U;
+
+    if ((istart8 <= (uint8_t)lastSlotUsed) && (lastSlotUsed < 15)) {
+      istart8 = (uint8_t)lastSlotUsed + 1U;
+      if (iend8 < istart8) {
+        iend8 = istart8;
+      }
+    }
+
+    lastSlotUsed = iend8;
+    fill_gradient_RGB(myPal, istart8, rgbstart, iend8, rgbend);
+
+    indexstart = indexend;
+    rgbstart = rgbend;
+  }
+}
+#endif
+
+
 #if defined(DEF_LIQUIDLAMP) || defined(DEF_LIQUIDLAMP_AUTO)
 // ----------------------------- Жидкая лампа ---------------------
 // ----------- Эффект "Лавовая лампа" (c) obliterator
@@ -5413,59 +5473,6 @@ static void LiquidLampPhysic() {
   }
 }
 
-// генератор палитр для Жидкой лампы (c) SottNick
-// static const uint8_t MBVioletColors_arr[5][4] PROGMEM = // та же палитра, но в формате CHSV
-
-static CRGBPalette16 myPal;
-
-static void fillMyPal16(uint8_t hue, bool isInvert = false){
-  int8_t lastSlotUsed = -1;
-  uint8_t istart8, iend8;
-  CRGB rgbstart, rgbend;
-
-  // начинаем с нуля
-  const uint8_t h_offset0 = pgm_read_byte(&MBVioletColors_arr[0][1]);
-  const uint8_t sat0      = pgm_read_byte(&MBVioletColors_arr[0][2]);
-  const uint8_t val0      = pgm_read_byte(&MBVioletColors_arr[0][3]);
-
-  if (isInvert) {
-    // с неявным преобразованием оттенков цвета получаются, как в фотошопе, но для данного эффекта не красиво выглядят
-    hsv2rgb_spectrum(CHSV((uint8_t)(hue - h_offset0), sat0, val0), rgbstart);
-  } else {
-    hsv2rgb_spectrum(CHSV((uint8_t)(hue + h_offset0), sat0, val0), rgbstart);
-  }
-
-  uint8_t indexstart = 0U;
-  for (uint8_t i = 1U; i < 5U; i++) {  // в палитре @obliterator всего 5 строчек
-    const uint8_t indexend = pgm_read_byte(&MBVioletColors_arr[i][0]);
-    const uint8_t h_offset = pgm_read_byte(&MBVioletColors_arr[i][1]);
-    const uint8_t sat      = pgm_read_byte(&MBVioletColors_arr[i][2]);
-    const uint8_t val      = pgm_read_byte(&MBVioletColors_arr[i][3]);
-
-    if (isInvert) {
-      hsv2rgb_spectrum(CHSV((uint8_t)(hue - h_offset), sat, val), rgbend);
-    } else {
-      hsv2rgb_spectrum(CHSV((uint8_t)(hue + h_offset), sat, val), rgbend);
-    }
-
-    istart8 = indexstart >> 4U;  // / 16;
-    iend8   = indexend   >> 4U;  // / 16;
-
-    if ((istart8 <= lastSlotUsed) && (lastSlotUsed < 15)) {
-      istart8 = lastSlotUsed + 1;
-      if (iend8 < istart8) {
-        iend8 = istart8;
-      }
-    }
-
-    lastSlotUsed = iend8;
-    fill_gradient_RGB(myPal, istart8, rgbstart, iend8, rgbend);
-
-    indexstart = indexend;
-    rgbstart = rgbend;
-  }
-}
-
 static void LiquidLampRoutine(bool isColored){
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
@@ -5481,13 +5488,13 @@ static void LiquidLampRoutine(bool isColored){
     speedfactor = ((float)modes[currentMode].Speed / 64.0f + 0.1f) / SCALE;
 
     if (isColored) {
-      fillMyPal16((modes[currentMode].Scale - 1U) * 2.55f, !(modes[currentMode].Scale & 0x01));
+      fillMyPal16((modes[currentMode].Scale - 1U) * 2.55f, !(modes[currentMode].Scale & 0x01), MBVioletColors_arr);
       // Количество объектов пропорционально площади матрицы
       enlargedObjectNUM = (uint8_t)(NUM_LEDS >> 1U) - 2U; // / 2
     } else {
       hue = random8();
       deltaHue = random8(2U);
-      fillMyPal16(hue, deltaHue);
+      fillMyPal16(hue, deltaHue, MBVioletColors_arr);
       enlargedObjectNUM = (uint8_t)((float)(modes[currentMode].Scale - 1U) / 99.9f * (float)(enlargedOBJECT_MAX_COUNT - 1U) + 1U);
     }
     enlargedObjectNUM = clamp(enlargedObjectNUM, (uint16_t)2U, (uint16_t)enlargedOBJECT_MAX_COUNT);
@@ -5535,7 +5542,7 @@ static void LiquidLampRoutine(bool isColored){
     hue2++;
     if (hue2 % 16U == 0U) { // 0x10 = 16U
       hue++;
-      fillMyPal16(hue, deltaHue);
+      fillMyPal16(hue, deltaHue, MBVioletColors_arr);
     }
   }
 
@@ -6962,56 +6969,6 @@ static void spiderRoutine() {
 // static const uint8_t MBAuroraColors_arr[5][4] PROGMEM = // палитра в формате CHSV
 // CRGBPalette16 myPal; уже есть эта переменная в эффекте Жидкая лампа
 
-static void fillMyPal16_2(uint8_t hue, bool isInvert = false){
-// я бы, конечно, вместо копии функции генерации палитры "_2"
-// лучше бы сделал её параметром указатель на массив с базовой палитрой,
-// но я пониятия не имею, как это делается с грёбаным PROGMEM
-
-  int8_t lastSlotUsed = -1;
-  uint8_t istart8, iend8;
-  CRGB rgbstart, rgbend;
-
-  // начинаем с нуля
-  if (isInvert)
-    //с неявным преобразованием оттенков цвета получаются, как в фотошопе, но для данного эффекта не красиво выглядят
-    //rgbstart = CHSV(256 + hue - pgm_read_byte(&MBAuroraColors_arr[0][1]), pgm_read_byte(&MBAuroraColors_arr[0][2]), pgm_read_byte(&MBAuroraColors_arr[0][3])); // начальная строчка палитры с инверсией
-    hsv2rgb_spectrum(CHSV(256 + hue - pgm_read_byte(&MBAuroraColors_arr[0][1]),
-                     pgm_read_byte(&MBAuroraColors_arr[0][2]),
-                     pgm_read_byte(&MBAuroraColors_arr[0][3])),
-                     rgbstart);
-  else
-    //rgbstart = CHSV(hue + pgm_read_byte(&MBAuroraColors_arr[0][1]), pgm_read_byte(&MBAuroraColors_arr[0][2]), pgm_read_byte(&MBAuroraColors_arr[0][3])); // начальная строчка палитры
-    hsv2rgb_spectrum(CHSV(hue + pgm_read_byte(&MBAuroraColors_arr[0][1]),
-                     pgm_read_byte(&MBAuroraColors_arr[0][2]),
-                     pgm_read_byte(&MBAuroraColors_arr[0][3])),
-                     rgbstart);
-  int indexstart = 0; // начальный индекс палитры
-  for (uint8_t i = 1U; i < 5U; i++) { // в палитре @obliterator всего 5 строчек
-    int indexend = pgm_read_byte(&MBAuroraColors_arr[i][0]);
-    if (isInvert)
-      hsv2rgb_spectrum(CHSV(hue + pgm_read_byte(&MBAuroraColors_arr[i][1]),
-                       pgm_read_byte(&MBAuroraColors_arr[i][2]),
-                       pgm_read_byte(&MBAuroraColors_arr[i][3])),
-                       rgbend);
-    else
-      hsv2rgb_spectrum(CHSV(256 + hue - pgm_read_byte(&MBAuroraColors_arr[i][1]),
-                       pgm_read_byte(&MBAuroraColors_arr[i][2]),
-                       pgm_read_byte(&MBAuroraColors_arr[i][3])),
-                       rgbend);
-    istart8 = indexstart / 16;
-    iend8   = indexend   / 16;
-    if ((istart8 <= lastSlotUsed) && (lastSlotUsed < 15)) {
-       istart8 = lastSlotUsed + 1;
-       if (iend8 < istart8)
-         iend8 = istart8;
-    }
-    lastSlotUsed = iend8;
-    fill_gradient_RGB(myPal, istart8, rgbstart, iend8, rgbend);
-    indexstart = indexend;
-    rgbstart = rgbend;
-  }
-}
-
 static unsigned long polarTimer;
 //float adjastHeight; // используем emitterX
 //uint16_t adjScale; // используем ff_y
@@ -7024,54 +6981,44 @@ static void polarRoutine() {
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-    //setCurrentPalette();
-
-    //fillMyPal16_2((modes[currentMode].Scale - 1U) * 2.55);//, !(modes[currentMode].Scale & 0x01)); фиксированная палитра - для слабаков
-    //emitterX = remap((float)HEIGHT, 8, 32, 28, 12); такое работало с горем пополам только для матриц до 32 пикселей в высоту
-    //emitterX = 512. / HEIGHT - 0.0001; // это максимально возможное значение
-    emitterX = 400.0f / HEIGHT; // а это - максимум без яркой засветки крайних рядов матрицы (сверху и снизу)
-
     ff_y = map(WIDTH, 8, 64, 310, 63);
-    //ff_z = map(modes[currentMode].Scale, 1, 100, 30, ff_y);
     ff_z = ff_y;
-    speedfactor = map(modes[currentMode].Speed, 1, 255, 128, 16); // _speed = map(speed, 1, 255, 128, 16);
 
+    hue = (uint8_t)((modes[currentMode].Scale - 1U) * 2.55f);
+    speedfactor = map(modes[currentMode].Speed, 1, 255, 128, 16);
+
+    loadingFlag = false;
   }
 
-  if (modes[currentMode].Scale == 100){
-    if (hue2++ & 0x01 && deltaHue++ & 0x01 && deltaHue2++ & 0x01) hue++; // это ж бред, но я хз. как с 60ю кадрами в секунду можно эффективно скорость замедлять...
-      fillMyPal16_2((uint8_t)((modes[currentMode].Scale - 1U) * 2.55f) + hue, modes[currentMode].Scale & 0x01);
+  const bool invert_flag = (modes[currentMode].Scale & 0x01);
+
+  if (modes[currentMode].Scale == 100U) {
+    if (hue2++ & 0x01 && deltaHue++ & 0x01 && deltaHue2++ & 0x01) {
+      hue++;
+    }
+    fillMyPal16(hue, invert_flag, MBAuroraColors_arr);
+  } else {
+    uint8_t wave_hue = hue + AURORA_COLOR_RANGE - beatsin8(AURORA_COLOR_PERIOD, 0U, AURORA_COLOR_RANGE * 2U);
+    fillMyPal16(wave_hue, invert_flag, MBAuroraColors_arr);
   }
-  else
-    fillMyPal16_2((uint8_t)((modes[currentMode].Scale - 1U) * 2.55f) + AURORA_COLOR_RANGE - beatsin8(AURORA_COLOR_PERIOD, 0U, AURORA_COLOR_RANGE+AURORA_COLOR_RANGE), modes[currentMode].Scale & 0x01);
+
+  constexpr float AURORA_EMITTER_X = 400.0f / (float)HEIGHT;  // а это - максимум без яркой засветки крайних рядов матрицы (сверху и снизу)
 
   for (uint8_t x = 0; x < WIDTH; x++) {
     for (uint8_t y = 0; y < HEIGHT; y++) {
       polarTimer++;
-      //uint16_t i = x*y;
-      leds[XY(x, y)]=
-          ColorFromPalette(myPal,
-            qsub8(
-              fastled_helper::perlin8(polarTimer % 2 + x * ff_z,
-                y * 16 + polarTimer % 16,
-                polarTimer / speedfactor
-              ),
-              std::abs((float)HEIGHT/2 - (float)y) * emitterX
-            )
-          );
-/*
-      if (flag == 1) { // Тут я модифицирую стандартные палитры
-        CRGB tmpColor = leds[myLamp.getPixelNumber(x, y)];
-        leds[myLamp.getPixelNumber(x, y)].g = tmpColor.r;
-        leds[myLamp.getPixelNumber(x, y)].r = tmpColor.g;
-        leds[myLamp.getPixelNumber(x, y)].g /= 6;
-        leds[myLamp.getPixelNumber(x, y)].r += leds[myLamp.getPixelNumber(x, y)].r < 206 ? 48 : 0;;
-      } else if (flag == 3) {
-        leds[myLamp.getPixelNumber(x, y)].b += 48;
-        leds[myLamp.getPixelNumber(x, y)].g += leds[myLamp.getPixelNumber(x, y)].g < 206 ? 48 : 0;
-      }
-*/
+
+      const uint16_t noise_x = (polarTimer & 0x01U) + x * ff_z;
+      const uint16_t noise_y = y * 16U + (polarTimer & 0x0FU);
+      const uint32_t noise_z = polarTimer / (uint32_t)speedfactor;
+
+      float diff_y = std::abs(CENTER_Y_F - (float)y);
+      const uint8_t height_fade = (uint8_t)(diff_y * AURORA_EMITTER_X);
+
+      uint8_t raw_noise = fastled_helper::perlin8(noise_x, noise_y, noise_z);
+      uint8_t color_index = qsub8(raw_noise, height_fade);
+
+      leds[XY(x, y)] = ColorFromPalette(myPal, color_index);
     }
   }
 }
@@ -9448,10 +9395,10 @@ static void  Spectrum() {
   uint8_t color = customHue + hue;
   if (modes[currentMode].Scale >= 99) {
     if (hue2++ & 0x01 && deltaHue++ & 0x01 && deltaHue2++ & 0x01) hue += 8;
-    fillMyPal16_2(customHue + hue, modes[currentMode].Scale & 0x01);
+    fillMyPal16(customHue + hue, modes[currentMode].Scale & 0x01, MBAuroraColors_arr);
   } else {
     color = customHue;
-    fillMyPal16_2(customHue + AURORA_COLOR_RANGE - beatsin8(AURORA_COLOR_PERIOD, 0U, AURORA_COLOR_RANGE * 2), modes[currentMode].Scale & 0x01);
+    fillMyPal16(customHue + AURORA_COLOR_RANGE - beatsin8(AURORA_COLOR_PERIOD, 0U, AURORA_COLOR_RANGE * 2), modes[currentMode].Scale & 0x01, MBAuroraColors_arr);
   }
 
   for (uint8_t x = 0; x < WIDTH; x++) {
