@@ -5608,13 +5608,11 @@ static void LiquidLampRoutine(bool isColored){
 // float trackingObjectSpeedY[trackingOBJECT_MAX_COUNT];
 
 static void popcornRestart_rocket(uint8_t r) {
-  constexpr float inv256 = 0.00390625f; // 1.0f / 256.0f
-
   // deltaHue = !deltaHue; // "Мальчик" <> "Девочка"
   constexpr float inv256 = 0.00390625f; // 1.0f / 256.0f
   constexpr int32_t range = NUM_LEDS + (WIDTH * 2U);
-  trackingObjectSpeedX[r] = (float)random(-range, range) * inv256;  // * (deltaHue ? 1 : -1);  // Наклон. "Мальчики" налево, "девочки" направо. :)
 
+  trackingObjectSpeedX[r] = (float)random(-range, range) * inv256;  // * (deltaHue ? 1 : -1);  // Наклон. "Мальчики" налево, "девочки" направо. :)
   if ((trackingObjectPosX[r] < 0.0f && trackingObjectSpeedX[r] < 0.0f) ||
       (trackingObjectPosX[r] > (float)(WIDTH - 1U) && trackingObjectSpeedX[r] > 0.0f)) {       // меняем направление только после выхода за пределы экрана
     trackingObjectSpeedX[r] = -trackingObjectSpeedX[r];
