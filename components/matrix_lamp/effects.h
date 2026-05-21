@@ -6070,69 +6070,58 @@ static void LLandRoutine(){
 // Адаптация (c) SottNick
 
 // используются переменные эффекта Стая. Без него работать не будет.
-//#define ASTEROIDS_NUM 5U // количество шариков не должно превышать AVAILABLE_BOID_COUNT = 20U;
+// #define ASTEROIDS_NUM 5U // количество шариков не должно превышать AVAILABLE_BOID_COUNT = 20U;
 
 static void attractRoutine() {
   if (loadingFlag)
   {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
+      if (selectedSettings) {
         uint8_t tmp = random8(8U);
         if (tmp > 3U) tmp++;
-        setModeSettings(tmp*11U+3U+random8(9U), 180U+random8(56U));
+        setModeSettings(tmp * 11U + 3U + random8(9U), 180U + random8(56U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     setCurrentPalette();
 
-    enlargedObjectNUM = (modes[currentMode].Scale - 1U) % 11U + 1U; //(modes[currentMode].Scale - 1U) / 99.0 * (AVAILABLE_BOID_COUNT - 1U) + 1U;
-    //if (enlargedObjectNUM > AVAILABLE_BOID_COUNT) enlargedObjectNUM = AVAILABLE_BOID_COUNT;
+    enlargedObjectNUM = (modes[currentMode].Scale - 1U) % 11U + 1U;
 
     for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
-      //boids[i] = Boid(random(HEIGHT), 0);
-      boids[i] = Boid(random8(WIDTH), random8(HEIGHT));     //WIDTH - 1, HEIGHT - i);
-      //boids[i].location.x = random8(WIDTH);               //CENTER_X_MINOR + (float)random8() / 50.;
-      //boids[i].location.y = random8(HEIGHT);              //CENTER_Y_MINOR + (float)random8() / 50.;
-      boids[i].mass = ((float)random8(33U, 134U)) / 100.0f; // random(0.1, 2); // сюда можно поставить регулятор разлёта. чем меньше число, тем дальше от центра будет вылет
-      //boids[i].velocity.x = ((float) random(40, 50)) / 100.0;
-      //boids[i].velocity.x = ((float) random(modes[currentMode].Speed, modes[currentMode].Scale+10)) / 200.0;
-      //boids[i].velocity.x = ((float) random8(modes[currentMode].Scale+45, modes[currentMode].Scale+100)) / 500.0;
-      boids[i].velocity.x = ((float) random8(46U, 100U)) / 500.0f;
-      if (random8(2U)) boids[i].velocity.x = -boids[i].velocity.x;
-      boids[i].velocity.y = 0;
-      boids[i].colorIndex = random8();                    //i * 32;
-      //boids[i].maxspeed = 0.380 * modes[currentMode].Speed /63.5+0.380;
-      //boids[i].maxforce = 0.015 * modes[currentMode].Speed /63.5+0.015;
+      boids[i] = Boid(random8(WIDTH), random8(HEIGHT));
+      boids[i].mass = (float)random8(33U, 134U) * 0.01f;
+      boids[i].velocity.x = (float)random8(46U, 100U) * 0.002f; // 1 / 500
+      if (random8(2U)) {
+        boids[i].velocity.x = -boids[i].velocity.x;
+      }
+      boids[i].velocity.y = 0.0f;
+      boids[i].colorIndex = random8();
     }
+
+    loadingFlag = false;
   }
 
   dimAll(220);
-  //ledsClear(); // esphome: FastLED.clear();
 
   PVector attractLocation = PVector(CENTER_X_F, CENTER_Y_F);
-  //float attractMass = 10;
-  //float attractG = .5;
-  // перемножаем и получаем 5.
+  const float max_d = (float)HEIGHT * 2.0f;
 
-  for (uint8_t i = 0; i < enlargedObjectNUM; i++)
-  {
-    Boid boid = boids[i];
-    //Boid * boid = &boids[i];
+  for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
+    Boid &boid = boids[i];
+
     PVector force = attractLocation - boid.location;    // Calculate direction of force // и вкорячиваем сюда регулировку скорости
     float d = force.mag();                              // Distance between objects
-    d = constrain(d, 5.0f, HEIGHT*2.0f);                // Limiting the distance to eliminate "extreme" results for very close or very far objects
+    d = constrain(d, 5.0f, max_d);                      // Limiting the distance to eliminate "extreme" results for very close or very far objects
     force.normalize();                                  // Normalize vector (distance doesn't matter here, we just want this vector for direction)
     float strength = (5.0f * boid.mass) / (d * d);      // Calculate gravitional force magnitude 5.=attractG*attractMass
     force *= strength;                                  // Get force vector --> magnitude * direction
 
     boid.applyForce(force);
-
     boid.update();
-    drawPixelXYF(boid.location.x, boid.location.y, ColorFromPalette(*curPalette, boid.colorIndex + hue));
 
-    boids[i] = boid;
+    drawPixelXYF(boid.location.x, boid.location.y, ColorFromPalette(*curPalette, boid.colorIndex + hue));
   }
+
   EVERY_N_MILLIS(200) {
     hue++;
   }
