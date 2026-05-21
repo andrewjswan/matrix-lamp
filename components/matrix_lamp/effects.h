@@ -5902,52 +5902,67 @@ static void oscillatingRoutine() {
 //Perlin noise fire procedure by Yaroslaw Turbin
 //https://www.reddit.com/r/FastLED/comments/hgu16i/my_fire_effect_implementation_based_on_perlin/
 
-constexpr uint8_t SPARKLES_NUM = OCTANT_X;  // не более чем  enlargedOBJECT_MAX_COUNT (WIDTH * 2)
-//float   trackingObjectPosX[SPARKLES_NUM]; // это для искорок. по идее должны быть uint8_t, но были только такие
-//float   trackingObjectPosY[SPARKLES_NUM];
-//uint8_t shiftHue[HEIGHT];
-//uint16_t ff_y, ff_z; используем для сдвига нойза переменные из общих
-//uint8_t deltaValue;
+constexpr uint8_t SPARKLES_NUM = OCTANT_X;   // не более чем  enlargedOBJECT_MAX_COUNT (WIDTH * 2)
+
+// float   trackingObjectPosX[SPARKLES_NUM]; // это для искорок. по идее должны быть uint8_t, но были только такие
+// float   trackingObjectPosY[SPARKLES_NUM];
+// uint8_t shiftHue[HEIGHT];
+// uint16_t ff_y, ff_z;                      // используем для сдвига нойза переменные из общих
+// uint8_t deltaValue;
 
 static void fire2020Routine2(){
+  const uint8_t max_h = HEIGHT - 1U;
+  
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
-        setModeSettings(1U + random8(100U), 195U+random8(40U));
+      if (selectedSettings) {
+        setModeSettings(1U + random8(100U), 195U + random8(40U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-    if (modes[currentMode].Scale > 100U) modes[currentMode].Scale = 100U; // чтобы не было проблем при прошивке без очистки памяти
-    deltaValue = modes[currentMode].Scale * 0.0899f;// /100.0F * ((sizeof(palette_arr) /sizeof(TProgmemRGBPalette16 *))-0.01F));
+    if (modes[currentMode].Scale > 100U) modes[currentMode].Scale = 100U;  // чтобы не было проблем при прошивке без очистки памяти
+    deltaValue = modes[currentMode].Scale * 0.0899f;
     if (deltaValue == 3U ||deltaValue == 4U)
-      curPalette =  palette_arr[deltaValue]; // (uint8_t)(modes[currentMode].Scale/100.0F * ((sizeof(palette_arr) /sizeof(TProgmemRGBPalette16 *))-0.01F))];
+      curPalette =  palette_arr[deltaValue];
     else
-      curPalette = firePalettes[deltaValue]; // (uint8_t)(modes[currentMode].Scale/100.0F * ((sizeof(firePalettes)/sizeof(TProgmemRGBPalette16 *))-0.01F))];
+      curPalette = firePalettes[deltaValue];
+    
     deltaValue = (((modes[currentMode].Scale - 1U) % 11U + 1U) << 4U) - 8U; // ширина языков пламени (масштаб шума Перлина)
-    deltaHue = map(deltaValue, 8U, 168U, 8U, 84U); // высота языков пламени должна уменьшаться не так быстро, как ширина
-    step = map(255U-deltaValue, 87U, 247U, 4U, 32U); // вероятность смещения искорки по оси ИКС
+    deltaHue = map(deltaValue, 8U, 168U, 8U, 84U);                          // высота языков пламени должна уменьшаться не так быстро, как ширина
+    step = map(255U - deltaValue, 87U, 247U, 4U, 32U);                      // вероятность смещения искорки по оси ИКС
+    
+    const float inv_max_h = 255.0f / (float)max_h;
     for (uint8_t j = 0; j < HEIGHT; j++) {
-      shiftHue[j] = (HEIGHT - 1 - j) * 255 / (HEIGHT - 1); // init colorfade table
+      shiftHue[j] = (uint8_t)((float)(max_h - j) * inv_max_h);              // init colorfade table
     }
 
     for (uint8_t i = 0; i < SPARKLES_NUM; i++) {
-        trackingObjectPosY[i] = random8(HEIGHT);
-        trackingObjectPosX[i] = random8(WIDTH);
+      trackingObjectPosY[i] = random8(HEIGHT);
+      trackingObjectPosX[i] = random8(WIDTH);
     }
+    
+    loadingFlag = false;
   }
+
+  // Рендеринг пламени на базе шума Перлина
   for (uint8_t i = 0; i < WIDTH; i++) {
+    const uint16_t noise_x = i * deltaValue;
+
     for (uint8_t j = 0; j < HEIGHT; j++) {
-//if (modes[currentMode].Brightness & 0x01)
-//      leds[XY(i,HEIGHT-1U-j)] = ColorFromPalette(*curPalette, qsub8(fastled_helper::perlin8(i * deltaValue, (j+ff_y+random8(2)) * deltaHue, ff_z), shiftHue[j]), 255U);
-//else // немного сгладим картинку
-      nblend(leds[XY(i,HEIGHT-1U-j)], ColorFromPalette(*curPalette, qsub8(fastled_helper::perlin8(i * deltaValue, (j+ff_y+random8(2)) * deltaHue, ff_z), shiftHue[j]), 255U), 160U);
+      uint16_t noise_y = (j + ff_y + random8(2U)) * deltaHue;
+     
+      uint8_t raw_noise = fastled_helper::perlin8(noise_x, noise_y, ff_z);
+      uint8_t color_index = qsub8(raw_noise, shiftHue[j]);
+      CRGB fire_color = ColorFromPalette(palette, color_index, 255U);
+      
+      nblend(leds[XY(i, max_h - j)], fire_color, 160U);
     }
   }
 
-  //вставляем искорки из отдельного массива
+  // вставляем искорки из отдельного массива
+  const uint8_t max_w = WIDTH - 1U;
+  
   for (uint8_t i = 0; i < SPARKLES_NUM; i++) {
-    //leds[XY(trackingObjectPosX[i],trackingObjectPosY[i])] += ColorFromPalette(*curPalette, random(156, 255));   //trackingObjectHue[i]
     if (trackingObjectPosY[i] > 3U){
       leds[XY(trackingObjectPosX[i], trackingObjectPosY[i])] = leds[XY(trackingObjectPosX[i], 3U)];
       leds[XY(trackingObjectPosX[i], trackingObjectPosY[i])].fadeToBlackBy(trackingObjectPosY[i]*2U);
@@ -5960,9 +5975,40 @@ static void fire2020Routine2(){
     if (!random8(step))
       trackingObjectPosX[i] = (WIDTH + (uint8_t)trackingObjectPosX[i] + 1U - random8(3U)) % WIDTH;
   }
+  
+  for (uint8_t i = 0; i < SPARKLES_NUM; i++) {
+    uint8_t px = (uint8_t)trackingObjectPosX[i];
+    uint8_t py = (uint8_t)trackingObjectPosY[i];
+
+    if (py > 3U) {
+      leds[XY(px, py)] = leds[XY(px, 3U)];
+      leds[XY(px, py)].fadeToBlackBy(py << 1U);
+    }
+    
+    py++;
+    if (py >= HEIGHT) {
+      py = random8(4U);
+      px = random8(WIDTH);
+    } else {
+      if (random8(step) == 0U) {
+        uint8_t rnd = random8(3U);
+        if (rnd == 0U) {
+          if (px == 0U) px = max_w; else px--;
+        } else if (rnd == 1U) {
+          if (px >= max_w) px = 0U; else px++;
+        }
+        // при rnd == 2U координата px остается без изменений (+1 - 2 = -1, +1 - 1 = 0, +1 - 0 = +1)
+      }
+    }
+
+    trackingObjectPosX[i] = px;
+    trackingObjectPosY[i] = py;
+  }
+
   ff_y++;
-  if (ff_y & 0x01)
+  if (ff_y & 0x01) {
     ff_z++;
+  }
 }
 #endif
 
