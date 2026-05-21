@@ -6477,28 +6477,44 @@ static void pacificRoutine()
 }
 #endif
 
+
+#if defined(DEF_FOUNTAIN) || defined(DEF_FAIRY)
 //-------- по мотивам Эффектов Particle System -------------------------
 // https://github.com/fuse314/arduino-particle-sys
 // https://github.com/giladaya/arduino-particle-sys
 // https://www.youtube.com/watch?v=S6novCRlHV8&t=51s
-//#include <ParticleSys.h>
-//при попытке вытащить из этой библиотеки только минимально необходимое выяснилось, что там очередной (третий) вариант реализации субпиксельной графики.
-//ну его нафиг. лучше будет повторить визуал имеющимися в прошивке средствами.
+// #include <ParticleSys.h>
+// при попытке вытащить из этой библиотеки только минимально необходимое выяснилось, что там очередной (третий) вариант реализации субпиксельной графики.
+// ну его нафиг. лучше будет повторить визуал имеющимися в прошивке средствами.
 
-static void particlesUpdate2(uint8_t i){
-  //age
-  trackingObjectState[i]--; //ttl // ещё и сюда надо speedfactor вкорячить. удачи там!
+static void particlesUpdate2(uint8_t i) {
+  // Плавный учет времени жизни (TTL) с использованием speedfactor
+  trackingObjectShift[i] += speedfactor;
+  if (trackingObjectShift[i] >= 1.0f) {
+    uint8_t decrement = (uint8_t)trackingObjectShift[i];
+    trackingObjectShift[i] -= (float)decrement;
+    
+    if (trackingObjectState[i] > decrement) {
+      trackingObjectState[i] -= decrement;
+    } else {
+      trackingObjectState[i] = 0U;
+    }
+  }
 
-  //apply acceleration
-  //trackingObjectSpeedX[i] = min((int)trackingObjectSpeedX[i]+ax, WIDTH);
-  //trackingObjectSpeedY[i] = min((int)trackingObjectSpeedY[i]+ay, HEIGHT);
+  // Смещение координат с учетом скорости кадра
+  trackingObjectPosX[i] += trackingObjectSpeedX[i] * speedfactor;
+  trackingObjectPosY[i] += trackingObjectSpeedY[i] * speedfactor;
 
-  //apply velocity
-  trackingObjectPosX[i] += trackingObjectSpeedX[i];
-  trackingObjectPosY[i] += trackingObjectSpeedY[i];
-  if(trackingObjectState[i] == 0 || trackingObjectPosX[i] <= -1 || trackingObjectPosX[i] >= WIDTH || trackingObjectPosY[i] <= -1 || trackingObjectPosY[i] >= HEIGHT)
+  constexpr float max_w = (float)WIDTH;
+  constexpr float max_h = (float)HEIGHT;
+
+  if (trackingObjectState[i] == 0U || 
+      trackingObjectPosX[i] < 0.0f || trackingObjectPosX[i] >= max_w || 
+      trackingObjectPosY[i] < 0.0f || trackingObjectPosY[i] >= max_h) {
     trackingObjectIsShift[i] = false;
+  }
 }
+#endif
 
 
 #ifdef DEF_FOUNTAIN
@@ -6506,18 +6522,20 @@ static void particlesUpdate2(uint8_t i){
 // (c) SottNick
 // выглядит как https://github.com/fuse314/arduino-particle-sys/blob/master/examples/StarfieldFastLED/StarfieldFastLED.ino
 
-static void starfield2Emit(uint8_t i){
+static void starfield2Emit(uint8_t i) {
   if (hue++ & 0x01)
-    hue2++;//counter++;
-  //source->update(g); хз зачем это было в оригинале - там только смерть source.isAlive высчитывается, вроде
+    hue2++;  //counter++;
 
   trackingObjectPosX[i] = CENTER_X_F;  // CENTER_X_MINOR; // * RENDERER_RESOLUTION; // particle->x = source->x;
   trackingObjectPosY[i] = CENTER_Y_F;  // CENTER_Y_MINOR; // * RENDERER_RESOLUTION; // particle->y = source->y;
 
-  trackingObjectSpeedX[i] = ((float)random8() - 127.0f) / 512.0f;                                      // random(_hVar) - _constVel; // particle->vx
+  constexpr float inv512 = 0.001953125f;
+  trackingObjectSpeedX[i] = ((float)random8() - 127.0f) * inv512;                                      // random(_hVar) - _constVel; // particle->vx
   trackingObjectSpeedY[i] = SQRT_VARIANT(0.0626f - trackingObjectSpeedX[i] * trackingObjectSpeedX[i]); // SQRT_VARIANT(pow(_constVel, 2) - pow(trackingObjectSpeedX[i], 2));  // particle -> vy зависит от particle -> vx - не ошибка
-  if(random8(2U)) { trackingObjectSpeedY[i]= -trackingObjectSpeedY[i]; }
-  trackingObjectState[i] = random8(50, 250);                                                           // random8(minLife, maxLife); // particle -> ttl
+  if(random8(2U)) {
+    trackingObjectSpeedY[i]= -trackingObjectSpeedY[i];
+  }
+  trackingObjectState[i] = random8(50U, 250U);                                                         // random8(minLife, maxLife); // particle -> ttl
   if (modes[currentMode].Speed & 0x01)
     trackingObjectHue[i] = hue2;                                                                       // (counter / 2) % 255; // particle->hue
   else
@@ -6525,45 +6543,54 @@ static void starfield2Emit(uint8_t i){
   trackingObjectIsShift[i] = true;                                                                     // particle -> isAlive
 }
 
-static void starfield2Routine(){
-  if (loadingFlag)
-  {
+static void starfield2Routine() {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
-        setModeSettings(25U+random8(76U), 185U + random8(30U)*2U + (random8(6U) ? 0U : 1U));
+      if (selectedSettings) {
+        setModeSettings(25U + random8(76U), 185U + random8(30U)*2U + (random8(6U) ? 0U : 1U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
+    // enlargedObjectNUM = (modes[currentMode].Scale - 1U) / 99.0f * (trackingOBJECT_MAX_COUNT - 1U) + 1U;
+    enlargedObjectNUM = (float)(modes[currentMode].Scale - 1U) * 0.010101f * (float)(trackingOBJECT_MAX_COUNT - 1U) + 1U;
+    if (enlargedObjectNUM > trackingOBJECT_MAX_COUNT) {
+      enlargedObjectNUM = trackingOBJECT_MAX_COUNT;
+    }
 
-    enlargedObjectNUM = (modes[currentMode].Scale - 1U) / 99.0f * (trackingOBJECT_MAX_COUNT - 1U) + 1U;
-    if (enlargedObjectNUM > trackingOBJECT_MAX_COUNT) enlargedObjectNUM = trackingOBJECT_MAX_COUNT;
-    //deltaValue = 1; // количество зарождающихся частиц за 1 цикл //perCycle = 1;
-    deltaValue = enlargedObjectNUM / (SQRT_VARIANT(CENTER_X_MAJOR*CENTER_X_MAJOR + CENTER_Y_MAJOR*CENTER_Y_MAJOR) * 4U) + 1U; // 4 - это потому что за 1 цикл частица пролетает ровно четверть расстояния между 2мя соседними пикселями
-    for(int i = 0; i<enlargedObjectNUM; i++)
+    deltaValue = enlargedObjectNUM / (SQRT_VARIANT(CENTER_X_MAJOR * CENTER_X_MAJOR + CENTER_Y_MAJOR * CENTER_Y_MAJOR) * 4U) + 1U;  // 4 - это потому что за 1 цикл частица пролетает ровно четверть расстояния между 2мя соседними пикселями
+    for(uint8_t i = 0U; i < enlargedObjectNUM; i++) {
       trackingObjectIsShift[i] = false; // particle->isAlive
+    }
+
+    loadingFlag = false;
   }
-  step = deltaValue; //счётчик количества частиц в очереди на зарождение в этом цикле
-  //renderer.fade(leds); = fadeToBlackBy(128); = dimAll(255-128)
-  //dimAll(255-128/.25*speedfactor); ахах-ха. очередной эффект, к которому нужно будет "подобрать коэффициенты"
+  
+  step = deltaValue; // счётчик количества частиц в очереди на зарождение в этом цикле
   dimAll(127);
 
-  //go over particles and update matrix cells on the way
-  for(int i = 0; i<enlargedObjectNUM; i++) {
+  CHSV hsv_color;
+  hsv_color.sat = 255U;
+  hsv_color.val = 255U;
+
+  // go over particles and update matrix cells on the way
+  for (uint8_t i = 0U; i < enlargedObjectNUM; i++) {
     if (!trackingObjectIsShift[i] && step) {
       //emitter->emit(&particles[i], this->g);
       starfield2Emit(i);
       step--;
     }
+    
     if (trackingObjectIsShift[i]){ // particle->isAlive
-      //particles[i].update(this->g);
       particlesUpdate2(i);
 
-      //generate RGB values for particle
-      CRGB baseRGB = CHSV(trackingObjectHue[i], 255,255); // particles[i].hue
+      // generate RGB values for particle
+      hsv_color.hue = trackingObjectHue[i];
+      CRGB baseRGB;
+      hsv2rgb_spectrum(hsv_color, baseRGB);      
 
-      //baseRGB.fadeToBlackBy(255-trackingObjectState[i]);
-      baseRGB.nscale8(trackingObjectState[i]);//эквивалент
+      // Плавное угасание яркости звезды в зависимости от её TTL
+      baseRGB.nscale8(trackingObjectState[i]);
+
       drawPixelXYF(trackingObjectPosX[i], trackingObjectPosY[i], baseRGB);
     }
   }
