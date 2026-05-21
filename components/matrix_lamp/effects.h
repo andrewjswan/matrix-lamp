@@ -6278,91 +6278,102 @@ static void smokeballsRoutine() {
 // (c) kostyamat
 // https://github.com/DmytroKorniienko/FireLamp_JeeUI/blob/master/src/effects.cpp
 
-//#define enlargedOBJECT_MAX_COUNT            (WIDTH * 2)          // максимальное количество червяков
-//uint8_t enlargedObjectNUM;                                   // выбранное количество червяков
-//float trackingObjectPosX[trackingOBJECT_MAX_COUNT]; // тут будет позиция головы
-//float trackingObjectPosY[trackingOBJECT_MAX_COUNT]; // тут будет позиция головы
-//float trackingObjectSpeedX[trackingOBJECT_MAX_COUNT]; // тут будет скорость червяка
-//uint8_t trackingObjectHue[trackingOBJECT_MAX_COUNT]; // тут будет цвет червяка
-//uint8_t trackingObjectState[trackingOBJECT_MAX_COUNT]; тут будет направление червяка
+// #define enlargedOBJECT_MAX_COUNT            (WIDTH * 2)   // максимальное количество червяков
+// uint8_t enlargedObjectNUM;                                // выбранное количество червяков
+// float trackingObjectPosX[trackingOBJECT_MAX_COUNT];       // тут будет позиция головы
+// float trackingObjectPosY[trackingOBJECT_MAX_COUNT];       // тут будет позиция головы
+// float trackingObjectSpeedX[trackingOBJECT_MAX_COUNT];     // тут будет скорость червяка
+// uint8_t trackingObjectHue[trackingOBJECT_MAX_COUNT];      // тут будет цвет червяка
+// uint8_t trackingObjectState[trackingOBJECT_MAX_COUNT];    // тут будет направление червяка
 
-static void nexusReset(uint8_t i){
-      trackingObjectHue[i] = random8();
-      trackingObjectState[i] = random8(4);
-      //trackingObjectSpeedX[i] = (255. + random8()) / 255.;
-      trackingObjectSpeedX[i] = (float)random8(5,11) / 70 + speedfactor; // делаем частицам немного разное ускорение и сразу пересчитываем под общую скорость
-        switch (trackingObjectState[i]) {
-          case 0b01:
-              trackingObjectPosY[i] = HEIGHT;
-              trackingObjectPosX[i] = random8(WIDTH);
-            break;
-          case 0b00:
-              trackingObjectPosY[i] = -1;
-              trackingObjectPosX[i] = random8(WIDTH);
-            break;
-          case 0b10:
-              trackingObjectPosX[i] = WIDTH;
-              trackingObjectPosY[i] = random8(HEIGHT);
-            break;
-          case 0b11:
-              trackingObjectPosX[i] = -1;
-              trackingObjectPosY[i] = random8(HEIGHT);
-            break;
-        }
+static void nexusReset(uint8_t i) {
+  constexpr float inv70 = 0.0142857f;  // 1.0f / 70.0f
+
+  trackingObjectHue[i] = random8();
+  trackingObjectState[i] = random8(4U);
+  
+  trackingObjectSpeedX[i] = (float)random8(5U, 11U) * inv70 + speedfactor;  // делаем частицам немного разное ускорение и сразу пересчитываем под общую скорость
+  
+  switch (trackingObjectState[i]) {
+    case 0b01:
+      trackingObjectPosY[i] = (float)HEIGHT;
+      trackingObjectPosX[i] = random8(WIDTH);
+      break;
+    case 0b00:
+      trackingObjectPosY[i] = -1.0f;
+      trackingObjectPosX[i] = random8(WIDTH);
+      break;
+    case 0b10:
+      trackingObjectPosX[i] = (float)WIDTH;
+      trackingObjectPosY[i] = random8(HEIGHT);
+      break;
+    case 0b11:
+      trackingObjectPosX[i] = -1.0f;
+      trackingObjectPosY[i] = random8(HEIGHT);
+      break;
+  }
 }
 
-static void nexusRoutine(){
-  if (loadingFlag)
-  {
+static void nexusRoutine() {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
-        setModeSettings(random8(2U) ? 11U + random8(15U) : 26U+random8(55U), 1U + random8(161U));
+      if (selectedSettings) {
+        setModeSettings(random8(2U) ? 11U + random8(15U) : 26U + random8(55U), 1U + random8(161U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     speedfactor = remap(modes[currentMode].Speed, (uint8_t)1, (uint8_t)255, 0.1f, 0.33f);
 
     enlargedObjectNUM = (modes[currentMode].Scale - 1U) / 99.0f * (enlargedOBJECT_MAX_COUNT - 1U) + 1U;
     if (enlargedObjectNUM > enlargedOBJECT_MAX_COUNT) enlargedObjectNUM = enlargedOBJECT_MAX_COUNT;
+
+    constexpr float inv70 = 0.0142857f;  // 1.0f / 70.0f
     for (uint8_t i = 0; i < enlargedObjectNUM; i++){
       trackingObjectPosX[i] = random8(WIDTH);
       trackingObjectPosY[i] = random8(HEIGHT);
-      trackingObjectSpeedX[i] = (float)random8(5,11) / 70 + speedfactor; // делаем частицам немного разное ускорение и сразу пересчитываем под общую скорость
+      trackingObjectSpeedX[i] = (float)random8(5, 11) * inv70 + speedfactor; // делаем частицам немного разное ускорение и сразу пересчитываем под общую скорость
       trackingObjectHue[i] = random8();
-      trackingObjectState[i] = random8(4); //     B00           // задаем направление
-                                           // B10     B11
-                                           //     B01
+      trackingObjectState[i] = random8(4U); //     B00           // задаем направление
+                                            // B10     B11
+                                            //     B01
     }
     deltaValue = 255U - map(modes[currentMode].Speed, 1, 255, 11, 33);
 
+    loadingFlag = false;
   }
+
   dimAll(deltaValue);
 
-  for (uint8_t i = 0; i < enlargedObjectNUM; i++){
-        switch (trackingObjectState[i]) {
-          case 0b01:
-            trackingObjectPosY[i] -= trackingObjectSpeedX[i];
-            if (trackingObjectPosY[i] <= -1)
-              nexusReset(i);
-            break;
-          case 0b00:
-            trackingObjectPosY[i] += trackingObjectSpeedX[i];
-            if (trackingObjectPosY[i] >= HEIGHT)
-              nexusReset(i);
-            break;
-          case 0b10:
-            trackingObjectPosX[i] -= trackingObjectSpeedX[i];
-            if (trackingObjectPosX[i] <= -1)
-              nexusReset(i);
-            break;
-          case 0b11:
-            trackingObjectPosX[i] += trackingObjectSpeedX[i];
-            if (trackingObjectPosX[i] >= WIDTH)
-              nexusReset(i);
-            break;
-        }
-    drawPixelXYF(trackingObjectPosX[i], trackingObjectPosY[i],  CHSV(trackingObjectHue[i], 255U, 255));
+  CHSV color;
+  color.sat = 255U;
+  color.val = 255U;
+  
+  for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
+    switch (trackingObjectState[i]) {
+      case 0b01:
+        trackingObjectPosY[i] -= trackingObjectSpeedX[i];
+        if (trackingObjectPosY[i] <= -1.0f)
+          nexusReset(i);
+        break;
+      case 0b00:
+        trackingObjectPosY[i] += trackingObjectSpeedX[i];
+        if (trackingObjectPosY[i] >= (float)HEIGHT)
+          nexusReset(i);
+        break;
+      case 0b10:
+        trackingObjectPosX[i] -= trackingObjectSpeedX[i];
+        if (trackingObjectPosX[i] <= -1.0f)
+          nexusReset(i);
+        break;
+      case 0b11:
+        trackingObjectPosX[i] += trackingObjectSpeedX[i];
+        if (trackingObjectPosX[i] >= (float)WIDTH)
+          nexusReset(i);
+        break;
+    }
+
+    color.hue = trackingObjectHue[i];
+    drawPixelXYF(trackingObjectPosX[i], trackingObjectPosY[i], color);    
   }
 }
 #endif
