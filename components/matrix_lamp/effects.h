@@ -6391,91 +6391,109 @@ static void nexusRoutine() {
 // https://github.com/DmytroKorniienko/FireLamp_JeeUI/blob/master/src/effects.cpp
 
 // Add one layer of waves into the led array
-static void pacifica_one_layer(CRGB *leds, const TProgmemRGBPalette16& p, uint16_t cistart, uint16_t wavescale, uint8_t bri, uint16_t ioff)
-{
+// Добавление одного слоя волн в массив светодиодов
+static void pacifica_one_layer(CRGB *leds_ptr, const TProgmemRGBPalette16& p, uint16_t cistart, uint16_t wavescale, uint8_t bri, uint16_t ioff) {
   uint16_t ci = cistart;
   uint16_t waveangle = ioff;
-  uint16_t wavescale_half = (wavescale / 2) + 20;
-  for(uint16_t i = 0; i < NUM_LEDS; i++) {
-    waveangle += 250;
-    uint16_t s16 = sin16(waveangle) + 32768;
-    uint16_t cs  = scale16(s16 , wavescale_half) + wavescale_half;
+
+  const uint16_t wavescale_half = (wavescale >> 1U) + 20U;
+  for(uint16_t i = 0U; i < NUM_LEDS; i++) {
+    waveangle += 250U;
+    uint16_t s16 = sin16(waveangle) + 32768U;
+    uint16_t cs  = scale16(s16, wavescale_half) + wavescale_half;
     ci += cs;
-    uint16_t sindex16 = sin16(ci) + 32768;
-    uint8_t  sindex8  = scale16(sindex16, 240);
-    CRGB c = ColorFromPalette(p, sindex8, bri, LINEARBLEND);
-    leds[i] += c;
+    
+    uint16_t sindex16 = sin16(ci) + 32768U;
+    uint8_t  sindex8  = scale16(sindex16, 240U);
+    
+    leds_ptr[i] += ColorFromPalette(p, sindex8, bri, LINEARBLEND);
   }
 }
 
 // Add extra 'white' to areas where the four layers of light have lined up brightly
-static void pacifica_add_whitecaps(CRGB *leds)
-{
-  uint8_t basethreshold = beatsin8(9, 55, 65);
-  uint8_t wave = beat8(7);
+// Добавление белых гребней волн в местах сильной яркости
+static void pacifica_add_whitecaps(CRGB *leds_ptr) {
+  const uint8_t basethreshold = beatsin8(9U, 55U, 65U);
+  uint8_t wave = beat8(7U);
 
-  for(uint16_t i = 0; i < NUM_LEDS; i++) {
-    uint8_t threshold = scale8(sin8(wave), 20) + basethreshold;
-    wave += 7;
-    uint8_t l = leds[i].getAverageLight();
+  for(uint16_t i = 0U; i < NUM_LEDS; i++) {
+    uint8_t threshold = scale8(sin8(wave), 20U) + basethreshold;
+    wave += 7U;
+    
+    uint8_t l = leds_ptr[i].getAverageLight();
     if(l > threshold) {
       uint8_t overage = l - threshold;
       uint8_t overage2 = qadd8(overage, overage);
-      leds[i] += CRGB(overage, overage2, qadd8(overage2, overage2));
+      
+      leds_ptr[i].r = qadd8(leds_ptr[i].r, overage);
+      leds_ptr[i].g = qadd8(leds_ptr[i].g, overage2);
+      leds_ptr[i].b = qadd8(leds_ptr[i].b, qadd8(overage2, overage2));
     }
   }
 }
 
 // Deepen the blues and greens
-static void pacifica_deepen_colors(CRGB *leds)
-{
-  for(uint16_t i = 0; i < NUM_LEDS; i++) {
-    leds[i].blue = scale8(leds[i].blue,  145);
-    leds[i].green= scale8(leds[i].green, 200);
-    leds[i] |= CRGB(2, 5, 7);
+// Углубление синих и зеленых оттенков океана
+static void pacifica_deepen_colors(CRGB *leds_ptr) {
+  for(uint16_t i = 0U; i < NUM_LEDS; i++) {
+    leds_ptr[i].blue  = scale8(leds_ptr[i].blue,  145U);
+    leds_ptr[i].green = scale8(leds_ptr[i].green, 200U);
+    
+    leds_ptr[i].r |= 2U;
+    leds_ptr[i].g |= 5U;
+    leds_ptr[i].b |= 7U;
   }
 }
 
-static void pacificRoutine()
-{
+static void pacificRoutine() {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
+      if (selectedSettings) {
         setModeSettings(100U, 1U + random8(255U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
+    loadingFlag = false;
+  }
+
   // Increment the four "color index start" counters, one for each wave layer.
   // Each is incremented at a different speed, and the speeds vary over time.
   static uint16_t sCIStart1, sCIStart2, sCIStart3, sCIStart4;
-  static uint32_t sLastms = 0;
-  uint32_t ms = GET_MILLIS();
-  uint32_t deltams = ms - sLastms;
+  static uint32_t sLastms = 0U;
+  
+  const uint32_t ms = millis();
+  const uint32_t deltams = ms - sLastms;
   sLastms = ms;
-  uint16_t speedfactor1 = beatsin16(3, 179, 269);
-  uint16_t speedfactor2 = beatsin16(4, 179, 269);
-  uint32_t deltams1 = (deltams * speedfactor1) / map(modes[currentMode].Speed, 1, 255, 620, 60);
-  uint32_t deltams2 = (deltams * speedfactor2) / map(modes[currentMode].Speed, 1, 255, 620, 60);
-  uint32_t deltams21 = (deltams1 + deltams2) / 2;
-  sCIStart1 += (deltams1 * beatsin88(1011,10,13));
-  sCIStart2 -= (deltams21 * beatsin88(777,8,11));
-  sCIStart3 -= (deltams1 * beatsin88(501,5,7));
-  sCIStart4 -= (deltams2 * beatsin88(257,4,6));
+  
+  const uint16_t speedfactor1 = beatsin16(3U, 179U, 269U);
+  const uint16_t speedfactor2 = beatsin16(4U, 179U, 269U);
+  
+  const long speed_divider = map(modes[currentMode].Speed, 1, 255, 620, 60);
+  const uint32_t deltams1 = (deltams * speedfactor1) / map(modes[currentMode].Speed, 1, 255, 620, 60);
+  const uint32_t deltams2 = (deltams * speedfactor2) / map(modes[currentMode].Speed, 1, 255, 620, 60);
+  const uint32_t deltams21 = (deltams1 + deltams2) / 2;
 
+  sCIStart1 += (deltams1 * beatsin88(1011U, 10U, 13U));
+  sCIStart2 -= (deltams21 * beatsin88(777U, 8U, 11U));
+  sCIStart3 -= (deltams1 * beatsin88(501U, 5U, 7U));
+  sCIStart4 -= (deltams2 * beatsin88(257U, 4U, 6U));
+  
   // Clear out the LED array to a dim background blue-green
-  fill_solid(leds, NUM_LEDS, CRGB(2, 6, 10));
+  fill_solid(leds, NUM_LEDS, CRGB(2U, 6U, 10U));
 
   // Render each of four layers, with different scales and speeds, that vary over time
-  pacifica_one_layer(&*leds, pacifica_palette_1, sCIStart1, beatsin16(3, 11 * 256, 14 * 256), beatsin8(10, 70, 130), 0 - beat16(301));
-  pacifica_one_layer(&*leds, pacifica_palette_2, sCIStart2, beatsin16(4,  6 * 256,  9 * 256), beatsin8(17, 40,  80), beat16(401));
-  pacifica_one_layer(&*leds, pacifica_palette_3, sCIStart3, 6 * 256, beatsin8(9, 10,38), 0-beat16(503));
-  pacifica_one_layer(&*leds, pacifica_palette_3, sCIStart4, 5 * 256, beatsin8(8, 10,28), beat16(601));
+  pacifica_one_layer(leds, pacifica_palette_1, sCIStart1, beatsin16(3U, 11 * 256, 14 * 256), beatsin8(10U, 70U, 130U), 0U - beat16(301U));
+  pacifica_one_layer(leds, pacifica_palette_2, sCIStart2, beatsin16(4U,  6 * 256,  9 * 256), beatsin8(17U, 40U,  80U), beat16(401U));
+  pacifica_one_layer(leds, pacifica_palette_3, sCIStart3, 6 * 256, beatsin8(9U, 10U, 38U), 0U - beat16(503U));
+  pacifica_one_layer(leds, pacifica_palette_3, sCIStart4, 5 * 256, beatsin8(8U, 10U, 28U), beat16(601U));
 
   // Add brighter 'whitecaps' where the waves lines up more
-  pacifica_add_whitecaps(&*leds);
+  pacifica_add_whitecaps(leds);
 
   // Deepen the blues and greens a bit
-  pacifica_deepen_colors(&*leds);
-  blurScreen(20);
+  pacifica_deepen_colors(leds);
+
+  blurScreen(20U);
 }
 #endif
 
