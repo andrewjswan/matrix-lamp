@@ -5777,7 +5777,7 @@ static void oscillatingRoutine() {
 
   hue++;
   CRGB currColors[3];
-  
+
   if (modes[currentMode].Scale == 100U) {
     currColors[0U] = CHSV(hue, 255U, 255U);
     currColors[1U] = CHSV(hue, 128U, 255U);
@@ -5797,11 +5797,11 @@ static void oscillatingRoutine() {
 
   // расчёт химической реакции и отрисовка мира
   uint16_t colorCount[3] = {0U, 0U, 0U};
-  
+
   for (uint8_t x = 0; x < WIDTH; x++) {
     for (uint8_t y = 0; y < HEIGHT; y++) {
       uint8_t current_state = noise3d[0][x][y];
-      
+
       if (current_state == 0U) {
         colorCount[0U]++;
         if (calcNeighbours(x, y, 1U) > 2U)
@@ -5870,7 +5870,7 @@ static void oscillatingRoutine() {
     for (uint8_t y = 0; y < HEIGHT; y++) {
       noise3d[0][x][y] = noise3d[1][x][y];
     }
-  }  
+  }
 }
 #endif
 
