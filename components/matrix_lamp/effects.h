@@ -6851,14 +6851,14 @@ static void sandRoutine(){
       const uint16_t current_idx = XY(x, y);
 
       // Если в текущей ячейке есть песчинка
-      if (leds[current_idx]) { 
+      if (leds[current_idx]) {
         const uint16_t bottom_idx = XY(x, idx_y_minus);
 
         // Если под нами строго пусто — падаем вниз
         if (!leds[bottom_idx]) {
           leds[bottom_idx] = leds[current_idx];
           leds[current_idx] = 0U;
-        } 
+        }
         // Под нами пик (свободно и слева-снизу, и справа-снизу)
         else if (x > 0U && !leds[XY(x - 1U, idx_y_minus)] && x < max_w && !leds[XY(x + 1U, idx_y_minus)]) {
           if (random8(2U) == 0U) {
@@ -6868,19 +6868,19 @@ static void sandRoutine(){
           }
           leds[current_idx] = 0U;
           pcnt = idx_y_minus;
-        } 
+        }
         // Под нами склон налево
         else if (x > 0U && !leds[XY(x - 1U, idx_y_minus)]) {
           leds[XY(x - 1U, idx_y_minus)] = leds[current_idx];
           leds[current_idx] = 0U;
           pcnt = idx_y_minus;
-        } 
+        }
         // Под нами склон направо
         else if (x < max_w && !leds[XY(x + 1U, idx_y_minus)]) {
           leds[XY(x + 1U, idx_y_minus)] = leds[current_idx];
           leds[current_idx] = 0U;
           pcnt = idx_y_minus;
-        } 
+        }
         // Под нами плоское плато из песка
         else {
           pcnt = y;
