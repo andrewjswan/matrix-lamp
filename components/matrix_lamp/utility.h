@@ -272,6 +272,60 @@ static void drawPixelXYF(float x, float y, const CRGB& color)
 
 
 // ------------------------------------------------
+static void drawPixelXYFseamless(float x, float y, const CRGB& color) {
+  const int16_t x_int = static_cast<int16_t>(floorf(x));
+  const int16_t y_int = static_cast<int16_t>(floorf(y));
+
+  const uint8_t xx = (x - (float)x_int) * 255.0f;
+  const uint8_t yy = (y - (float)y_int) * 255.0f;
+  const uint8_t ix = 255U - xx;
+  const uint8_t iy = 255U - yy;
+
+  // Бесшовное зацикливание базовой целой координаты по X и Y
+  int16_t base_xn = x_int % WIDTH;
+  if (base_xn < 0) base_xn += WIDTH;
+
+  int16_t base_yn = y_int % HEIGHT;
+  if (base_yn < 0) base_yn += HEIGHT;
+
+  for (uint8_t i = 0; i < 4U; i++) {
+    // Рассчитываем координаты соседей с быстрым переходом через край матрицы
+    uint8_t xn = base_xn + (i & 1U);
+    if (xn >= WIDTH) {
+      xn = 0U;
+    }
+
+    uint8_t yn = base_yn + ((i >> 1U) & 1U);
+    if (yn >= HEIGHT) {
+      yn = 0U;
+    }
+
+    // calculate the intensities for each affected pixel
+    uint8_t weight;
+    switch (i) {
+      case 0U: weight = WU_WEIGHT(ix, iy); break;
+      case 1U: weight = WU_WEIGHT(xx, iy); break;
+      case 2U: weight = WU_WEIGHT(ix, yy); break;
+      default: weight = WU_WEIGHT(xx, yy); break;
+    }
+
+    // Если пиксель не вносит видимого вклада — пропускаем тяжелые расчеты цвета
+    if (weight == 0U) {
+      continue;
+    }
+
+    CRGB clr = getPixColorXY(xn, yn);
+
+    clr.r = qadd8(clr.r, ((uint16_t)color.r * weight) >> 8U);
+    clr.g = qadd8(clr.g, ((uint16_t)color.g * weight) >> 8U);
+    clr.b = qadd8(clr.b, ((uint16_t)color.b * weight) >> 8U);
+
+    drawPixelXY(xn, yn, clr);
+  }
+}
+
+
+// ------------------------------------------------
 static void DrawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, const CRGB& color) {
   int16_t deltaX = abs(x2 - x1);
   int16_t deltaY = abs(y2 - y1);
