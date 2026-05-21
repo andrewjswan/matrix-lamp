@@ -5236,7 +5236,7 @@ for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
 #endif
 
 
-#if defined(DEF_LIQUIDLAMP) || defined(DEF_LIQUIDLAMP_AUTO) || defined(DEF_AURORA)
+#if defined(DEF_LIQUIDLAMP) || defined(DEF_LIQUIDLAMP_AUTO) || defined(DEF_AURORA) || defined(DEF_SPECTRUM)
 
 // генератор палитр для Жидкой лампы (c) SottNick
 // генератор палитр для Северного сияния (c) SottNick
@@ -5245,16 +5245,15 @@ for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
 static CRGBPalette16 myPal;
 
 // Передаем указатель на PROGMEM-массив как третий параметр (c) andrewjswan
-static void fillMyPal16(uint8_t hue, bool isInvert, const uint8_t* colors_arr) {
+static void fillMyPal16(uint8_t hue, bool isInvert, const uint8_t (*colors_arr)[4]) {
   int8_t lastSlotUsed = -1;
   uint8_t istart8, iend8;
   CRGB rgbstart, rgbend;
 
-  // Шаг смещения для двухмерного PROGMEM-массива [строка * 4 элемента]
   // Строка 0 (индекс 0)
-  const uint8_t h_offset0 = pgm_read_byte(colors_arr + 1U);
-  const uint8_t sat0      = pgm_read_byte(colors_arr + 2U);
-  const uint8_t val0      = pgm_read_byte(colors_arr + 3U);
+  const uint8_t h_offset0 = pgm_read_byte(&colors_arr[0][1]);
+  const uint8_t sat0      = pgm_read_byte(&colors_arr[0][2]);
+  const uint8_t val0      = pgm_read_byte(&colors_arr[0][3]);
 
   if (isInvert) {
     hsv2rgb_spectrum(CHSV((uint8_t)(256U + hue - h_offset0), sat0, val0), rgbstart);
@@ -5264,12 +5263,10 @@ static void fillMyPal16(uint8_t hue, bool isInvert, const uint8_t* colors_arr) {
 
   uint8_t indexstart = 0U;
   for (uint8_t i = 1U; i < 5U; i++) {  // В палитре всего 5 строчек
-    const uint16_t row_offset = i * 4U; // Смещение начала i-й строки в байтах
-
-    const uint8_t indexend = pgm_read_byte(colors_arr + row_offset);
-    const uint8_t h_offset = pgm_read_byte(colors_arr + row_offset + 1U);
-    const uint8_t sat      = pgm_read_byte(colors_arr + row_offset + 2U);
-    const uint8_t val      = pgm_read_byte(colors_arr + row_offset + 3U);
+    const uint8_t indexend = pgm_read_byte(&colors_arr[i][0]);
+    const uint8_t h_offset = pgm_read_byte(&colors_arr[i][1]);
+    const uint8_t sat      = pgm_read_byte(&colors_arr[i][2]);
+    const uint8_t val      = pgm_read_byte(&colors_arr[i][3]);
 
     // Исправлен баг автора: теперь инверсия работает симметрично стартовой точке
     if (isInvert) {
@@ -9378,10 +9375,10 @@ static void  Spectrum() {
   uint8_t color = customHue + hue;
   if (modes[currentMode].Scale >= 99) {
     if (hue2++ & 0x01 && deltaHue++ & 0x01 && deltaHue2++ & 0x01) hue += 8;
-    fillMyPal16_2(customHue + hue, modes[currentMode].Scale & 0x01);
+    fillMyPal16(customHue + hue, modes[currentMode].Scale & 0x01, MBAuroraColors_arr);
   } else {
     color = customHue;
-    fillMyPal16_2(customHue + AURORA_COLOR_RANGE - beatsin8(AURORA_COLOR_PERIOD, 0U, AURORA_COLOR_RANGE * 2), modes[currentMode].Scale & 0x01);
+    fillMyPal16(customHue + AURORA_COLOR_RANGE - beatsin8(AURORA_COLOR_PERIOD, 0U, AURORA_COLOR_RANGE * 2), modes[currentMode].Scale & 0x01, MBAuroraColors_arr);
   }
 
   for (uint8_t x = 0; x < WIDTH; x++) {
