@@ -6145,40 +6145,38 @@ static void attractRoutine() {
 // https://github.com/DmytroKorniienko/FireLamp_JeeUI/blob/master/src/effects.cpp
 static void newMatrixRoutine()
 {
-  if (loadingFlag)
-  {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
         setModeSettings(random8(30U) ? (random8(40U) ? 2U + random8(99U) : 1U) : 100U, 12U + random8(68U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     setCurrentPalette();
 
-    //enlargedObjectNUM = (modes[currentMode].Scale - 1U) % 11U + 1U;//(modes[currentMode].Scale - 1U) / 99.0f * (AVAILABLE_BOID_COUNT - 1U) + 1U;
     enlargedObjectNUM = map(modes[currentMode].Speed, 1, 255, 1, trackingOBJECT_MAX_COUNT);
-    //speedfactor = modes[currentMode].Speed / 1048.0f + 0.05f;
     speedfactor = 0.136f; // фиксируем хорошую скорость
 
-    for (uint8_t i = 0U; i < enlargedObjectNUM; i++)
-    {
+    for (uint8_t i = 0U; i < enlargedObjectNUM; i++) {
       trackingObjectPosX[i] = random8(WIDTH);
       trackingObjectPosY[i] = random8(HEIGHT);
-      trackingObjectSpeedY[i] = random8(150, 250) / 100.0f;
-      trackingObjectState[i] = random8(127U, 255U);
-      //trackingObjectHue[i] = hue; не похоже, что цвет используется
+      trackingObjectSpeedY[i] = (float)random8(150U, 250U) * 0.01f;
+      trackingObjectState[i] = random8(127U, 255U);      
     }
-   hue = modes[currentMode].Scale * 2.55f;
+    hue = modes[currentMode].Scale * 2.55f;
+
+    loadingFlag = false;
   }
 
-  //dimAll(map(modes[currentMode].Speed, 1, 255, 250, 240));
   dimAll(246); // для фиксированной скорости
 
-  CHSV color;
+  constexpr uint8_t GLUK = 20U; // Вероятность горизонтального сдвига капли
 
-  for (uint8_t i = 0U; i < enlargedObjectNUM; i++)
-  {
+  CHSV color;
+  const uint8_t max_w = WIDTH - 1U;
+  const uint8_t spawn_min_y = HEIGHT - HEIGHT / 2U;
+  
+  for (uint8_t i = 0U; i < enlargedObjectNUM; i++) {
     trackingObjectPosY[i] -= trackingObjectSpeedY[i]*speedfactor;
 
     if (modes[currentMode].Scale == 100U) {
@@ -6190,22 +6188,27 @@ static void newMatrixRoutine()
       color = CHSV(hue, 255, trackingObjectState[i]);
     }
 
-
     drawPixelXYF(trackingObjectPosX[i], trackingObjectPosY[i], color);
 
-    #define GLUK (20U) // вероятность горизонтального сдвига капли
+    // Случайный горизонтальный сдвиг капли («глюк») без тяжелого оператора %
     if (random8() < GLUK) {
-      //trackingObjectPosX[i] = trackingObjectPosX[i] + random(-1, 2);
-      trackingObjectPosX[i] = (uint8_t)(trackingObjectPosX[i] + WIDTH - 1U + random8(3U)) % WIDTH ;
-      trackingObjectState[i] = random8(196,255);
+      uint8_t px = (uint8_t)trackingObjectPosX[i];
+      uint8_t rnd = random8(3U);
+      if (rnd == 0U) {
+        if (px == 0U) px = max_w; else px--;
+      } else if (rnd == 1U) {
+        if (px >= max_w) px = 0U; else px++;
+      }
+      trackingObjectPosX[i] = px;
+      trackingObjectState[i] = random8(196U, 255U);
     }
 
-    if(trackingObjectPosY[i] < -1) {
+    // Возврат капли наверх матрицы, если она улетела вниз
+    if (trackingObjectPosY[i] < -1.0f) {
       trackingObjectPosX[i] = random8(WIDTH);
-      trackingObjectPosY[i] = random8(HEIGHT - HEIGHT /2, HEIGHT);
-      trackingObjectSpeedY[i] = random8(150, 250) / 100.0f;
+      trackingObjectPosY[i] = random8(spawn_min_y, HEIGHT);
+      trackingObjectSpeedY[i] = (float)random8(150U, 250U) * 0.01f;
       trackingObjectState[i] = random8(127U, 255U);
-      //trackingObjectHue[i] = hue; не похоже, что цвет используется
     }
   }
 }
