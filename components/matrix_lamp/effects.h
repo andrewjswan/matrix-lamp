@@ -7555,11 +7555,12 @@ static void clearNoiseArr() {
 static void VirtualSnow(uint8_t snow_type) {
   static int16_t deltaPos;
 
-  uint8_t posX = random8(WIDTH - 1);
-  uint8_t delta = (snow_type == 3) ? 0 : 1;
-
+  constexpr uint8_t max_w = WIDTH - 1U;
   constexpr uint8_t max_h = HEIGHT - 1U;
   constexpr uint8_t pre_max_h = HEIGHT - 2U;
+
+  uint8_t posX = random8(max_w);
+  uint8_t delta = (snow_type == 3) ? 0 : 1;
 
   for (uint8_t x = delta; x < WIDTH - delta; x++) {
     // заполняем случайно верхнюю строку
