@@ -7343,7 +7343,7 @@ static void execStringsFlame() { // внимание! эффект заточе�
     }
   }
 
-  constexpr float inv256 = 1.0f / 255.0f;
+  constexpr float inv255 = 1.0f / 255.0f;
   constexpr float inv256 = 1.0f / 256.0f;
 
   constexpr uint8_t dx_diff = FLAME_MAX_DX - FLAME_MIN_DX;
