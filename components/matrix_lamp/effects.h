@@ -7833,30 +7833,37 @@ static void ColorFrizzles() {
       // scale | speed
       setModeSettings(random(10U, 90U), 128);
     }
-    loadingFlag = false;
+    #endif
+
     FPSdelay = 10U;
     deltaValue = 0;
-    #endif
+
+    loadingFlag = false;
   }
 
-  if (modes[currentMode].Scale > 50) {
-    if (FPSdelay > 48) deltaValue = 0;
-    if (FPSdelay < 5) deltaValue = 1;
+  if (modes[currentMode].Scale > 50U) {
+    if (FPSdelay > 48U) deltaValue = 0U;
+    if (FPSdelay < 5U)  deltaValue = 1U;
 
-    if (deltaValue == 1) {
+    if (deltaValue == 1U) {
       FPSdelay++;
     } else {
       FPSdelay--;
     }
-    blur2d(WIDTH, HEIGHT, 16);
-
+    blur2d(WIDTH, HEIGHT, 16U);
   } else {
-    FPSdelay = 20;
+    FPSdelay = 20U;
     dimAll(240U);
   }
-   //LOG.printf_P(PSTR("| deltaValue • %03d | fps %03d\n"), deltaValue, FPSdelay);
-  for (uint8_t i = 8; i--;) {
-    leds[XY(beatsin8(12 + i, 0, WIDTH - 1), beatsin8(15 - i, 0, HEIGHT - 1))] = CHSV(beatsin8(12, 0, 255), 255, (255 - FPSdelay * 2));
+
+  constexpr uint8_t max_w = WIDTH - 1U;
+  constexpr uint8_t max_h = HEIGHT - 1U;
+
+  const uint8_t finalBri = 255U - (FPSdelay * 2U);
+  const uint8_t baseHue = beatsin8(12U, 0U, 255U);
+
+  for (uint8_t i = 8U; i--;) {
+    leds[XY(beatsin8(12U + i, 0U, max_w), beatsin8(15U - i, 0U, max_h))] = CHSV(baseHue, 255U, finalBri);
   }
 }
 #endif
