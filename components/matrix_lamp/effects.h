@@ -7260,115 +7260,139 @@ static void magmaRoutine(){
 #define FLAME_MAX_VALUE   (255U) // максимальная начальная яркость языка пламени
 #define FLAME_MIN_VALUE   (176U) // минимальная начальная яркость языка пламени
 
-//пришлось изобрести очередную функцию субпиксельной графики. на этот раз бесшовная по ИКСу, работающая в цветовом пространстве HSV и без смешивания цветов
-static void wu_pixel_maxV(int16_t item){
-  //uint8_t xx = trackingObjectPosX[item] & 0xff, yy = trackingObjectPosY[item] & 0xff, ix = 255 - xx, iy = 255 - yy;
-  uint8_t xx = (trackingObjectPosX[item] - (int)trackingObjectPosX[item]) * 255, yy = (trackingObjectPosY[item] - (int)trackingObjectPosY[item]) * 255, ix = 255 - xx, iy = 255 - yy;
+// пришлось изобрести очередную функцию субпиксельной графики. на этот раз бесшовная по ИКСу, работающая в цветовом пространстве HSV и без смешивания цветов
+static void wu_pixel_maxV(int16_t item) {
+  const int16_t base_x = trackingObjectPosX[item];
+  const int16_t base_y = trackingObjectPosY[item];
+
+  const uint8_t xx = (trackingObjectPosX[item] - base_x) * 255.0f;
+  const uint8_t yy = (trackingObjectPosY[item] - base_y) * 255.0f;
+  const uint8_t ix = 255U - xx;
+  const uint8_t iy = 255U - yy;
+
   // calculate the intensities for each affected pixel
-  uint8_t wu[4] = {WU_WEIGHT(ix, iy), WU_WEIGHT(xx, iy),
-                   WU_WEIGHT(ix, yy), WU_WEIGHT(xx, yy)};
+  const uint8_t wu[4] = {
+    WU_WEIGHT(ix, iy), WU_WEIGHT(xx, iy),
+    WU_WEIGHT(ix, yy), WU_WEIGHT(xx, yy)
+  };
+
+  const uint8_t obj_shift = trackingObjectShift[item];
+  const uint8_t obj_hue   = trackingObjectHue[item];
+
   // multiply the intensities by the colour, and saturating-add them to the pixels
-  for (uint8_t i = 0; i < 4; i++) {
-    uint8_t x1 = (int8_t)(trackingObjectPosX[item] + (i & 1)) % WIDTH; //делаем бесшовный по ИКСу
-    uint8_t y1 = (int8_t)(trackingObjectPosY[item] + ((i >> 1) & 1));
-    if (y1 < HEIGHT && trackingObjectHue[item] * wu[i] >> 8 >= noise3d[1][x1][y1]){
-      noise3d[0][x1][y1] = trackingObjectShift[item];
-      shiftValue[y1] = 255U;//saturation;
-      noise3d[1][x1][y1] = trackingObjectHue[item] * wu[i] >> 8;
+  for (uint8_t i = 0U; i < 4U; i++) {
+    int16_t x1 = base_x + (i & 1U);
+    if (x1 < 0) x1 += WIDTH;
+    else if (x1 >= WIDTH) x1 -= WIDTH;
+    const uint8_t y1 = base_y + ((i >> 1U) & 1U);
+    const uint8_t val = (obj_hue * wu[i]) >> 8U;
+
+    if (y1 < HEIGHT && val >= noise3d[1][x1][y1]) {
+      noise3d[0][x1][y1] = obj_shift;
+      shiftValue[y1] = 255U;
+      noise3d[1][x1][y1] = val;
     }
   }
 }
 
-static void execStringsFlame(){ // внимание! эффект заточен на бегунок Масштаб с диапазоном от 0 до 255
-  int16_t i,j;
-  if (loadingFlag){
+static void execStringsFlame() { // внимание! эффект заточен на бегунок Масштаб с диапазоном от 0 до 255
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
-        setModeSettings(1U + random8(255U), 20U+random8(236U)); // на свякий случай пусть будет от 1 до 255, а не от нуля
+      if (selectedSettings) {
+        setModeSettings(1U + random8(255U), 20U + random8(236U)); // на свякий случай пусть будет от 1 до 255, а не от нуля
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     enlargedObjectNUM = (modes[currentMode].Speed - 1U) / 254.0f * (trackingOBJECT_MAX_COUNT - 1U) + 1U;
     if (enlargedObjectNUM > enlargedOBJECT_MAX_COUNT) enlargedObjectNUM = enlargedOBJECT_MAX_COUNT;
-    if (currentMode >= EFF_MATRIX) {
-      ff_x = WIDTH * 2.4f;
-      enlargedObjectNUM = (ff_x > enlargedOBJECT_MAX_COUNT) ? enlargedOBJECT_MAX_COUNT : ff_x;
+
+    hue = map8(myScale8(modes[currentMode].Scale + 3U), 3U, 10U);   // минимальная живучесть/высота языка пламени ...ttl
+    hue2 = map8(myScale8(modes[currentMode].Scale + 3U), 6U, 31U);  // максимальная живучесть/высота языка пламени ...ttl
+    
+    for (uint16_t i = 0U; i < trackingOBJECT_MAX_COUNT; i++) {      // чистим массив объектов от того, что не похоже на языки пламени
+      if (trackingObjectState[i] > 30U || trackingObjectPosY[i] >= HEIGHT || trackingObjectPosX[i] >= WIDTH || trackingObjectPosY[i] <= 0) {
+        trackingObjectHue[i] = 0U;
+        trackingObjectState[i] = random8(20U);
+      }
     }
 
-    hue = map8(myScale8(modes[currentMode].Scale+3U),3,10); // минимальная живучесть/высота языка пламени ...ttl
-    hue2 = map8(myScale8(modes[currentMode].Scale+3U),6,31); // максимальная живучесть/высота языка пламени ...ttl
-    for (i = 0; i < trackingOBJECT_MAX_COUNT; i++) // чистим массив объектов от того, что не похоже на языки пламени
-      if (trackingObjectState[i] > 30U || trackingObjectPosY[i] >= HEIGHT || trackingObjectPosX[i] >= WIDTH || trackingObjectPosY[i] <= 0){
-        trackingObjectHue[i] = 0U;
-        trackingObjectState[i] = random8(20);
-      }
-    for (i=0; i < WIDTH; i++) // заполняем массив изображения из массива leds обратным преобразованием, которое нихрена не работает
-      for (j=0; j < HEIGHT; j++) {
-        CHSV tHSV = rgb2hsv_approximate(leds[XY(i,j)]);
+    for (uint8_t i = 0U; i < WIDTH; i++) {                          // заполняем массив изображения из массива leds обратным преобразованием, которое нихрена не работает
+      for (uint8_t j = 0U; j < HEIGHT; j++) {
+        CHSV tHSV = rgb2hsv_approximate(leds[XY(i, j)]);
         noise3d[0][i][j] = tHSV.hue;
-        if (tHSV.val > 100U){ // такая защита от пересвета более-менее достаточна
+        if (tHSV.val > 100U) {                                      // такая защита от пересвета более-менее достаточна
           shiftValue[j] = tHSV.sat;
-          if (tHSV.sat < 100U) // для перехода с очень тусклых эффектов, использующих заливку белым или почти белым светом
+          if (tHSV.sat < 100U) {                                    // для перехода с очень тусклых эффектов, использующих заливку белым или почти белым светом
             noise3d[1][i][j] = tHSV.val / 3U;
-          else
+          } else {
             noise3d[1][i][j] = tHSV.val - 32U;
-        }
-        else
+          }
+        } else {
           noise3d[1][i][j] = 0U;
-
-        //CRGB tRGB = leds[XY(i,j)];
-        //if (tRGB.r + tRGB.g + tRGB.b < 100U) // не пригодилось
-        //  noise3d[1][i][j] = 0U;
+        }
       }
+    }
+    
+    loadingFlag = false;
   }
 
   // угасание предыдущего кадра
-  for (i=0; i < WIDTH; i++)
-    for (j=0; j < HEIGHT; j++)
-      noise3d[1][i][j] = (uint16_t)noise3d[1][i][j] * 237U >> 8;
+  for (uint8_t i = 0U; i < WIDTH; i++) {
+    for (uint8_t j = 0U; j < HEIGHT; j++) {
+      noise3d[1][i][j] = ((uint16_t)(noise3d[1][i][j]) * 237U) >> 8U;
+    }
+  }
+
+  constexpr float inv256 = 1.0f / 256.0f;
+  constexpr uint8_t dx_diff = FLAME_MAX_DX - FLAME_MIN_DX;
+  constexpr uint8_t dy_diff = FLAME_MAX_DY - FLAME_MIN_DY;
+  constexpr uint8_t val_diff = FLAME_MAX_VALUE - FLAME_MIN_VALUE + 1U;
 
   // цикл перебора языков пламени
-  for (i=0; i < enlargedObjectNUM; i++) {
-    if (trackingObjectState[i]) { // если ещё не закончилась его жизнь
+  for (uint16_t i = 0U; i < enlargedObjectNUM; i++) {
+    const uint8_t state = trackingObjectState[i];  
+
+    if (state) { // если ещё не закончилась его жизнь
       wu_pixel_maxV(i);
 
-      j = trackingObjectState[i];
       trackingObjectState[i]--;
 
       trackingObjectPosX[i] += trackingObjectSpeedX[i];
       trackingObjectPosY[i] += trackingObjectSpeedY[i];
 
-      trackingObjectHue[i] = (trackingObjectState[i] * trackingObjectHue[i] + j / 2) / j;
+      trackingObjectHue[i] = (trackingObjectState[i] * trackingObjectHue[i] + (state >> 1U)) / state;
 
       // если вышел за верхнюю границу или потух, то и жизнь закончилась
-      if (trackingObjectPosY[i] >= HEIGHT || trackingObjectHue[i] < 2U)
-        trackingObjectState[i] = 0;
-
+      if (trackingObjectPosY[i] >= HEIGHT || trackingObjectHue[i] < 2U) {
+        trackingObjectState[i] = 0U;
+      }
+      
       // если вылез за край матрицы по горизонтали, перекинем на другую сторону
-      if (trackingObjectPosX[i] < 0)
+      if (trackingObjectPosX[i] < 0.0f) {
         trackingObjectPosX[i] += WIDTH;
-      else if (trackingObjectPosX[i] >= WIDTH)
+      } else if (trackingObjectPosX[i] >= WIDTH) {
         trackingObjectPosX[i] -= WIDTH;
-    }
-    else{ // если жизнь закончилась, перезапускаем
+      }      
+    } else { // если жизнь закончилась, перезапускаем
       trackingObjectState[i] = random8(hue, hue2);
-      trackingObjectShift[i] = (uint8_t)(254U + modes[currentMode].Scale + random8(20U)); // 254 - это шаг в обратную сторону от выбранного пользователем оттенка (стартовый оттенок диапазона)
-                                                                                          // 20 - это диапазон из градиента цвета от выбранного пользователем оттенка (диапазон от 254 до 254+20)
-      trackingObjectPosX[i] = (float)random(WIDTH * 255U) / 255.0f;
+      trackingObjectShift[i] = (uint8_t)(254U + modes[currentMode].Scale + random8(20U));  // 254 - это шаг в обратную сторону от выбранного пользователем оттенка (стартовый оттенок диапазона)
+                                                                                           // 20 - это диапазон из градиента цвета от выбранного пользователем оттенка (диапазон от 254 до 254+20)
+      
+      trackingObjectPosX[i] = (float)random32(WIDTH * 255U) * inv255;;
       trackingObjectPosY[i] = -0.9f;
-      trackingObjectSpeedX[i] = (float)(FLAME_MIN_DX + random8(FLAME_MAX_DX-FLAME_MIN_DX)) / 256.0f;
-      trackingObjectSpeedY[i] = (float)(FLAME_MIN_DY + random8(FLAME_MAX_DY-FLAME_MIN_DY)) / 256.0f;
-      trackingObjectHue[i] = FLAME_MIN_VALUE + random8(FLAME_MAX_VALUE - FLAME_MIN_VALUE + 1U);
-      //saturation = 255U;
+      
+      trackingObjectSpeedX[i] = (FLAME_MIN_DX + random8(dx_diff)) * inv256;
+      trackingObjectSpeedY[i] = (FLAME_MIN_DY + random8(dy_diff)) * inv256;
+      trackingObjectHue[i]    = FLAME_MIN_VALUE + random8(val_diff);      
     }
   }
 
-  //выводим кадр на матрицу
-  for (i=0; i<WIDTH; i++)
-    for (j=0; j<HEIGHT; j++)
-      //hsv2rgb_spectrum(CHSV(noise3d[0][i][j], shiftValue[j], noise3d[1][i][j] * 1.033), leds[XY(i,j)]); // 1.033 - это коэффициент нормализации яркости (чтобы чутка увеличить яркость эффекта в целом)
-      hsv2rgb_spectrum(CHSV(noise3d[0][i][j], shiftValue[j], noise3d[1][i][j]), leds[XY(i,j)]);
+  // выводим кадр на матрицу
+  for (uint8_t i = 0U; i < WIDTH; i++) {
+    for (uint8_t j = 0U; j < HEIGHT; j++) {
+      hsv2rgb_spectrum(CHSV(noise3d[0][i][j], shiftValue[j], noise3d[1][i][j]), leds[XY(i, j)]);
+    }
+  }  
 }
 #endif
 
