@@ -4923,8 +4923,6 @@ static void shadowsRoutine() {
   const uint16_t brightnessthetainc16 = beatsin88(203, (25 * 256), (40 * 256));
 
   const uint8_t msmultiplier = beatsin88(map(modes[currentMode].Speed, 1, 255, 100, 255), 32, map(modes[currentMode].Speed, 1, 255, 60, 255));
-
-  const uint16_t hue16 = sHue16;
   const uint16_t hueinc16 = beatsin88(113, 1, 3000);
 
   const uint16_t ms = millis();
@@ -4932,6 +4930,8 @@ static void shadowsRoutine() {
 
   const uint8_t effectBrightness = modes[currentMode].Scale * 2.55f;
 
+  uint16_t hue16 = sHue16;
+  
   sLastMillis  = ms;
   sPseudotime += deltams * msmultiplier;
   sHue16 += deltams * beatsin88(400, 5, 9);
