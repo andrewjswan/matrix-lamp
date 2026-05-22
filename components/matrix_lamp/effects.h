@@ -7482,7 +7482,7 @@ static void lumenjerRoutine() {
 
     deltaHue = -1;
     deltaHue2 = -1;
-    dimAll(245U);    
+    dimAll(245U);
 
     loadingFlag = false;
   }
@@ -7491,7 +7491,7 @@ static void lumenjerRoutine() {
 
   deltaHue = random8(3U) ? deltaHue : -deltaHue;
   deltaHue2 = random8(3U) ? deltaHue2 : -deltaHue2;
-  
+
 #if (((WIDTH & 0x01U) == 0U) && ((HEIGHT & 0x01U) == 0U))
   hue = (WIDTH + hue + (int8_t)deltaHue * (bool)random8(64U)) % WIDTH;
 #else
@@ -7503,7 +7503,7 @@ static void lumenjerRoutine() {
     leds[XY(hue, hue2)] += CHSV(random8(), 255U, 255U);
   } else {
     leds[XY(hue, hue2)] += ColorFromPalette(*curPalette, step++);
-  }  
+  }
 }
 #endif
 
