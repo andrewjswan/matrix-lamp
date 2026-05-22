@@ -7387,25 +7387,24 @@ static void execStringsFlame(){ // внимание! эффект заточен
 static void Fire2021Routine(){
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
+      if (selectedSettings) {
         uint8_t tmp = 1U + random8(89U); // пропускаем белую палитру
         if (tmp > 44U) tmp += 11U;
         setModeSettings(tmp, 42U + random8(155U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+    
+    if (modes[currentMode].Scale > 100U) modes[currentMode].Scale = 100U;
 
-    loadingFlag = false;
-
-    if (modes[currentMode].Scale > 100U) modes[currentMode].Scale = 100U; // чтобы не было проблем при прошивке без очистки памяти
-
-    deltaValue = modes[currentMode].Scale * 0.0899f;// /100.0F * ((sizeof(palette_arr) /sizeof(TProgmemRGBPalette16 *))-0.01F));
-    if (deltaValue == 3U ||deltaValue == 4U)
-      curPalette =  palette_arr[deltaValue]; // (uint8_t)(modes[currentMode].Scale/100.0F * ((sizeof(palette_arr) /sizeof(TProgmemRGBPalette16 *))-0.01F))];
+    deltaValue = modes[currentMode].Scale * 0.0899f;
+    if (deltaValue == 3U || deltaValue == 4U)
+      curPalette = palette_arr[deltaValue];
     else
-      curPalette = firePalettes[deltaValue]; // (uint8_t)(modes[currentMode].Scale/100.0F * ((sizeof(firePalettes)/sizeof(TProgmemRGBPalette16 *))-0.01F))];
+      curPalette = firePalettes[deltaValue];
+      
     deltaValue = (modes[currentMode].Scale - 1U) % 11U + 1U;
-
-    if (modes[currentMode].Speed & 0x01){
+    
+    if (modes[currentMode].Speed & 0x01U){
       ff_x = modes[currentMode].Speed;
       deltaHue2 = FIXED_SCALE_FOR_Y;
     } else {
@@ -7413,40 +7412,48 @@ static void Fire2021Routine(){
         speedfactor = 0.4f * (deltaValue - FIXED_SCALE_FOR_Y) + FIXED_SCALE_FOR_Y;
       else
         speedfactor = deltaValue;
-      ff_x = round(modes[currentMode].Speed*64.0f/(0.1686f*speedfactor*speedfactor*speedfactor - 1.162f*speedfactor*speedfactor + 3.6694f*speedfactor + 56.394f)); // Ааааа! это тупо подбор коррекции. очень приблизитеьный
+
+      float poly = ((0.1686f * speedfactor - 1.162f) * speedfactor + 3.6694f) * speedfactor + 56.394f;   // Ааааа! это тупо подбор коррекции. очень приблизитеьный
+      ff_x = roundf((modes[currentMode].Speed * 64.0f) / poly);
       deltaHue2 = deltaValue;
     }
 
-    if (ff_x > 255U)
-      ff_x = 255U;
-    if (ff_x == 0U)
-      ff_x = 1U;
-    step = map(ff_x * ff_x, 1U, 65025U, (deltaHue2-1U)/2U+1U, deltaHue2 * 18U + 44);
-    pcnt = map(step, 1U, 255U, 20U, 128U); // nblend 3th param
-    deltaValue = 0.7f * deltaValue * deltaValue + 31.3f; // ширина языков пламени (масштаб шума Перлина)
-    deltaHue2 = 0.7f * deltaHue2 * deltaHue2 + 31.3f; // высота языков пламени (масштаб шума Перлина)
+    if (ff_x > 255U) ff_x = 255U;
+    if (ff_x == 0U)  ff_x = 1U;
+
+    step = map(ff_x * ff_x, 1U, 65025U, (deltaHue2 - 1U) / 2U + 1U, deltaHue2 * 18U + 44U);
+    pcnt = map(step, 1U, 255U, 20U, 128U);                 // nblend 3th param
+    
+    deltaValue = 0.7f * deltaValue * deltaValue + 31.3f;   // ширина языков пламени (масштаб шума Перлина)
+    deltaHue2 = 0.7f * deltaHue2 * deltaHue2 + 31.3f;      // высота языков пламени (масштаб шума Перлина)
+
+    loadingFlag = false;
   }
 
-  ff_y += step; // static uint32_t t += speed;
-  const uint8_t yStep = 255 / HEIGHT;
-  for (uint8_t y = 0; y < HEIGHT; y++) {
-    int16_t yOffset = (y * deltaHue2) - ff_y;
-    uint8_t yFade = y * yStep;
+  ff_y += step;
 
-    for (uint8_t x = 0; x < WIDTH; x++) {
-      int16_t Bri = fastled_helper::perlin8(x * deltaValue, yOffset, ff_z) - yFade;
-      uint8_t Col = (uint8_t)Bri;
-      uint8_t finalBri = 0;
+  constexpr uint16_t yStepFP = (255U * 256U) / HEIGHT;
+  for (uint8_t x = 0U; x < WIDTH; x++) {
+    const uint16_t x_deltaValue = x * deltaValue;
+    
+    for (uint8_t y = 0U; y < HEIGHT; y++) {
+      const int16_t yOffset = (y * deltaHue2) - ff_y;
+      const uint8_t yFade = (y * yStepFP) >> 8U;
+      const int16_t Bri = fastled_helper::perlin8(x_deltaValue, yOffset, ff_z) - yFade;
+
+      uint8_t finalBri = 0U;
 
       if (Bri > 0) {
-        finalBri = 255 - (uint8_t)(Bri / 5); // Оптимизация Bri = 256 - (Bri * 0.2) // 0.2 это 1/5. Используем (Bri / 5)
+        finalBri = 255U - ((uint16_t)(Bri * 51U) >> 8U); // finalBri = 255 - (uint8_t)(Bri / 5); // Оптимизация Bri = 256 - (Bri * 0.2) // 0.2 это 1/5. Используем (Bri / 5)
       }
-      nblend(leds[XY(x, y)], ColorFromPalette(*curPalette, Col, finalBri), pcnt);
+      
+      nblend(leds[XY(x, y)], ColorFromPalette(*curPalette, (uint8_t)Bri, finalBri), pcnt);
     }
   }
-
-  if (!random8())
+  
+  if (!random8()) {
     ff_z++;
+  }
 }
 #endif
 
