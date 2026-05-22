@@ -7557,42 +7557,46 @@ static void clearNoiseArr() {
 
 //---------------------------------------
 static void VirtualSnow(uint8_t snow_type) {
-  uint8_t posX = random8(WIDTH - 1);
-  // const uint8_t maxX = WIDTH - 1;
-  static int deltaPos;
-  uint8_t delta = (snow_type == 3) ? 0 : 1;
-  for (uint8_t x = delta; x < WIDTH - delta; x++) {
+  static int16_t deltaPos;
 
+  constexpr uint8_t max_w = WIDTH - 1U;
+  constexpr uint8_t max_h = HEIGHT - 1U;
+  constexpr uint8_t pre_max_h = HEIGHT - 2U;
+
+  uint8_t posX = random8(max_w);
+  uint8_t delta = (snow_type == 3) ? 0 : 1;
+
+  for (uint8_t x = delta; x < WIDTH - delta; x++) {
     // заполняем случайно верхнюю строку
-    if ((noise3d[0][x][HEIGHT - 2] == 0U) &&  (posX == x) && (random8(0, 2) == 0U)) {
-      noise3d[0][x][HEIGHT-1] = 1;
+    if ((noise3d[0][x][pre_max_h] == 0U) && (posX == x) && (random8(0, 2) == 0U)) {
+      noise3d[0][x][max_h] = 1;
     } else {
-      noise3d[0][x][HEIGHT-1] = 0;
+      noise3d[0][x][max_h] = 0;
     }
 
-    for (uint8_t y = 0U; y < HEIGHT - 1; y++) {
+    for (uint8_t y = 0U; y < max_h; y++) {
       switch (snow_type) {
         case 0:
-          noise3d[0][x][y] = noise3d[0][x][y + 1];
+          noise3d[0][x][y] = noise3d[0][x][y + 1U];
           deltaPos = 0;
           break;
         case 1:
         case 2:
-          noise3d[0][x][y] = noise3d[0][x][y + 1];
-          deltaPos = 1 - random8(2);
+          noise3d[0][x][y] = noise3d[0][x][y + 1U];
+          deltaPos = 1 - random8(2U);
           break;
         default:
           deltaPos = -1;
-          if ((x == 0) & (y == 0) & (random8(2) == 0U)) {
-            noise3d[0][WIDTH - 1][random8(CENTER_Y_MAJOR / 2, HEIGHT - CENTER_Y_MAJOR / 4)] = 1;
+          if ((x == 0U) && (y == 0U) && (random8(2U) == 0U)) {
+            noise3d[0][max_w][random8(CENTER_Y_MAJOR / 2U, HEIGHT - CENTER_Y_MAJOR / 4U)] = 1U;
           }
-          if (x > WIDTH - 2) {
-            noise3d[0][WIDTH - 1][y] = 0;
+          if (x > WIDTH - 2U) {
+            noise3d[0][max_w][y] = 0U;
           }
-          if (x < 1)  {
-            noise3d[0][x][y] = noise3d[0][x][y + 1];
+          if (x < 1U) {
+            noise3d[0][x][y] = noise3d[0][x][y + 1U];
           } else {
-            noise3d[0][x - 1][y] = noise3d[0][x][y + 1];
+            noise3d[0][x - 1U][y] = noise3d[0][x][y + 1U];
           }
           break;
       }
@@ -7608,26 +7612,42 @@ static void VirtualSnow(uint8_t snow_type) {
           leds[XY(x, y)] = CHSV(160, 5U,  random8(200U, 240U));
         }
       }
+
+      if (noise3d[0][x][y] > 0U) {
+        const CRGB snowColor = CHSV(160U, 5U, random8(200U, 240U));
+        if (snow_type < 3U) {
+          if ((y & 0x01U) == 0U) {
+            leds[XY(x - ((x > 0U) ? deltaPos : 0), y)] = snowColor;
+          } else {
+            leds[XY(x + deltaPos, y)] = snowColor;
+          }
+        } else {
+          leds[XY(x, y)] = snowColor;
+        }
+      }
     }
   }
 }
 
 //---------------------------------------
 static void GreenTree(uint8_t tree_h) {
-  hue = step & 0xE0;  // floor(step / 32) * 32. Оставляет значения кратные 32 (0, 32, 64...)
+  hue = step & 0xE0U;  // floor(step / 32) * 32. Оставляет значения кратные 32 (0, 32, 64...)
 
   for (uint8_t x = 0U; x <= WIDTH; x++) {
-    if (x % 8 == 0) {
+    if (x % 8U == 0U) {
       int16_t currentX = x - deltaValue; // Кэшируем для удобства и скорости
 
       if (modes[currentMode].Scale < 60) {
         // nature -----
-        uint8_t h7 = (tree_h * 7) / 10;
-        uint8_t h15 = (tree_h * 15) / 100;
-        uint8_t h35 = (tree_h * 35) / 100;
-        uint8_t h55 = (tree_h * 55) / 100;
+        constexpr float inv10 = 1.0f / 10.0f;
+        constexpr float inv100 = 1.0f / 100.0f;
 
-        DrawLine(currentX - 1, h7,  currentX + 1, h7,  0x002F00);
+        uint8_t h7  = (tree_h *  7U) * inv10;
+        uint8_t h15 = (tree_h * 15U) * inv100;
+        uint8_t h35 = (tree_h * 35U) * inv100;
+        uint8_t h55 = (tree_h * 55U) * inv100;
+
+        DrawLine(currentX - 1, h7,  currentX + 1,  h7, 0x002F00);
         DrawLine(currentX - 1, h55, currentX + 1, h55, 0x004F00);
         DrawLine(currentX - 2, h35, currentX + 2, h35, 0x005F00);
         DrawLine(currentX - 2, h15, currentX + 2, h15, 0x007F00);
@@ -7640,22 +7660,25 @@ static void GreenTree(uint8_t tree_h) {
         }
       } else {
         // holiday -----
-        uint8_t h60 = (tree_h * 6) / 10;
-        uint8_t h25 = (tree_h * 25) / 100;
+        constexpr float inv10 = 1.0f / 10.0f;
+        constexpr float inv100 = 1.0f / 100.0f;
 
-        drawPixelXY(currentX - 1, h60, CHSV(step, 255U, 128 + random8(128)));
-        drawPixelXY(currentX + 1, h60, CHSV(step, 255U, 128 + random8(128)));
-        drawPixelXY(currentX, (tree_h * 4) / 10, CHSV(step, 255U, 200U));
-        drawPixelXY(currentX, (tree_h * 2) / 10, CHSV(step, 255U, 190 + random8(65)));
-        drawPixelXY(currentX - 2, h25, CHSV(step, 255U, 96 + random8(128)));
-        drawPixelXY(currentX + 2, h25, CHSV(step, 255U, 96 + random8(128)));
+        uint8_t h60 = (tree_h *  6U) * inv10;
+        uint8_t h25 = (tree_h * 25U) * inv100;
+
+        drawPixelXY(currentX - 1, h60, CHSV(step, 255U, 128U + random8(128U)));
+        drawPixelXY(currentX + 1, h60, CHSV(step, 255U, 128U + random8(128U)));
+        drawPixelXY(currentX, (tree_h * 4U) * inv10, CHSV(step, 255U, 200U));
+        drawPixelXY(currentX, (tree_h * 2U) * inv10, CHSV(step, 255U, 190U + random8(65U)));
+        drawPixelXY(currentX - 2, h25, CHSV(step, 255U, 96U + random8(128U)));
+        drawPixelXY(currentX + 2, h25, CHSV(step, 255U, 96U + random8(128U)));
 
         drawPixelXY(currentX - 2, 1U, CHSV(step, 255U, 200U));
         drawPixelXY(currentX,     0U, CHSV(step, 255U, 250U));
         drawPixelXY(currentX + 2, 1U, CHSV(step, 255U, 200U));
 
         if (currentX >= 0) {
-          gradientVertical(currentX, (tree_h * 3) / 4, currentX, tree_h, hue, hue, 250U, 0U, 128U);
+          gradientVertical(currentX, (tree_h * 3U) / 4U, currentX, tree_h, hue, hue, 250U, 0U, 128U);
         }
       }
     }
@@ -7663,8 +7686,9 @@ static void GreenTree(uint8_t tree_h) {
 }
 
 //---------------------------------------
+inline constexpr uint8_t TREE_MAX_H = (HEIGHT > 16U) ? 16U : HEIGHT;
+
 static void ChristmasTree() {
-  static uint8_t tree_h = HEIGHT;
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
@@ -7672,35 +7696,32 @@ static void ChristmasTree() {
       setModeSettings(random8(100U), 10U + random8(128));
     }
 #endif
-    loadingFlag = false;
+
     clearNoiseArr();
+
     deltaValue = 0;
     step = deltaValue;
+
     ledsClear(); // esphome: FastLED.clear();
 
-    if (HEIGHT > 16) {
-      tree_h = 16;
-    }
+    loadingFlag = false;
   }
 
-  if (HEIGHT > 16) {
-    if (modes[currentMode].Scale < 60) {
-      gradientVertical(0, 0, WIDTH, HEIGHT, 160, 160, 64, 128, 255U);
-    } else {
-      ledsClear(); // esphome: FastLED.clear();
-    }
+  if (HEIGHT > 16U && modes[currentMode].Scale < 60U) {
+    gradientVertical(0, 0, WIDTH, HEIGHT, 160, 160, 64, 128, 255U);
   } else {
-    ledsClear(); // esphome: FastLED.clear();
+    ledsClear();
   }
-  GreenTree(tree_h);
 
-  if (modes[currentMode].Scale < 60) {
-    VirtualSnow(1);
+  GreenTree(TREE_MAX_H);
+
+  if (modes[currentMode].Scale < 60U) {
+    VirtualSnow(1U);
   }
-  if (modes[currentMode].Scale > 30) {
+  if (modes[currentMode].Scale > 30U) {
     deltaValue++;
   }
-  if (deltaValue >= 8) {
+  if (deltaValue >= 8U) {
     deltaValue = 0;
   }
   step++;
