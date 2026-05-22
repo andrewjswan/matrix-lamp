@@ -7442,9 +7442,8 @@ static void Fire2021Routine(){
       const int16_t Bri = fastled_helper::perlin8(x_deltaValue, yOffset, ff_z) - yFade;
 
       uint8_t finalBri = 0U;
-
       if (Bri > 0) {
-        finalBri = 255U - ((uint16_t)(Bri * 51U) >> 8U); // finalBri = 255 - (uint8_t)(Bri / 5); // Оптимизация Bri = 256 - (Bri * 0.2) // 0.2 это 1/5. Используем (Bri / 5)
+        finalBri = 255U - (uint8_t)(Bri / 5U);
       }
 
       nblend(leds[XY(x, y)], ColorFromPalette(*curPalette, (uint8_t)Bri, finalBri), pcnt);
