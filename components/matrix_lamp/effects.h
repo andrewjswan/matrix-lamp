@@ -7393,7 +7393,7 @@ static void Fire2021Routine(){
         setModeSettings(tmp, 42U + random8(155U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-    
+
     if (modes[currentMode].Scale > 100U) modes[currentMode].Scale = 100U;
 
     deltaValue = modes[currentMode].Scale * 0.0899f;
@@ -7401,9 +7401,9 @@ static void Fire2021Routine(){
       curPalette = palette_arr[deltaValue];
     else
       curPalette = firePalettes[deltaValue];
-      
+
     deltaValue = (modes[currentMode].Scale - 1U) % 11U + 1U;
-    
+
     if (modes[currentMode].Speed & 0x01U){
       ff_x = modes[currentMode].Speed;
       deltaHue2 = FIXED_SCALE_FOR_Y;
@@ -7423,7 +7423,7 @@ static void Fire2021Routine(){
 
     step = map(ff_x * ff_x, 1U, 65025U, (deltaHue2 - 1U) / 2U + 1U, deltaHue2 * 18U + 44U);
     pcnt = map(step, 1U, 255U, 20U, 128U);                 // nblend 3th param
-    
+
     deltaValue = 0.7f * deltaValue * deltaValue + 31.3f;   // ширина языков пламени (масштаб шума Перлина)
     deltaHue2 = 0.7f * deltaHue2 * deltaHue2 + 31.3f;      // высота языков пламени (масштаб шума Перлина)
 
@@ -7435,7 +7435,7 @@ static void Fire2021Routine(){
   constexpr uint16_t yStepFP = (255U * 256U) / HEIGHT;
   for (uint8_t x = 0U; x < WIDTH; x++) {
     const uint16_t x_deltaValue = x * deltaValue;
-    
+
     for (uint8_t y = 0U; y < HEIGHT; y++) {
       const int16_t yOffset = (y * deltaHue2) - ff_y;
       const uint8_t yFade = (y * yStepFP) >> 8U;
@@ -7446,11 +7446,11 @@ static void Fire2021Routine(){
       if (Bri > 0) {
         finalBri = 255U - ((uint16_t)(Bri * 51U) >> 8U); // finalBri = 255 - (uint8_t)(Bri / 5); // Оптимизация Bri = 256 - (Bri * 0.2) // 0.2 это 1/5. Используем (Bri / 5)
       }
-      
+
       nblend(leds[XY(x, y)], ColorFromPalette(*curPalette, (uint8_t)Bri, finalBri), pcnt);
     }
   }
-  
+
   if (!random8()) {
     ff_z++;
   }
