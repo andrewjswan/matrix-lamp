@@ -7560,7 +7560,7 @@ static void VirtualSnow(uint8_t snow_type) {
 
   constexpr uint8_t max_h = HEIGHT - 1U;
   constexpr uint8_t pre_max_h = HEIGHT - 2U;
-  
+
   for (uint8_t x = delta; x < WIDTH - delta; x++) {
     // заполняем случайно верхнюю строку
     if ((noise3d[0][x][pre_max_h] == 0U) && (posX == x) && (random8(0, 2) == 0U)) {
@@ -7592,7 +7592,7 @@ static void VirtualSnow(uint8_t snow_type) {
             noise3d[0][x][y] = noise3d[0][x][y + 1U];
           } else {
             noise3d[0][x - 1U][y] = noise3d[0][x][y + 1U];
-          }          
+          }
           break;
       }
 
@@ -7607,7 +7607,7 @@ static void VirtualSnow(uint8_t snow_type) {
           leds[XY(x, y)] = CHSV(160, 5U,  random8(200U, 240U));
         }
       }
-      
+
       if (noise3d[0][x][y] > 0U) {
         const CRGB snowColor = CHSV(160U, 5U, random8(200U, 240U));
         if (snow_type < 3U) {
@@ -7619,7 +7619,7 @@ static void VirtualSnow(uint8_t snow_type) {
         } else {
           leds[XY(x, y)] = snowColor;
         }
-      }      
+      }
     }
   }
 }
@@ -7636,7 +7636,7 @@ static void GreenTree(uint8_t tree_h) {
         // nature -----
         constexpr float inv10 = 1.0f / 10.0f;
         constexpr float inv100 = 1.0f / 100.0f;
-        
+
         uint8_t h7  = (tree_h *  7U) * inv10;
         uint8_t h15 = (tree_h * 15U) * inv100;
         uint8_t h35 = (tree_h * 35U) * inv100;
@@ -7657,7 +7657,7 @@ static void GreenTree(uint8_t tree_h) {
         // holiday -----
         constexpr float inv10 = 1.0f / 10.0f;
         constexpr float inv100 = 1.0f / 100.0f;
-        
+
         uint8_t h60 = (tree_h *  6U) * inv10;
         uint8_t h25 = (tree_h * 25U) * inv100;
 
@@ -7674,7 +7674,7 @@ static void GreenTree(uint8_t tree_h) {
 
         if (currentX >= 0) {
           gradientVertical(currentX, (tree_h * 3U) / 4U, currentX, tree_h, hue, hue, 250U, 0U, 128U);
-        }        
+        }
       }
     }
   }
@@ -7693,10 +7693,10 @@ static void ChristmasTree() {
 #endif
 
     clearNoiseArr();
-    
+
     deltaValue = 0;
     step = deltaValue;
-    
+
     ledsClear(); // esphome: FastLED.clear();
 
     loadingFlag = false;
@@ -7707,7 +7707,7 @@ static void ChristmasTree() {
   } else {
     ledsClear();
   }
-    
+
   GreenTree(TREE_MAX_H);
 
   if (modes[currentMode].Scale < 60U) {
@@ -7719,7 +7719,7 @@ static void ChristmasTree() {
   if (deltaValue >= 8U) {
     deltaValue = 0;
   }
-  step++;  
+  step++;
 }
 #endif
 
