@@ -7734,7 +7734,7 @@ static void ByEffect() {
 
     deltaValue = 0;
     step = deltaValue;
-    
+
     ledsClear(); // esphome: FastLED.clear();
 
     loadingFlag = false;
