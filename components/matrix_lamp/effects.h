@@ -7837,7 +7837,7 @@ static void ColorFrizzles() {
 
     FPSdelay = 10U;
     deltaValue = 0;
-    
+
     loadingFlag = false;
   }
 
