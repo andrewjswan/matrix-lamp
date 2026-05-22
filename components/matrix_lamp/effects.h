@@ -7177,7 +7177,7 @@ static void magmaRoutine(){
       curPalette =  palette_arr[deltaValue];               // (uint8_t)(modes[currentMode].Scale/100.0F * ((sizeof(palette_arr) /sizeof(TProgmemRGBPalette16 *))-0.01F))];
     else
       curPalette = firePalettes[deltaValue];               // (uint8_t)(modes[currentMode].Scale/100.0F * ((sizeof(firePalettes)/sizeof(TProgmemRGBPalette16 *))-0.01F))];
-    
+
     deltaValue = 12U;                                      // deltaValue = (((modes[currentMode].Scale - 1U) % 11U + 1U) << 4U) - 8U; // ширина языков пламени (масштаб шума Перлина)
     deltaHue = 10U;                                        // map(deltaValue, 8U, 168U, 8U, 84U); // высота языков пламени должна уменьшаться не так быстро, как ширина
     // step = map(255U - deltaValue, 87U, 247U, 4U, 32U);  // вероятность смещения искорки по оси ИКС
@@ -7198,19 +7198,19 @@ static void magmaRoutine(){
       trackingObjectPosY[i] = random8(HEIGHT);
       trackingObjectHue[i] = 50U;                          // random8();
     }
-    
+
     loadingFlag = false;
   }
 
   // dimAll(255U - modes[currentMode].Scale * 2);
   // dimAll(255U - 44U * 2);
   dimAll(181U);
-  
+
   constexpr uint8_t max_h = HEIGHT - 1U;
-  
+
   for (uint8_t i = 0U; i < WIDTH; i++) {
     const uint16_t i_deltaValue = i * deltaValue;
-    
+
     for (uint8_t j = 0U; j < HEIGHT; j++) {
       const uint16_t y_coord = (j + ff_y + (random8() & 0x01U)) * deltaHue;
       const uint8_t noise_val = fastled_helper::perlin8(i_deltaValue, y_coord, ff_z);
