@@ -17,6 +17,9 @@ inline constexpr uint16_t NUM_LEDS = WIDTH * HEIGHT;
 inline constexpr uint8_t MIN_SIDE  = static_cast<uint8_t>(std::min(WIDTH, HEIGHT));
 inline constexpr uint8_t MAX_SIDE  = static_cast<uint8_t>(std::max(WIDTH, HEIGHT));
 
+inline constexpr uint8_t MAX_X = WIDTH - 1U;
+inline constexpr uint8_t MAX_Y = HEIGHT - 1U;
+
 // Константы размера матрицы вычисляется только здесь и не меняется в эффектах
 inline constexpr uint8_t CENTER_X = WIDTH / 2;
 inline constexpr uint8_t CENTER_Y = HEIGHT / 2;
@@ -40,6 +43,12 @@ inline constexpr uint8_t CENTER_Y_MINOR = CENTER_Y - ((HEIGHT - 1) & 0x01);
 // Центр со сдвигом в большую сторону, если ширина чётная
 inline constexpr uint8_t CENTER_X_MAJOR = CENTER_X + (WIDTH % 2);
 inline constexpr uint8_t CENTER_Y_MAJOR = CENTER_Y + (HEIGHT % 2);
+
+// Инварианты
+inline constexpr float inv10 =  1.0f /  10.0f;
+inline constexpr float inv100 = 1.0f / 100.0f;
+inline constexpr float inv255 = 1.0f / 255.0f;
+inline constexpr float inv256 = 1.0f / 256.0f;
 
 // --- ЭФФЕКТЫ ------------------------------------------------------------------------------------------------------------------------------------------
 #define DYNAMIC               ( 0U)                         // динамическая задержка для кадров ( будет использоваться бегунок Скорость )

@@ -50,9 +50,9 @@ static void madnessNoiseRoutine()
   }
 
   fillnoise8();
-  for (uint8_t i = 0; i < WIDTH; i++)
+  for (uint8_t i = 0U; i < WIDTH; i++)
   {
-    for (uint8_t j = 0; j < HEIGHT; j++)
+    for (uint8_t j = 0U; j < HEIGHT; j++)
     {
       CRGB thisColor = CHSV(noise[j][i], 255, noise[i][j]);
       drawPixelXY(i, j, thisColor);
@@ -382,8 +382,8 @@ static void Popuri() {
     fadeToBlackBy(leds, NUM_LEDS, WIDTH);
   }
   // body if big height matrix ---------
-  for (uint16_t y = 0; y < HEIGHT; y++) {
-    for (uint16_t x = 0; x < WIDTH; x++) {
+  for (uint16_t y = 0U; y < HEIGHT; y++) {
+    for (uint16_t x = 0U; x < WIDTH; x++) {
 
       if ( (y <= PADDING - 1) | (y >=  HEIGHT - PADDING) ) {
         r = sin8((x - 8) * cos8((y + 20) * 4) / 4);
@@ -457,10 +457,10 @@ static void fillNoiseLED()
     dataSmoothing = 200 - (speed * 4);
   }
 
-  for (uint8_t i = 0; i < MAX_SIDE; i++) {
+  for (uint8_t i = 0U; i < MAX_SIDE; i++) {
     int32_t ioffset = scale * i;
 
-    for (uint8_t j = 0; j < MAX_SIDE; j++) {
+    for (uint8_t j = 0U; j < MAX_SIDE; j++) {
       int32_t joffset = scale * j;
 
       uint8_t data = fastled_helper::perlin8(x + ioffset, y + joffset, z);
@@ -483,8 +483,8 @@ static void fillNoiseLED()
   x += speed / 8U;
   y -= speed / 16U;
 
-  for (uint8_t i = 0; i < WIDTH; i++) {
-    for (uint8_t j = 0; j < HEIGHT; j++) {
+  for (uint8_t i = 0U; i < WIDTH; i++) {
+    for (uint8_t j = 0U; j < HEIGHT; j++) {
       uint8_t index = noise[j][i];
       uint8_t bri   = noise[i][j];
       // if this palette is a 'loop', add a slowly-changing base value
@@ -507,9 +507,9 @@ static void fillNoiseLED()
 
 static void fillnoise8()
 {
-  for (uint8_t i = 0; i < MAX_SIDE; i++) {
+  for (uint8_t i = 0U; i < MAX_SIDE; i++) {
     int32_t ioffset = scale * i;
-    for (uint8_t j = 0; j < MAX_SIDE; j++) {
+    for (uint8_t j = 0U; j < MAX_SIDE; j++) {
       int32_t joffset = scale * j;
       noise[i][j] = fastled_helper::perlin8(x + ioffset, y + joffset, z);
     }
