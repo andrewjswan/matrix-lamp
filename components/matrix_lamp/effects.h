@@ -7716,14 +7716,13 @@ static void ChristmasTree() {
 // --------------------------------------
 static void ByEffect() {
   // Вычисляем координаты один раз при компиляции
-  constexpr uint8_t H_75 = static_cast<uint8_t>(HEIGHT * 0.75f);
-  constexpr uint8_t H_70 = static_cast<uint8_t>(HEIGHT * 0.7f);
-  constexpr uint8_t H_60 = static_cast<uint8_t>(HEIGHT * 0.6f);
-  constexpr uint8_t H_40 = static_cast<uint8_t>(HEIGHT * 0.4f);
-  constexpr uint8_t H_30 = static_cast<uint8_t>(HEIGHT * 0.3f);
+  constexpr uint8_t H_75 = (uint8_t)(HEIGHT * 0.75f);
+  constexpr uint8_t H_70 = (uint8_t)(HEIGHT * 0.7f);
+  constexpr uint8_t H_60 = (uint8_t)(HEIGHT * 0.6f);
+  constexpr uint8_t H_40 = (uint8_t)(HEIGHT * 0.4f);
+  constexpr uint8_t H_30 = (uint8_t)(HEIGHT * 0.3f);
 
-  uint8_t saturation;
-  uint8_t delta;
+  constexpr uint8_t saturation = 255U;
 
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
@@ -7733,11 +7732,12 @@ static void ByEffect() {
     }
     #endif
 
-    loadingFlag = false;
-
     deltaValue = 0;
     step = deltaValue;
+    
     ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
 
   // Заменяем floor(step / 32) * 32U на быстрый сдвиг вправо (>> 5 это деление на 32)
@@ -7746,43 +7746,44 @@ static void ByEffect() {
   dimAll(180);
 
   // ------
-  saturation = 255U;
-  delta = 0U;
+  const bool scaleHigh = (modes[currentMode].Scale > 50U);
 
-  for (uint8_t x = 0U; x < WIDTH + 1 ; x++) {
-    if (x % 8 == 0) {
-      bool scaleHigh = (modes[currentMode].Scale > 50U);
+  uint8_t delta = 0U;
 
-      gradientVertical(x - deltaValue, H_75, x + 1U - deltaValue, HEIGHT,  hue, hue + 2U, 250U, 0U, 255U);
+  for (uint8_t x = 0U; x <= WIDTH; x++) {
+    if (x % 8U == 0U) {
+      const int16_t currentX = x - deltaValue;
 
-      if (scaleHigh) {
-        delta = random8(200U);
-      }
-      drawPixelXY(x - 2U - deltaValue, H_70, CHSV(step, saturation - delta, 128U + random8(128U)));
-      drawPixelXY(x + 2U - deltaValue, H_70, CHSV(step, saturation, 128U + random8(128U)));
-
-      drawPixelXY(x - deltaValue, H_60, CHSV(hue, 255U, 190U + random8(65U)));
+      gradientVertical(currentX, H_75, currentX + 1U, HEIGHT, hue, hue + 2U, 250U, 0U, 255U);
 
       if (scaleHigh) {
         delta = random8(200U);
       }
-      drawPixelXY(x - 1U - deltaValue, CENTER_Y_MINOR, CHSV(step, saturation, 128U + random8(128U)));
-      drawPixelXY(x + 1U - deltaValue, CENTER_Y_MINOR, CHSV(step, saturation - delta, 128U + random8(128U)));
+      drawPixelXY(currentX - 2U, H_70, CHSV(step, saturation - delta, 128U + random8(128U)));
+      drawPixelXY(currentX + 2U, H_70, CHSV(step, saturation, 128U + random8(128U)));
 
-      drawPixelXY(x - deltaValue, H_40, CHSV(hue, 255U, 200U));
+      drawPixelXY(currentX, H_60, CHSV(hue, saturation, 190U + random8(65U)));
 
       if (scaleHigh) {
         delta = random8(200U);
       }
-      drawPixelXY(x - 2U - deltaValue, H_30, CHSV(step, saturation - delta, 96U + random8(128U)));
-      drawPixelXY(x + 2U - deltaValue, H_30, CHSV(step, saturation, 96U + random8(128U)));
+      drawPixelXY(currentX - 1U, CENTER_Y_MINOR, CHSV(step, saturation, 128U + random8(128U)));
+      drawPixelXY(currentX + 1U, CENTER_Y_MINOR, CHSV(step, saturation - delta, 128U + random8(128U)));
 
-      gradientVertical(x - deltaValue, 0U, x + 1U - deltaValue, QUARTER_Y,  hue + 2U, hue, 0U, 250U, 255U);
+      drawPixelXY(currentX, H_40, CHSV(hue, saturation, 200U));
 
       if (scaleHigh) {
-        drawPixelXY(x + 3U - deltaValue, HEIGHT - 3U, CHSV(step, 255U, 255U));
-        drawPixelXY(x - 3U - deltaValue, CENTER_Y_MINOR, CHSV(step, 255U, 255U));
-        drawPixelXY(x + 3U - deltaValue, 2U, CHSV(step, 255U, 255U));
+        delta = random8(200U);
+      }
+      drawPixelXY(currentX - 2U, H_30, CHSV(step, saturation - delta, 96U + random8(128U)));
+      drawPixelXY(currentX + 2U, H_30, CHSV(step, saturation, 96U + random8(128U)));
+
+      gradientVertical(currentX, 0U, currentX + 1U, QUARTER_Y, hue + 2U, hue, 0U, 250U, 255U);
+
+      if (scaleHigh) {
+        drawPixelXY(currentX + 3U, HEIGHT - 3U, CHSV(step, saturation, 255U));
+        drawPixelXY(currentX - 3U, CENTER_Y_MINOR, CHSV(step, saturation, 255U));
+        drawPixelXY(currentX + 3U, 2U, CHSV(step, saturation, 255U));
       }
     }
   }
