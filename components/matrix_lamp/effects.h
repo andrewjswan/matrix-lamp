@@ -7162,74 +7162,77 @@ static void spheresRoutine() {
 // хуяк-хуяк - и в продакшен!
 
 static void magmaRoutine(){
-  //unsigned num = map(scale, 0U, 255U, 6U, sizeof(boids) / sizeof(*boids));
-  if (loadingFlag)
-  {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings){
-        //палитры 0,1,5,6,7
+      if (selectedSettings) {
+        // палитры 0, 1, 5, 6, 7
         uint8_t tmp = random8(6U);
         if (tmp>1U) tmp+=3U;
-        setModeSettings(tmp*11U+2U + random8(7U) , 185U+random8(48U));
+        setModeSettings(tmp * 11U + 2U + random8(7U) , 185U + random8(48U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-    //setCurrentPalette();
-
-    deltaValue = modes[currentMode].Scale * 0.0899f; // /100.0F * ((sizeof(palette_arr) /sizeof(TProgmemRGBPalette16 *))-0.01F));
+    deltaValue = modes[currentMode].Scale * 0.0899f;       // / 100.0F * ((sizeof(palette_arr) /sizeof(TProgmemRGBPalette16 *))-0.01F));
     if (deltaValue == 3U ||deltaValue == 4U)
-      curPalette =  palette_arr[deltaValue]; // (uint8_t)(modes[currentMode].Scale/100.0F * ((sizeof(palette_arr) /sizeof(TProgmemRGBPalette16 *))-0.01F))];
+      curPalette =  palette_arr[deltaValue];               // (uint8_t)(modes[currentMode].Scale/100.0F * ((sizeof(palette_arr) /sizeof(TProgmemRGBPalette16 *))-0.01F))];
     else
-      curPalette = firePalettes[deltaValue]; // (uint8_t)(modes[currentMode].Scale/100.0F * ((sizeof(firePalettes)/sizeof(TProgmemRGBPalette16 *))-0.01F))];
-    //deltaValue = (((modes[currentMode].Scale - 1U) % 11U + 1U) << 4U) - 8U; // ширина языков пламени (масштаб шума Перлина)
-    deltaValue = 12U;
-    deltaHue = 10U; // map(deltaValue, 8U, 168U, 8U, 84U); // высота языков пламени должна уменьшаться не так быстро, как ширина
-    //step = map(255U-deltaValue, 87U, 247U, 4U, 32U); // вероятность смещения искорки по оси ИКС
-    for (uint8_t j = 0; j < HEIGHT; j++) {
-      shiftHue[j] = (HEIGHT - 1 - j) * 255 / (HEIGHT - 1); // init colorfade table
+      curPalette = firePalettes[deltaValue];               // (uint8_t)(modes[currentMode].Scale/100.0F * ((sizeof(firePalettes)/sizeof(TProgmemRGBPalette16 *))-0.01F))];
+    
+    deltaValue = 12U;                                      // deltaValue = (((modes[currentMode].Scale - 1U) % 11U + 1U) << 4U) - 8U; // ширина языков пламени (масштаб шума Перлина)
+    deltaHue = 10U;                                        // map(deltaValue, 8U, 168U, 8U, 84U); // высота языков пламени должна уменьшаться не так быстро, как ширина
+    // step = map(255U - deltaValue, 87U, 247U, 4U, 32U);  // вероятность смещения искорки по оси ИКС
+
+    constexpr float height_inv = 255.0f / (HEIGHT - 1U);
+    for (uint8_t j = 0U; j < HEIGHT; j++) {
+      shiftHue[j] = (HEIGHT - 1U - j) * height_inv;        // init colorfade table
     }
 
-    //ledsClear(); // esphome: FastLED.clear();
-    //enlargedObjectNUM = (modes[currentMode].Scale - 1U) / 99.0 * (enlargedOBJECT_MAX_COUNT - 1U) + 1U;
+    // ledsClear(); // esphome: FastLED.clear();
+    // enlargedObjectNUM = (modes[currentMode].Scale - 1U) / 99.0 * (enlargedOBJECT_MAX_COUNT - 1U) + 1U;
     enlargedObjectNUM = (modes[currentMode].Scale - 1U) % 11U / 10.0f * (enlargedOBJECT_MAX_COUNT - 1U) + 1U;
     if (enlargedObjectNUM > enlargedOBJECT_MAX_COUNT) enlargedObjectNUM = enlargedOBJECT_MAX_COUNT;
-    //if (enlargedObjectNUM < 2U) enlargedObjectNUM = 2U;
+    // if (enlargedObjectNUM < 2U) enlargedObjectNUM = 2U;
 
-    for (uint8_t i = 0 ; i < enlargedObjectNUM ; i++) {
+    for (uint8_t i = 0U; i < enlargedObjectNUM; i++) {
       trackingObjectPosX[i] = random8(WIDTH);
       trackingObjectPosY[i] = random8(HEIGHT);
+      trackingObjectHue[i] = 50U;                          // random8();
+    }
+    
+    loadingFlag = false;
+  }
 
-      //curr->color = CHSV(random(1U, 255U), 255U, 255U);
-      trackingObjectHue[i] = 50U;random8();
+  // dimAll(255U - modes[currentMode].Scale * 2);
+  // dimAll(255U - 44U * 2);
+  dimAll(181U);
+  
+  constexpr uint8_t max_h = HEIGHT - 1U;
+  
+  for (uint8_t i = 0U; i < WIDTH; i++) {
+    const uint16_t i_deltaValue = i * deltaValue;
+    
+    for (uint8_t j = 0U; j < HEIGHT; j++) {
+      const uint16_t y_coord = (j + ff_y + (random8() & 0x01U)) * deltaHue;
+      const uint8_t noise_val = fastled_helper::perlin8(i_deltaValue, y_coord, ff_z);
+      const uint8_t palette_index = qsub8(noise_val, shiftHue[j]);
+
+      drawPixelXYF(i, max_h - j, ColorFromPalette(*curPalette, palette_index, 255U));
     }
   }
 
-  //myLamp.dimAll(0); накой хрен делать затухание на 100%?
-  //ledsClear(); // esphome: FastLED.clear();
-  //dimAll(255U - modes[currentMode].Scale * 2);
-  //dimAll(255U - 44U * 2);
-  dimAll(181);
-
-  for (uint8_t i = 0; i < WIDTH; i++) {
-    for (uint8_t j = 0; j < HEIGHT; j++) {
-      //leds[XY(i,HEIGHT-1U-j)] = ColorFromPalette(*curPalette, qsub8(fastled_helper::perlin8(i * deltaValue, (j+ff_y+random8(2)) * deltaHue, ff_z), shiftHue[j]), 255U);
-      drawPixelXYF(i,HEIGHT-1U-j,ColorFromPalette(*curPalette, qsub8(fastled_helper::perlin8(i * deltaValue, (j+ff_y+random8(2)) * deltaHue, ff_z), shiftHue[j]), 255U));
-    }
-  }
-
-  for (uint8_t i = 0; i < enlargedObjectNUM; i++) {
+  for (uint8_t i = 0U; i < enlargedObjectNUM; i++) {
     LeapersMove_leaper(i);
-    //drawPixelXYF(trackingObjectPosX[i], trackingObjectPosY[i], CHSV(trackingObjectHue[i], 255U, 255U));
-    if (trackingObjectPosY[i] >= HEIGHT/4U)
+    if (trackingObjectPosY[i] >= QUARTER_Y) {
       drawPixelXYF(trackingObjectPosX[i], trackingObjectPosY[i], ColorFromPalette(*curPalette, trackingObjectHue[i]));
-  };
+    }
+  }
 
-  //blurScreen(20);
+  // blurScreen(20);
+
   ff_y++;
-  if (ff_y & 0x01)
+  if (ff_y & 0x01) {
     ff_z++;
-
+  }
 }
 #endif
 
