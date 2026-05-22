@@ -7308,7 +7308,7 @@ static void execStringsFlame() { // внимание! эффект заточе�
 
     hue = map8(myScale8(modes[currentMode].Scale + 3U), 3U, 10U);   // минимальная живучесть/высота языка пламени ...ttl
     hue2 = map8(myScale8(modes[currentMode].Scale + 3U), 6U, 31U);  // максимальная живучесть/высота языка пламени ...ttl
-    
+
     for (uint16_t i = 0U; i < trackingOBJECT_MAX_COUNT; i++) {      // чистим массив объектов от того, что не похоже на языки пламени
       if (trackingObjectState[i] > 30U || trackingObjectPosY[i] >= HEIGHT || trackingObjectPosX[i] >= WIDTH || trackingObjectPosY[i] <= 0) {
         trackingObjectHue[i] = 0U;
@@ -7332,7 +7332,7 @@ static void execStringsFlame() { // внимание! эффект заточе�
         }
       }
     }
-    
+
     loadingFlag = false;
   }
 
@@ -7350,7 +7350,7 @@ static void execStringsFlame() { // внимание! эффект заточе�
 
   // цикл перебора языков пламени
   for (uint16_t i = 0U; i < enlargedObjectNUM; i++) {
-    const uint8_t state = trackingObjectState[i];  
+    const uint8_t state = trackingObjectState[i];
 
     if (state) { // если ещё не закончилась его жизнь
       wu_pixel_maxV(i);
@@ -7366,24 +7366,24 @@ static void execStringsFlame() { // внимание! эффект заточе�
       if (trackingObjectPosY[i] >= HEIGHT || trackingObjectHue[i] < 2U) {
         trackingObjectState[i] = 0U;
       }
-      
+
       // если вылез за край матрицы по горизонтали, перекинем на другую сторону
       if (trackingObjectPosX[i] < 0.0f) {
         trackingObjectPosX[i] += WIDTH;
       } else if (trackingObjectPosX[i] >= WIDTH) {
         trackingObjectPosX[i] -= WIDTH;
-      }      
+      }
     } else { // если жизнь закончилась, перезапускаем
       trackingObjectState[i] = random8(hue, hue2);
       trackingObjectShift[i] = (uint8_t)(254U + modes[currentMode].Scale + random8(20U));  // 254 - это шаг в обратную сторону от выбранного пользователем оттенка (стартовый оттенок диапазона)
                                                                                            // 20 - это диапазон из градиента цвета от выбранного пользователем оттенка (диапазон от 254 до 254+20)
-      
+
       trackingObjectPosX[i] = (float)random32(WIDTH * 255U) * inv255;;
       trackingObjectPosY[i] = -0.9f;
-      
+
       trackingObjectSpeedX[i] = (FLAME_MIN_DX + random8(dx_diff)) * inv256;
       trackingObjectSpeedY[i] = (FLAME_MIN_DY + random8(dy_diff)) * inv256;
-      trackingObjectHue[i]    = FLAME_MIN_VALUE + random8(val_diff);      
+      trackingObjectHue[i]    = FLAME_MIN_VALUE + random8(val_diff);
     }
   }
 
@@ -7392,7 +7392,7 @@ static void execStringsFlame() { // внимание! эффект заточе�
     for (uint8_t j = 0U; j < HEIGHT; j++) {
       hsv2rgb_spectrum(CHSV(noise3d[0][i][j], shiftValue[j], noise3d[1][i][j]), leds[XY(i, j)]);
     }
-  }  
+  }
 }
 #endif
 
