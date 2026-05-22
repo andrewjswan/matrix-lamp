@@ -60,7 +60,7 @@ static uint8_t custom_eff = 0U;
 #if defined(DEF_RAINBOW_RINGS) || defined(DEF_STARS_NIGHT)
 static uint32_t lastUpdateTime;
 #endif
-#if defined(DEF_RAINBOW_RINGS) || defined(DEF_BUTTERFLY)
+#if defined(DEF_RAINBOW_RINGS) || defined(DEF_BUTTERFLY) || defined(DEF_COLORED_PYTHON)
 static uint32_t colorChangeTime;
 #endif
 
@@ -1260,13 +1260,13 @@ static void lightBallsRoutine()
   blurScreen(dim8_raw(beatsin8(3, 64, 100)));
 
   // Use two out-of-sync sine waves
-  uint16_t i = beatsin16(79, 0, 255); // 91
-  uint16_t j = beatsin16(67, 0, 255); // 109
-  uint16_t k = beatsin16(53, 0, 255); // 73
-  uint16_t m = beatsin16(97, 0, 255); // 123
+  const uint16_t i = beatsin16(79, 0, 255); // 91
+  const uint16_t j = beatsin16(67, 0, 255); // 109
+  const uint16_t k = beatsin16(53, 0, 255); // 73
+  const uint16_t m = beatsin16(97, 0, 255); // 123
 
   // The color of each point shifts over time, each at a different speed.
-  uint32_t ms = millis() / (((uint32_t)modes[currentMode].Scale >> 2U) + 1U); // Scale / 4 + 1
+  const uint32_t ms = millis() / (((uint32_t)modes[currentMode].Scale >> 2U) + 1U); // Scale / 4 + 1
 
   leds[XY(highByte(i * paintWidth) + BORDERTHICKNESS, highByte(j * paintHeight) + BORDERTHICKNESS)] += CHSV(ms / 29, 200U, 255U);
   leds[XY(highByte(j * paintWidth) + BORDERTHICKNESS, highByte(k * paintHeight) + BORDERTHICKNESS)] += CHSV(ms / 41, 200U, 255U);
@@ -2131,20 +2131,20 @@ static void MetaBallsRoutine() {
   }
 
   // get some 2 random moving points
-  uint16_t param1 = millis() * speedfactor;
+  const uint16_t param1 = millis() * speedfactor;
 
   #if (WIDTH < 16) || (HEIGHT < 16)
-  uint8_t x2 = remap(fastled_helper::perlin8(param1, 25355, 685), 0, 255, 0, WIDTH - 1);
-  uint8_t y2 = remap(fastled_helper::perlin8(param1, 355, 11685), 0, 255, 0, HEIGHT - 1);
+  const uint8_t x2 = remap(fastled_helper::perlin8(param1, 25355, 685), 0, 255, 0, WIDTH - 1);
+  const uint8_t y2 = remap(fastled_helper::perlin8(param1, 355, 11685), 0, 255, 0, HEIGHT - 1);
 
-  uint8_t x3 = remap(fastled_helper::perlin8(param1, 55355, 6685), 0, 255, 0, WIDTH - 1);
-  uint8_t y3 = remap(fastled_helper::perlin8(param1, 25355, 22685), 0, 255, 0, HEIGHT - 1);
+  const uint8_t x3 = remap(fastled_helper::perlin8(param1, 55355, 6685), 0, 255, 0, WIDTH - 1);
+  const uint8_t y3 = remap(fastled_helper::perlin8(param1, 25355, 22685), 0, 255, 0, HEIGHT - 1);
   #else
-  uint8_t x2 = fastled_helper::perlin8(param1, 25355, 685) / WIDTH;
-  uint8_t y2 = fastled_helper::perlin8(param1, 355, 11685) / HEIGHT;
+  const uint8_t x2 = fastled_helper::perlin8(param1, 25355, 685) / WIDTH;
+  const uint8_t y2 = fastled_helper::perlin8(param1, 355, 11685) / HEIGHT;
 
-  uint8_t x3 = fastled_helper::perlin8(param1, 55355, 6685) / WIDTH;
-  uint8_t y3 = fastled_helper::perlin8(param1, 25355, 22685) / HEIGHT;
+  const uint8_t x3 = fastled_helper::perlin8(param1, 55355, 6685) / WIDTH;
+  const uint8_t y3 = fastled_helper::perlin8(param1, 25355, 22685) / HEIGHT;
   #endif
 
   // and one Lissajou function
@@ -2246,26 +2246,26 @@ static void Sinusoid3Routine()
     loadingFlag = false;
   }
 
-  float e_s3_size = 3.0f * modes[currentMode].Scale / 100.0f + 2.0f;            // amplitude of the curves
-  uint32_t time_shift = millis() & 0xFFFFFF; // overflow protection
+  const float e_s3_size = 3.0f * modes[currentMode].Scale / 100.0f + 2.0f;      // amplitude of the curves
+  const uint32_t time_shift = millis() & 0xFFFFFF; // overflow protection
 
-  uint16_t _scale = (((modes[currentMode].Scale - 1U) % 9U) * 10U + 80U) << 7U; // = remap(scale, 1, 255, 0.1, 3);
-  uint16_t _scale3 = ((modes[currentMode].Scale - 1U) % 9U) * 1638U + 3276U;    // для спиралей на sin16
-  float _scale2 = (float)((modes[currentMode].Scale - 1U) % 9U) * 0.2f + 0.4f;  // для спиралей на sinf
+  const uint16_t _scale = (((modes[currentMode].Scale - 1U) % 9U) * 10U + 80U) << 7U; // = remap(scale, 1, 255, 0.1, 3);
+  const uint16_t _scale3 = ((modes[currentMode].Scale - 1U) % 9U) * 1638U + 3276U;    // для спиралей на sin16
+  const float _scale2 = (float)((modes[currentMode].Scale - 1U) % 9U) * 0.2f + 0.4f;  // для спиралей на sinf
 
-  uint32_t phase_shift_raw = time_shift * speedfactor;
+  const uint32_t phase_shift_raw = time_shift * speedfactor;
 
-  float time_speed_factor = (float)time_shift * speedfactor;
-  float case34_phase = time_speed_factor * 100.0f;
-  float case5_phaseB = time_speed_factor * 0.005f;
-  float case5_phaseR = time_speed_factor * 0.0055f;
+  const float time_speed_factor = (float)time_shift * speedfactor;
+  const float case34_phase = time_speed_factor * 100.0f;
+  const float case5_phaseB = time_speed_factor * 0.005f;
+  const float case5_phaseR = time_speed_factor * 0.0055f;
 
-  float center1x = float(e_s3_size * sin16(speedfactor * 72.0874f * time_shift)) / 0x7FFF - emitterX;
-  float center1y = float(e_s3_size * cos16(speedfactor * 98.301f  * time_shift)) / 0x7FFF - emitterY;
-  float center2x = float(e_s3_size * sin16(speedfactor * 68.8107f * time_shift)) / 0x7FFF - emitterX;
-  float center2y = float(e_s3_size * cos16(speedfactor * 65.534f  * time_shift)) / 0x7FFF - emitterY;
-  float center3x = float(e_s3_size * sin16(speedfactor * 134.3447f * time_shift)) / 0x7FFF - emitterX;
-  float center3y = float(e_s3_size * cos16(speedfactor * 170.3884f * time_shift)) / 0x7FFF - emitterY;
+  const float center1x = float(e_s3_size * sin16(speedfactor * 72.0874f * time_shift)) / 0x7FFF - emitterX;
+  const float center1y = float(e_s3_size * cos16(speedfactor * 98.301f  * time_shift)) / 0x7FFF - emitterY;
+  const float center2x = float(e_s3_size * sin16(speedfactor * 68.8107f * time_shift)) / 0x7FFF - emitterX;
+  const float center2y = float(e_s3_size * cos16(speedfactor * 65.534f  * time_shift)) / 0x7FFF - emitterY;
+  const float center3x = float(e_s3_size * sin16(speedfactor * 134.3447f * time_shift)) / 0x7FFF - emitterX;
+  const float center3y = float(e_s3_size * cos16(speedfactor * 170.3884f * time_shift)) / 0x7FFF - emitterY;
 
   switch (deltaValue) {
     case 0:  // Sinusoid I
@@ -2580,7 +2580,7 @@ static void PrismataRoutine() {
   blurScreen(20); // @Palpalych посоветовал делать размытие
   dimAll(255U - ((current_scale - 1U) % 11U * 3U));
 
-  uint32_t time_base = (uint32_t)GET_MILLIS() * 28U * current_speed;
+  const uint32_t time_base = (uint32_t)millis() * 28U * current_speed;
 
   const uint8_t max_height = HEIGHT - 1U;
   for (uint8_t x = 0; x < WIDTH; x++) {
@@ -4918,19 +4918,19 @@ static void shadowsRoutine() {
   static uint16_t sLastMillis = 0U;
   static uint16_t sHue16 = 0U;
 
-  uint8_t sat8 = beatsin88(87, 220, 250);
-  uint8_t brightdepth = beatsin88(341, 96, 224);
-  uint16_t brightnessthetainc16 = beatsin88(203, (25 * 256), (40 * 256));
+  const uint8_t sat8 = beatsin88(87, 220, 250);
+  const uint8_t brightdepth = beatsin88(341, 96, 224);
+  const uint16_t brightnessthetainc16 = beatsin88(203, (25 * 256), (40 * 256));
 
-  uint8_t msmultiplier = beatsin88(map(modes[currentMode].Speed, 1, 255, 100, 255), 32, map(modes[currentMode].Speed, 1, 255, 60, 255));
+  const uint8_t msmultiplier = beatsin88(map(modes[currentMode].Speed, 1, 255, 100, 255), 32, map(modes[currentMode].Speed, 1, 255, 60, 255));
 
-  uint16_t hue16 = sHue16;
-  uint16_t hueinc16 = beatsin88(113, 1, 3000);
+  const uint16_t hue16 = sHue16;
+  const uint16_t hueinc16 = beatsin88(113, 1, 3000);
 
-  uint16_t ms = millis();
-  uint16_t deltams = ms - sLastMillis ;
+  const uint16_t ms = millis();
+  const uint16_t deltams = ms - sLastMillis ;
 
-  uint8_t effectBrightness = modes[currentMode].Scale * 2.55f;
+  const uint8_t effectBrightness = modes[currentMode].Scale * 2.55f;
 
   sLastMillis  = ms;
   sPseudotime += deltams * msmultiplier;
@@ -5020,53 +5020,55 @@ static void DNARoutine()
     hue = 255U - map(51U - hue, 1U, 50U, 0, 255U);
   }
 
-  constexpr uint16_t freq = 3000;
+  constexpr uint16_t freq = 3000U;
   // float mn = 255.0/13.8; // Ниже...
 
   fadeToBlackBy(leds, NUM_LEDS, step);
-  uint16_t base_hue = millis() / 29;
+  const uint16_t base_hue = millis() / 29U;
 
   if (deltaHue) {
-    constexpr uint16_t w_step = 255U / (WIDTH - 1);
-    constexpr uint16_t h_step = (HEIGHT - 1) * 256U;
+    constexpr uint16_t w_step = 255U / (WIDTH - 1U);
+    constexpr uint16_t h_step = (HEIGHT - 1U) * 256U;
 
     for (uint8_t i = 0; i < WIDTH; i++)
     {
       uint32_t x = beatsin16(step, 0, h_step, 0, i * freq);
-      uint32_t y = (uint32_t)i << 8;            // i * 256;
+      uint32_t y = (uint32_t)i << 8U;             // i * 256;
       uint32_t x1 = beatsin16(step, 0, h_step, 0, i * freq + 32768U);
 
-      uint16_t i_mn = ((uint16_t)i * 425) / 23; // mn = 255.0 / 13.8. В целых числах это идеальная дробь 425 / 23 (дает 18.4782)
-                                                // Для i * mn мы будем писать: ((uint16_t)i * 425) / 23
+      uint16_t i_mn = ((uint16_t)i * 425U) / 23U; // mn = 255.0 / 13.8. В целых числах это идеальная дробь 425 / 23 (дает 18.4782)
+                                                  // Для i * mn мы будем писать: ((uint16_t)i * 425) / 23
       uint8_t w_hue = base_hue + (i * w_step);
 
-      CRGB col = CHSV(w_hue, 255, qadd8(hue, beatsin8(step, 60, 255U, 0, i_mn)));
-      CRGB col1 = CHSV(w_hue + 128, 255, qadd8(hue, beatsin8(step, 60, 255U, 0, i_mn + 128)));
+      CRGB col = CHSV(w_hue, 255U, qadd8(hue, beatsin8(step, 60, 255U, 0, i_mn)));
+      CRGB col1 = CHSV(w_hue + 128U, 255U, qadd8(hue, beatsin8(step, 60, 255U, 0, i_mn + 128)));
+
       wu_pixel (y , x, &col);
       wu_pixel (y , x1, &col1);
     }
   } else {
-    constexpr uint16_t w_step = (WIDTH - 1) * 256U;
-    constexpr uint16_t h_step = 255U / (HEIGHT - 1);
+    constexpr uint16_t w_step = (WIDTH - 1U) * 256U;
+    constexpr uint16_t h_step = 255U / (HEIGHT - 1U);
 
     for (uint8_t i = 0; i < HEIGHT; i++)
     {
       uint32_t x = beatsin16(step, 0, w_step, 0, i * freq);
-      uint32_t y = (uint32_t)i << 8;  // i * 256
+      uint32_t y = (uint32_t)i << 8U;             // i * 256
       uint32_t x1 = beatsin16(step, 0, w_step, 0, i * freq + 32768U);
 
-      uint16_t i_mn = ((uint16_t)i * 425) / 23; // mn = 255.0 / 13.8. В целых числах это идеальная дробь 425 / 23 (дает 18.4782)
-                                                // Для i * mn мы будем писать: ((uint16_t)i * 425) / 23
+      uint16_t i_mn = ((uint16_t)i * 425U) / 23U; // mn = 255.0 / 13.8. В целых числах это идеальная дробь 425 / 23 (дает 18.4782)
+                                                  // Для i * mn мы будем писать: ((uint16_t)i * 425) / 23
       uint8_t h_hue = base_hue + (i * h_step);
 
-      CRGB col = CHSV(h_hue, 255, qadd8(hue, beatsin8(step, 60, 255U, 0, i_mn)));
-      CRGB col1 = CHSV(h_hue + 128, 255, qadd8(hue, beatsin8(step, 60, 255U, 0, i_mn + 128)));
+      CRGB col = CHSV(h_hue, 255U, qadd8(hue, beatsin8(step, 60, 255U, 0, i_mn)));
+      CRGB col1 = CHSV(h_hue + 128U, 255U, qadd8(hue, beatsin8(step, 60, 255U, 0, i_mn + 128)));
+
       wu_pixel (x , y, &col);
       wu_pixel (x1 , y, &col1);
     }
   }
 
-  blurScreen(16);
+  blurScreen(16U);
 }
 #endif
 
@@ -6938,7 +6940,7 @@ static void spiderRoutine() {
 
   dimAll(205U);
 
-  float time_shift = (float)(millis() & 0x7FFFFFU) * emitterX;
+  const float time_shift = (float)(millis() & 0x7FFFFFU) * emitterX;
 
   constexpr float inv12 = 0.0833333f; // 1.0f / 12.0f
   const float max_w = (float)WIDTH - 1.0f;
@@ -7876,52 +7878,53 @@ static void ColorFrizzles() {
 //            Кольоровий Пітон
 // --------------------------------------
 
-static uint32_t color_timer = millis();
-
 static void Colored_Python() {
   if (loadingFlag) {
-      #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      if (selectedSettings) {
-          //                     scale | speed
-          setModeSettings(random8(100U), random8(1, 255U));
-      }
-      #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-      loadingFlag = false;
-      step = 0;
+    #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+    if (selectedSettings) {
+        //                     scale | speed
+        setModeSettings(random8(100U), random8(1, 255U));
+    }
+    #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+    
+    step = 0;
+    colorChangeTime = millis();
+
+    loadingFlag = false;
   }
 
-  uint16_t  t = millis() / (128 - (modes[currentMode].Speed / 2));
-  uint8_t palette_number = modes[currentMode].Scale / 10;
-  uint8_t thickness;
-
+  const uint16_t t = millis() / (128U - (modes[currentMode].Speed / 2U));
+  const uint8_t palette_number = modes[currentMode].Scale / 10U;
+  
   if (palette_number < 9) {
     step = palette_number;
   } else {
-    if (millis() - color_timer > 30000) {
-      color_timer = millis();
+    if (millis() - colorChangeTime > 30000U) {
+      colorChangeTime = millis();
       step++;
       if(step > 8) step = 0;
     }
   }
 
   switch (step) {
-      case 0: currentPalette = CloudColors_p; break;
-      case 1: currentPalette = AlcoholFireColors_p; break;
-      case 2: currentPalette = OceanColors_p; break;
-      case 3: currentPalette = ForestColors_p; break;
-      case 4: currentPalette = RainbowColors_p; break;
-      case 5: currentPalette = RainbowStripeColors_p; break;
-      case 6: currentPalette = HeatColors_p; break;
-      case 7: currentPalette = LavaColors_p; break;
-      case 8: currentPalette = PartyColors_p;
+    case 0: currentPalette = CloudColors_p; break;
+    case 1: currentPalette = AlcoholFireColors_p; break;
+    case 2: currentPalette = OceanColors_p; break;
+    case 3: currentPalette = ForestColors_p; break;
+    case 4: currentPalette = RainbowColors_p; break;
+    case 5: currentPalette = RainbowStripeColors_p; break;
+    case 6: currentPalette = HeatColors_p; break;
+    case 7: currentPalette = LavaColors_p; break;
+    case 8: currentPalette = PartyColors_p;
   }
 
+  uint8_t thickness;
   switch (modes[currentMode].Scale % 5) {
-      case 0: thickness = 5; break;
-      case 1: thickness = 10; break;
-      case 2: thickness = 20; break;
-      case 3: thickness = 30; break;
-      case 4: thickness = 40; break;
+    case 0: thickness = 5; break;
+    case 1: thickness = 10; break;
+    case 2: thickness = 20; break;
+    case 3: thickness = 30; break;
+    case 4: thickness = 40; break;
   }
 
   for(uint8_t x =0; x < WIDTH; x++) {
@@ -7957,7 +7960,7 @@ static void Contacts() {
     ledsClear(); // esphome: FastLED.clear();
   }
 
-  int a = millis() / map(modes[currentMode].Speed, 0, 255, 32, 1);
+  const int32_t a = millis() / map(modes[currentMode].Speed, 0, 255, 32, 1);
   hue = floor(modes[currentMode].Scale / 14);
   for (int x = 0; x < WIDTH; x++) {
     for (int y = 0; y < HEIGHT; y++) {
@@ -10892,7 +10895,7 @@ static void TixyLand() {
     hue = 255U; hue2 = 0U;
   }
 
-  float t = static_cast<float>(millis()) * 0.001f;
+  const float t = static_cast<float>(millis()) * 0.001f;
   EVERY_N_SECONDS(20) {
     if ((modes[currentMode].Speed < 5) || (modes[currentMode].Speed > 250)) {
       pcnt++;
@@ -11194,11 +11197,13 @@ static void Serpentine() {
   }
   // ---------------------
 
-  uint8_t step1 = map8(modes[currentMode].Speed, 10U, 60U);
-  uint16_t ms = millis();
-  double freq = 3000;
-  float mn = 255.0f / 13.8f;
-  uint8_t fade = 180 - std::abs(128 - step);
+  constexpr float freq = 3000.0f;
+  constexpr float mn = 255.0f / 13.8f;
+
+  const uint8_t step1 = map8(modes[currentMode].Speed, 10U, 60U);
+  const uint16_t ms = millis();
+  const uint8_t fade = 180 - std::abs(128 - step);
+  
   fadeToBlackBy(leds, NUM_LEDS, fade);
 
   // -----------------
@@ -11763,11 +11768,13 @@ static void Avrora() {
   }
   // ---------------------
 
-  uint8_t step1 = map8(modes[currentMode].Speed, 10U, 60U);
-  uint16_t ms = millis();
-  double freq = 3000;
-  float mn = 255.0f / 13.8f;
+  constexpr float freq = 3000.0f;
+  constexpr float mn = 255.0f / 13.8f;
   constexpr uint8_t fade = 30; // 60 - std::abs(128 - step) / 3;
+
+  const uint8_t step1 = map8(modes[currentMode].Speed, 10U, 60U);
+  const uint16_t ms = millis();
+
   fadeToBlackBy(leds, NUM_LEDS, fade);
 
   // -----------------
@@ -13092,13 +13099,14 @@ static void StarsEffect() {
     }
   }
 
-  uint8_t dimValue = map(modes[currentMode].Scale, 1, 100, 225, 240);
+  const uint8_t dimValue = map(modes[currentMode].Scale, 1, 100, 225, 240);
+
   dimAll(dimValue);
 
-  uint32_t currentTime = millis();
-  uint8_t desiredStars = map(modes[currentMode].Scale, 1, 100, 3, MAX_STARS);
-  float deltaTime = (currentTime - lastUpdateTime) / 1000.0f;
-  float speedFactor = (float)modes[currentMode].Speed / 255.0f;
+  const uint32_t currentTime = millis();
+  const uint8_t desiredStars = map(modes[currentMode].Scale, 1, 100, 3, MAX_STARS);
+  const float deltaTime = (currentTime - lastUpdateTime) / 1000.0f;
+  const float speedFactor = (float)modes[currentMode].Speed / 255.0f;
 
   for (uint8_t i = 0; i < MAX_STARS; i++) {
     if (stars[i].active) {
