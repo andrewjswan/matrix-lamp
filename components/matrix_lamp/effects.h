@@ -7343,7 +7343,9 @@ static void execStringsFlame() { // внимание! эффект заточе�
     }
   }
 
+  constexpr float inv256 = 1.0f / 255.0f;
   constexpr float inv256 = 1.0f / 256.0f;
+
   constexpr uint8_t dx_diff = FLAME_MAX_DX - FLAME_MIN_DX;
   constexpr uint8_t dy_diff = FLAME_MAX_DY - FLAME_MIN_DY;
   constexpr uint8_t val_diff = FLAME_MAX_VALUE - FLAME_MIN_VALUE + 1U;
@@ -7378,7 +7380,7 @@ static void execStringsFlame() { // внимание! эффект заточе�
       trackingObjectShift[i] = (uint8_t)(254U + modes[currentMode].Scale + random8(20U));  // 254 - это шаг в обратную сторону от выбранного пользователем оттенка (стартовый оттенок диапазона)
                                                                                            // 20 - это диапазон из градиента цвета от выбранного пользователем оттенка (диапазон от 254 до 254+20)
 
-      trackingObjectPosX[i] = (float)random32(WIDTH * 255U) * inv255;;
+      trackingObjectPosX[i] = (float)random16(WIDTH * 255U) * inv255;
       trackingObjectPosY[i] = -0.9f;
 
       trackingObjectSpeedX[i] = (FLAME_MIN_DX + random8(dx_diff)) * inv256;
