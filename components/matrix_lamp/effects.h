@@ -7490,11 +7490,9 @@ static void Fire2021Routine(){
 constexpr uint8_t DIMSPEED = 254U - (500U / NUM_LEDS);
 
 static void lumenjerRoutine() {
-  if (loadingFlag)
-  {
-    loadingFlag = false;
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-    if (selectedSettings){
+    if (selectedSettings) {
       uint8_t tmp = random8(17U); //= random8(19U);
       if (tmp > 2U) tmp += 2U;
       tmp = (uint8_t)(tmp * 5.556f + 3.0f);
@@ -7503,35 +7501,41 @@ static void lumenjerRoutine() {
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    if (modes[currentMode].Scale > 100)
-      modes[currentMode].Scale = 100;  // чтобы не было проблем при прошивке без очистки памяти
-    if (modes[currentMode].Scale > 50)
-      curPalette = firePalettes[(uint8_t)((modes[currentMode].Scale - 50)/50.0f * ((sizeof(firePalettes)/sizeof(TProgmemRGBPalette16 *))-0.01f))];
-    else
-      curPalette = palette_arr[(uint8_t)(modes[currentMode].Scale/50.0f * ((sizeof(palette_arr)/sizeof(TProgmemRGBPalette16 *))-0.01f))];
+    if (modes[currentMode].Scale > 100U) {
+      modes[currentMode].Scale = 100U;
+    }
+
+    constexpr float inv50 = 1.0f / 50.0f;
+    if (modes[currentMode].Scale > 50U) {
+      curPalette = firePalettes[(uint8_t)((modes[currentMode].Scale - 50U) * inv50 * ((sizeof(firePalettes) / sizeof(TProgmemRGBPalette16 *)) - 0.01f))];
+    } else {
+      curPalette = palette_arr[(uint8_t)(modes[currentMode].Scale * inv50 * ((sizeof(palette_arr) / sizeof(TProgmemRGBPalette16 *)) - 0.01f))];
+    }
 
     deltaHue = -1;
     deltaHue2 = -1;
-    //hue = CENTER_X_MAJOR;
-    //hue2 = CENTER_Y_MAJOR;
     dimAll(245U);
+
+    loadingFlag = false;
   }
-  //fadeToBlackBy(leds, N_LEDS, 2);
+
   dimAll(DIMSPEED);
 
-  deltaHue = random8(3) ? deltaHue : -deltaHue;
-  deltaHue2 = random8(3) ? deltaHue2 : -deltaHue2;
+  deltaHue = random8(3U) ? deltaHue : -deltaHue;
+  deltaHue2 = random8(3U) ? deltaHue2 : -deltaHue2;
+
 #if (((WIDTH & 0x01U) == 0U) && ((HEIGHT & 0x01U) == 0U))
-  hue = (WIDTH + hue + (int8_t)deltaHue * (bool)random8(64)) % WIDTH;
+  hue = (WIDTH + hue + (int8_t)deltaHue * (bool)random8(64U)) % WIDTH;
 #else
   hue = (WIDTH + hue + (int8_t)deltaHue) % WIDTH;
 #endif
   hue2 = (HEIGHT + hue2 + (int8_t)deltaHue2) % HEIGHT;
 
-  if (modes[currentMode].Scale == 100U)
+  if (modes[currentMode].Scale == 100U) {
     leds[XY(hue, hue2)] += CHSV(random8(), 255U, 255U);
-  else
+  } else {
     leds[XY(hue, hue2)] += ColorFromPalette(*curPalette, step++);
+  }
 }
 #endif
 
