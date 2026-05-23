@@ -3380,7 +3380,7 @@ static void WaveRoutine() {
       for (uint8_t x = 0U; x < WIDTH; x++) {
         n = quadwave8((x << 1) + waveTheta) / waveScale;  // n = quadwave8(x * 2 + waveTheta) / waveScale;
         drawPixelXY(x, n, ColorFromPalette(*curPalette, hue + x));
-        if (waveCount != 1) drawPixelXY(x, max_y - n, ColorFromPalette(*curPalette, hue + x));
+        if (waveCount != 1) drawPixelXY(x, MAX_Y - n, ColorFromPalette(*curPalette, hue + x));
       }
       break;
 
@@ -3396,7 +3396,7 @@ static void WaveRoutine() {
       for (uint8_t x = 0U; x < WIDTH; x++) {
         n = quadwave8((x << 1) - waveTheta) / waveScale;  // n = quadwave8(x * 2 - waveTheta) / waveScale;
         drawPixelXY(x, n, ColorFromPalette(*curPalette, hue + x));
-        if (waveCount != 1) drawPixelXY(x, max_y - n, ColorFromPalette(*curPalette, hue + x));
+        if (waveCount != 1) drawPixelXY(x, MAX_Y - n, ColorFromPalette(*curPalette, hue + x));
       }
       break;
 
@@ -3680,7 +3680,7 @@ static void rain(uint8_t backgroundDepth, uint8_t maxBrightness, uint8_t spawnFr
 
     // Step 2.  Randomly spawn new dots at top
     if (random8() < spawnFreq) {
-      noise3d[0][x][max_height_idx] = random8(backgroundDepth, maxBrightness);
+      noise3d[0][x][MAX_Y] = random8(backgroundDepth, maxBrightness);
     }
 
     // Step 3. Map from tempMatrix cells to LED colors
@@ -3712,13 +3712,13 @@ static void rain(uint8_t backgroundDepth, uint8_t maxBrightness, uint8_t spawnFr
     // Step 5. Add lightning if called for
     if (storm) {
       if (random16() < 72U) {    // Odds of a lightning bolt
-        constexpr uint16_t lightning_top_offset = (uint16_t)max_height_idx * WIDTH;
+        constexpr uint16_t lightning_top_offset = (uint16_t)MAX_Y * WIDTH;
 
-        uint16_t start_idx = scale8(random8(), max_width_idx) + lightning_top_offset;
+        uint16_t start_idx = scale8(random8(), MAX_X) + lightning_top_offset;
         ledsbuff[start_idx].r = 255U; // Random starting location
 
-        for(uint8_t ly = max_height_idx; ly > 1; ly--) {
-          for (uint8_t lx = 1; lx < max_width_idx; lx++) {
+        for(uint8_t ly = MAX_Y; ly > 1; ly--) {
+          for (uint8_t lx = 1; lx < MAX_X; lx++) {
             if (ledsbuff[lx + ly * WIDTH].r == 255U) {
               ledsbuff[lx + ly * WIDTH].r = 0U;
 
@@ -3765,7 +3765,7 @@ static void rain(uint8_t backgroundDepth, uint8_t maxBrightness, uint8_t spawnFr
 
         uint16_t buf_idx = (uint16_t)x * cloudHeight + z;
         ledsbuff[buf_idx].b = scale8(ledsbuff[buf_idx].b, dataSmoothing) + scale8(noiseData, 256U - dataSmoothing);
-        nblend(leds[XY(x, max_height_idx - z)], ColorFromPalette(rainClouds_p, ledsbuff[buf_idx].b), (cloudHeight - z) * (250U / cloudHeight));
+        nblend(leds[XY(x, MAX_Y - z)], ColorFromPalette(rainClouds_p, ledsbuff[buf_idx].b), (cloudHeight - z) * (250U / cloudHeight));
       }
       ff_z ++;
     }
