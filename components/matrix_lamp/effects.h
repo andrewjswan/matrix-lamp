@@ -8772,33 +8772,50 @@ static void FlowerRuta() {
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      // scale | speed
+                              // scale | speed
       setModeSettings(random8(11U, 69U), random8(150U, 255U));
     }
 #endif
-    loadingFlag = false;
-    ledsClear(); // esphome: FastLED.clear();
-    for (int8_t x = -CENTER_X_MAJOR; x < CENTER_X_MAJOR; x++) {
-      for (int8_t y = -CENTER_Y_MAJOR; y < CENTER_Y_MAJOR; y++) {
-        noise3d[0][x + CENTER_X_MAJOR][y + CENTER_Y_MAJOR] = (atan2(x, y) / PI) * 128 + 127; // thanks ldirko
-        noise3d[1][x + CENTER_X_MAJOR][y + CENTER_Y_MAJOR] = hypot(x, y);                    // thanks Sutaburosu
+
+    constexpr float inv_pi = 1.0f / M_PI;
+    for (int16_t x = -CENTER_X_MAJOR; x < CENTER_X_MAJOR; x++) {
+      for (int16_t y = -CENTER_Y_MAJOR; y < CENTER_Y_MAJOR; y++) {
+        noise3d[x + CENTER_X_MAJOR][y + CENTER_Y_MAJOR] = (atan2(x, y) * inv_pi) * 128.0f + 127.0f;  // thanks ldirko
+        noise3d[x + CENTER_X_MAJOR][y + CENTER_Y_MAJOR] = hypot(x, y);                               // thanks Sutaburosu
       }
+    }
+
+    deltaValue = modes[currentMode].Scale / 10U; // deltaValue - Petals
+    deltaHue = modes[currentMode].Scale % 10U; 
+    
+    ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
+  }
+
+  if (deltaHue < 5U) {
+    ff_x = scale / (3U - (deltaHue >> 1U)); // ff_x - color_speed
+  } else {
+    ff_x = scale * ((deltaHue >> 1U) - 1U);
+  }
+
+  scale++;
+
+  constexpr uint8_t rad_step = 255U / WIDTH;
+  for (uint8_t x = 0U; x < WIDTH; x++) {
+    for (uint8_t y = 0U; y < HEIGHT; y++) {
+      const uint8_t angle = noise3d[x][y];
+      const uint8_t radius = noise3d[x][y];
+      
+      const uint8_t rad_offset = radius * rad_step;
+      const uint8_t angle_petals = angle * deltaValue;
+
+      const uint8_t index = sin8(sin8((uint8_t)(scale + angle_petals + rad_offset)) + (uint8_t)(scale * 4U) + sin8((uint8_t)(scale * 4U - rad_offset)) + angle_petals);
+      
+      leds[XY(x, y)] = CHSV((uint8_t)(ff_x + rad_offset), 255U, index);
     }
   }
 
-  uint8_t Petals = modes[currentMode].Scale / 10;
-  uint16_t color_speed;
-  step = modes[currentMode].Scale % 10;
-  if (step < 5) color_speed = scale / (3 - step/2);
-  else color_speed = scale * (step/2 - 1);
-  scale ++;
-  for (uint8_t x = 0U; x < WIDTH; x++) {
-    for (uint8_t y = 0U; y < HEIGHT; y++) {
-      uint8_t angle = noise3d[0][x][y];
-      uint8_t radius = noise3d[1][x][y];
-      leds[XY(x, y)] = CHSV(color_speed + radius * (255 / WIDTH), 255, sin8(sin8(scale + angle * Petals + (radius * (255 / WIDTH))) + scale * 4 + sin8(scale * 4 - radius * (255 / WIDTH)) + angle * Petals));
-    }
-  }
 }
 #endif
 
