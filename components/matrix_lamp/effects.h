@@ -8194,70 +8194,59 @@ static void FeatherCandleRoutine() {
 static void VirtualExplosion(uint8_t f_type, int8_t timeline) {
   constexpr uint8_t DELAY_SECOND_EXPLOSION = QUARTER_Y;
   constexpr uint8_t horizont = 1U;  // HEIGHT * 0.2f;
-  constexpr int8_t STEP = 255 / HEIGHT;
+  constexpr int8_t STEP = 255U / HEIGHT;
+  constexpr uint8_t timeline_trigger = HEIGHT + DELAY_SECOND_EXPLOSION;
 
-  constexpr uint8_t ACTION_TIME = ((uint16_t)HEIGHT * 7) / 4;  //  HEIGHT * 1.75
-  constexpr uint8_t SECOND_EXPLOSION = ((uint16_t)(HEIGHT - DELAY_SECOND_EXPLOSION) * 7) / 4;  // ((HEIGHT - DELAY_SECOND_EXPLOSION) * 1.75)
+  constexpr uint8_t ACTION_TIME = ((uint16_t)HEIGHT * 7U) >> 2U; // HEIGHT * 1.75 через сдвиг
+  constexpr uint8_t SECOND_EXPLOSION = ((uint16_t)(HEIGHT - DELAY_SECOND_EXPLOSION) * 7U) >> 2U;
 
-
-  uint8_t firstColor = random8(255);
-  uint8_t secondColor = 0;
-  uint8_t saturation = 255U;
+  uint8_t firstColor  = random8();
+  uint8_t secondColor = 0U;
+  uint8_t saturation  = 255U;
 
   switch (f_type) {
-    case 0:
-      secondColor = random(50U, 255U);
-      saturation =  random(245U, 255U);
+    case 0U:
+      secondColor = random8(50U, 255U);
+      saturation  = random8(245U, 255U);
       break;
-    case 1: /* сакура */
-      firstColor =  random(210U, 230U);
-      secondColor = random(65U, 85U);
-      saturation = 255U;
+    case 1U: /* сакура */
+      firstColor  = random8(210U, 230U);
+      secondColor = random8(65U, 85U);
       break;
-    case 2: /* день Независимости */
-      firstColor =  random(160U, 170U);
-      secondColor = random(25U, 50U);
-      saturation = 255U;
+    case 2U: /* день Независимости */
+      firstColor  = random8(160U, 170U);
+      secondColor = random8(25U, 50U);
       break;
-    default: /* фризантемы */
-      firstColor =  random(30U, 40U);
-      secondColor = random(25U, 50U);
-      saturation =  random(128U, 255U);
+    default: /* хризантемы */
+      firstColor  = random8(30U, 40U);
+      secondColor = random8(25U, 50U);
+      saturation  = random8(128U, 255U);
       break;
   }
-
-  if ((timeline > MAX_Y) & (timeline < ACTION_TIME)) {
+  
+  if ((timeline > MAX_Y) && (timeline < ACTION_TIME)) {
     for (uint8_t x = 0U; x < WIDTH; x++) {
-      for (uint8_t y =  horizont; y < MAX_Y; y++) {
-        noise3d[0][x][y] = noise3d[0][x][y + 1];
-        uint8_t bri = y * STEP;
-        if (noise3d[0][x][y] > 0) {
-          if (timeline > (HEIGHT + DELAY_SECOND_EXPLOSION)) {
+      for (uint8_t y = horizont; y < MAX_Y; y++) {
+        noise3d[0][x][y] = noise3d[0][x][y + 1U];
+        const uint8_t bri = y * STEP;
+
+        if (noise3d[0][x][y] > 0U) {
+          if (timeline > timeline_trigger) {
             /* second explosion */
-            drawPixelXY((x - 2 + random8(4)), y - 1, CHSV(secondColor + random8(16), saturation, bri));
+            drawPixelXY((uint8_t)(x - 2U + random8(4U)), y - 1U, CHSV((uint8_t)(secondColor + random8(16U)), saturation, bri));
           }
           if (timeline < SECOND_EXPLOSION) {
             /* first explosion */
             drawPixelXY(x, y, CHSV(firstColor, 255U, bri));
           }
-        // } else {
-        //   drawPixelXY(x, y, CHSV(175, 255U, floor((255 - bri) / 4)));
         }
       }
     }
 
-    uint8_t posX = random8(WIDTH);
+    const uint8_t posX = random8(WIDTH);
+    const uint8_t step_odd = ((step & 0x01U) == 0U) ? 1U : 0U;
     for (uint8_t x = 0U; x < WIDTH; x++) {
-      // заполняем случайно верхнюю строку
-      if (posX == x) {
-        if ((step & 0x01U) == 0U) {
-          noise3d[0][x][MAX_Y] = 1;
-        } else {
-          noise3d[0][x][MAX_Y] = 0;
-        }
-      } else {
-        noise3d[0][x][MAX_Y] = 0;
-      }
+      noise3d[0][x][MAX_Y] = (posX == x) ? step_odd : 0U;
     }
   }
 }
@@ -8273,41 +8262,48 @@ static void Firework() {
   // constexpr uint8_t STEP = 3U;
   constexpr uint8_t skyColor = 156U;
 
+  constexpr uint8_t PHASE_V1     = (uint8_t)(HEIGHT  * 1.5f);
+  constexpr uint8_t PHASE_V2     = (uint8_t)(HEIGHT  * 1.25f);
+  constexpr uint16_t PHASE_LIMIT = (uint16_t)(HEIGHT * 2.5f);
+
   uint8_t sizeH;
 
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      // scale | speed
+                               // scale | speed
       setModeSettings(1U + random8(100U), 1U + random8(250U));
     }
 #endif
 
-    loadingFlag = false;
-    deltaHue2 = 0;
+    deltaHue2 = 0U;
     FPSdelay = 255U;
-    ledsClear(); // esphome: FastLED.clear();
     step = 0U;
-    deltaHue2 = floor(modes[currentMode].Scale / 26);
-    hue = 48U;            // skyBright
+    hue = 48U; // skyBright
+    deltaHue2 = modes[currentMode].Scale / 26U;
 
     if (modes[currentMode].Speed > 85U) {
       sizeH = HORIZONT;
       FPSdelay = FPS_DELAY;
     }
+
+    ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
 
   if (FPSdelay > 128U) {
     /* вечерело */
     FPSdelay--;
-    sizeH = (FPSdelay - 128U) * stepH;
-    // LOG.printf_P(PSTR("• [%03d] | %03d | %0.2f | \n"), FPSdelay, stepH, sizeH);
+    sizeH = (uint8_t)((FPSdelay - 128U) * stepH);
+    // ESP_LOGD("Firework", PSTR("• [%03d] | %03d | %0.2f | \n"), FPSdelay, stepH, sizeH);
     dimAll(200);
 
+    const uint8_t sky_bri = (uint8_t)(FPSdelay * 0.4545f);  // / 2.2f
     if ((ORIENTATION & 0x01U) == 0U) {
-      gradientDownTop(0, CHSV(skyColor, 255U, floor(FPSdelay / 2.2f)), sizeH, CHSV(skyColor, 255U, 2U));
+      gradientDownTop(0, CHSV(skyColor, 255U, sky_bri), sizeH, CHSV(skyColor, 255U, 2U));
     } else {
-      gradientVertical(0, 0, WIDTH, sizeH, skyColor, skyColor, floor(FPSdelay / 2.2f), 2U, 255U);
+      gradientVertical(0, 0, WIDTH, sizeH, skyColor, skyColor, sky_bri, 2U, 255U);
     }
 
     if (sizeH > HORIZONT) return;
@@ -8315,47 +8311,43 @@ static void Firework() {
   }
 
   if (step > DOT_EXPLOSION) {
-    blurScreen(beatsin8(3, 64, 80));
+    blurScreen(beatsin8(3U, 64U, 80U));
   }
-  if (step == DOT_EXPLOSION - 1) {
+  if (step == (uint8_t)(DOT_EXPLOSION - 1U)) {
     /* включаем фазу затухания */
-    FPSdelay = 70;
+    FPSdelay = 70U;
   }
-  if (step > CENTER_Y_MAJOR) {
-    dimAll(140);
-  } else {
-    dimAll(100);
-  }
-
+  dimAll((step > CENTER_Y_MAJOR) ? 140U : 100U);
 
   /* ============ draw sky =========== */
   if (modes[currentMode].Speed < 180U) {
     if ((ORIENTATION & 0x01U) == 0U) {
       gradientDownTop(0, CHSV(skyColor, 255U, hue), HORIZONT, CHSV(skyColor, 255U, 0U));
     } else {
-      gradientVertical(0, 0, WIDTH, HORIZONT, skyColor, skyColor, hue + 1, 0U, 255U);
+      gradientVertical(0, 0, WIDTH, HORIZONT, skyColor, skyColor, (uint8_t)(hue + 1U), 0U, 255U);
     }
   }
-
+  
   /* deltaHue2 - Firework type */
   VirtualExplosion(deltaHue2, step);
 
-  if ((step > DOT_EXPLOSION) & (step < HEIGHT * 1.5f)) {
+  if ((step > DOT_EXPLOSION) && (step < PHASE_V1)) {
     /* фаза взрыва */
     FPSdelay += 5U;
   }
-
-  constexpr uint8_t rows = (HEIGHT + 1) / 3U;
-  deltaHue = floor(modes[currentMode].Speed / 64) * 64;
+  
+  constexpr uint8_t rows = (uint8_t)((HEIGHT + 1U) / 3U);
+  deltaHue = (modes[currentMode].Speed >> 6U) << 6U; // / 64) * 64;
   if (step > CENTER_Y_MAJOR) {
     bool dir = false;
     for (uint8_t y = 0U; y < rows; y++) {
+      const uint8_t row_offset = y * 3U + DELTA;
       /* сдвигаем слои / эмитация разлета */
-      for (uint8_t x = 0U ; x < WIDTH; x++) {
+      for (uint8_t x = 0U; x < WIDTH; x++) {
         if (dir) {  // <==
-          drawPixelXY(x - 1, y * 3 + DELTA, getPixColorXY(x, y * 3 + DELTA));
+          drawPixelXY((int16_t)(x - 1U), row_offset, getPixColorXY(x, row_offset));
         } else {    // ==>
-          drawPixelXY(WIDTH - x, y * 3 + DELTA, getPixColorXY(WIDTH - x - 1, y * 3 + DELTA));
+          drawPixelXY((int16_t)(WIDTH - x), row_offset, getPixColorXY((int16_t)(WIDTH - x - 1U), row_offset));
         }
       }
       dir = !dir;
@@ -8365,43 +8357,46 @@ static void Firework() {
 
   /* ========== фаза полета ========== */
   if (step < DOT_EXPLOSION) {
-    FPSdelay ++;
-    if (HEIGHT < 20) {
-      FPSdelay ++;
+    FPSdelay++;
+    if (HEIGHT < 20U) {
+      FPSdelay++;
     }
     /* закоментируйте следующие две строки если плоская лампа
       подсветка заднего фона */
     if (custom_eff == 1) {
-      DrawLine(0U, 0U, 0U, HEIGHT - step, CHSV(skyColor, 255U, 32U));
-      DrawLine(MAX_X, 0U, MAX_X, HEIGHT - step, CHSV(skyColor, 255U, 32U));
+      const uint8_t line_h = HEIGHT - step;
+      DrawLine(0U, 0U, 0U, line_h, CHSV(skyColor, 255U, 32U));
+      DrawLine(max_w, 0U, max_w, line_h, CHSV(skyColor, 255U, 32U));
     }
     /* ------------------------------------------------------ */
 
-    uint8_t saturation = (step > (DOT_EXPLOSION - 2U)) ? 192U : 20U;
-    //uint8_t rndPos = deltaHue2;  //uint8_t rndPos = 3U * deltaHue2 * 0.5;
-    drawPixelXY(CENTER_X_MINOR + deltaHue2, step,  CHSV(50U, saturation, 80U));             // first
-    drawPixelXY(CENTER_X_MAJOR - deltaHue2, step - HORIZONT,  CHSV(50U, saturation, 80U));  // second
+    const uint8_t saturation = (step > (uint8_t)(DOT_EXPLOSION - 2U)) ? 192U : 20U;
+    drawPixelXY((int16_t)(CENTER_X_MINOR + deltaHue2), step, CHSV(50U, saturation, 80U));
+    drawPixelXY((int16_t)(CENTER_X_MAJOR - deltaHue2), (int16_t)(step - HORIZONT), CHSV(50U, saturation, 80U));
+    
     /* sky brightness */
     if (hue > 2U) {
       hue -= 1U;
     }
   }
-  if (step > HEIGHT * 1.25f) {
+  
+  if (step > PHASE_V2) {
     /* sky brightness */
     if (hue < MAX_BRIGHTNESS) {
       hue += 2U;
     }
   }
 
-  if (step >= (HEIGHT * 2.5f)) {
+  if (step >= PHASE_LIMIT) {
     step = 0U;
     FPSdelay = FPS_DELAY;
-    if (modes[currentMode].Scale <= 1) {
+    if (modes[currentMode].Scale <= 1U) {
       deltaHue2++;
     }
-    if (deltaHue2 >= 4U) deltaHue2 = 0U;  // next Firework type
+    if (deltaHue2 >= 4U) deltaHue2 = 0U;    // next Firework type
   }
-  //  LOG.printf_P(PSTR("• [%03d] | %03d | sky Bright • [%03d]\n"), step, FPSdelay, hue);
+
+  // ESP_LOGD("Firework", PSTR("• [%03d] | %03d | sky Bright • [%03d]\n"), step, FPSdelay, hue);
   step ++;
 }
 #endif
