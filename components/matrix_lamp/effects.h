@@ -10446,12 +10446,12 @@ static void Ukraine() {
 //                 Бамбук
 // --------------------------------------
 static uint8_t nextColor(uint8_t posY, uint8_t base, uint8_t next) {
-  constexpr uint8_t posLine = (HEIGHT > 16) ? 4 : 3;
-  if ((posY + 1 == posLine) | (posY == posLine)) {
+  constexpr uint8_t posLine = (HEIGHT > 16U) ? 4U : 3U;
+
+  if (((uint8_t)(posY + 1U) == posLine) || (posY == posLine)) {
     return next;
-  } else {
-    return base;
   }
+  return base;
 }
 
 // --------------------------------------
@@ -10466,11 +10466,10 @@ static void Bamboo() {
   constexpr uint8_t SY = 10;
   constexpr float STP = 0.2f;
 
-  static float index;
-  static float deltaX = 0;
-  static bool direct = false;
-  uint8_t posY;
-  static uint8_t colLine;
+  // trackingObjectPosX[0] => субпиксельный сдвиг index
+  // trackingObjectPosY[0] => горизонтальный люфт ветра deltaX
+  // trackingObjectState[0] => флаг направления ветра direct (1U - влево, 0U - вправо)
+  // static uint8_t colLine  => переносим в пуловый свободный регистр hue
 
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
@@ -10479,54 +10478,83 @@ static void Bamboo() {
       setModeSettings(random8(100U), random8(128, 255U));
     }
 #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-    loadingFlag = false;
-    index = STP;
-    uint8_t idx = map(modes[currentMode].Scale, 5, 95, 0U, 6U);;
-    colLine = gamma[idx];
+
+    trackingObjectPosX[0] = STP;
+    trackingObjectPosY[0] = 0.0f;
+    trackingObjectState[0] = 0U; // direct = false
+    
+    hue = gamma[map(modes[currentMode].Scale, 5U, 95U, 0U, 6U)];
+
     step = 0U;
+
+    loadingFlag = false;
   }
 
+  float index = trackingObjectPosX[0];
+  float deltaX = trackingObjectPosY[0];
+  bool direct = (trackingObjectState[0] == 1U);
+  const uint8_t colLine = hue;
+
+  const bool wind_enabled = (modes[currentMode].Scale < 50U);
+
   // *** ---
-  for (int y = 0; y < HEIGHT + SY; y++) {
-    if (modes[currentMode].Scale < 50U) {
-      if (step % 128 == 0U) {
-        deltaX += STP * ((direct) ? -1 : 1);
-        if ((deltaX > 1) | (deltaX < -1)) direct = !direct;
-      }
-    } else {
-      deltaX = 0;
-    }
-    posY = y;
-    for (int x = 0; x < WIDTH + SX; x++) {
-      if (y == posLine) {
-        drawPixelXYF(x , y - 1, CHSV(colLine, 255U, 128U));
-        drawPixelXYF(x, y, CHSV(colLine, 255U, 96U));
-        if (HEIGHT > 16) {
-          drawPixelXYF(x, y - 2, CHSV(colLine, 10U, 64U));
+  for (uint8_t y = 0U; y < (uint8_t)(HEIGHT + SY); y++) {
+    if (wind_enabled) {
+      if (step % 128U == 0U) {
+        deltaX += STP * (direct ? -1.0f : 1.0f);
+        if ((deltaX > 1.0f) || (deltaX < -1.0f)) {
+          direct = !direct;
         }
       }
-      if ((x % SX == 0U) & (y % SY == 0U)) {
-        for (int i = 1; i < (SY - 3); i++) {
-          if (i < 3) {
-            posY = y - i + 1 - DELTA + index;
-            drawPixelXYF(x - 3 + deltaX, posY, CHSV(nextColor(posY, 96, colLine), 255U, 255 - V_STEP * i));
-            posY = y - i + index;
-            drawPixelXYF(x + deltaX, posY, CHSV(nextColor(posY, 96, colLine), 255U, 255 - VG_STEP * i));
+    } else {
+      deltaX = 0.0f;
+    }
+
+    // Горизонтальный рендеринг бамбука
+    for (uint8_t x = 0U; x < (uint8_t)(WIDTH + SX); x++) {
+      if (y == posLine) {
+        drawPixelXYF(x, y - 1U, CHSV(colLine, 255U, 128U));
+        drawPixelXYF(x, y, CHSV(colLine, 255U, 96U));
+        if (HEIGHT > 16U) {
+          drawPixelXYF(x, y - 2U, CHSV(colLine, 10U, 64U));
+        }
+      }
+
+      if (((x % SX) == 0U) && ((y % SY) == 0U)) {
+        const float x_wind = x + deltaX;
+
+        for (uint8_t i = 1U; i < (uint8_t)(SY - 3U); i++) {
+          const uint8_t v_fade = (uint8_t)(255U - V_STEP * i);
+          
+          if (i < 3U) {
+            uint8_t posY1 = y - i + 1U - DELTA + index;
+            drawPixelXYF(x_wind - 3.0f, posY1, CHSV(nextColor(posY1, 96U, colLine), 255U, v_fade));
+            
+            uint8_t posY2 = y - i + index;
+            drawPixelXYF(x_wind, posY2, CHSV(nextColor(posY2, 96U, colLine), 255U, (uint8_t)(255U - VG_STEP * i)));
           }
-          posY = y - i - DELTA + index;
-          drawPixelXYF(x - 4 + deltaX, posY , CHSV(nextColor(posY, 96, colLine), 180U, 255 - V_STEP * i));
-          posY = y - i + 1 + index;
-          drawPixelXYF(x - 1 + deltaX, posY , CHSV(nextColor(posY, ((i == 1) ? 96 : 80), colLine), 255U, 255 - V_STEP * i));
+          
+          uint8_t posY3 = y - i - DELTA + index;
+          drawPixelXYF(x_wind - 4.0f, posY3, CHSV(nextColor(posY3, 180U, colLine), 180U, v_fade));
+          
+          uint8_t posY4 = y - i + 1U + index;
+          drawPixelXYF(x_wind - 1.0f, posY4, CHSV(nextColor(posY4, ((i == 1U) ? 96U : 80U), colLine), 255U, v_fade));
         }
       }
     }
     step++;
   }
-  if (index >= SY)  {
-    index = 0;
-  }
+
   fadeToBlackBy(leds, NUM_LEDS, 60);
+
+  if (index >= SY) {
+    index = 0.0f;
+  }
   index += STP;
+
+  trackingObjectPosX[0] = index;
+  trackingObjectPosY[0] = deltaX;
+  trackingObjectState[0] = direct ? 1U : 0U;
 }
 #endif
 
