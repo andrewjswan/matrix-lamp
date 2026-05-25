@@ -8460,7 +8460,7 @@ static void Firework() {
   static CRGB& piXY(uint8_t x, uint8_t y) {
     const int16_t real_x = x - PIXEL_X_OFFSET;
     const int16_t real_y = y - PIXEL_Y_OFFSET;
-    
+
     if ((uint16_t)real_x < WIDTH && (uint16_t)real_y < HEIGHT) {
       return leds[XY(real_x, real_y)];
     }
@@ -8489,20 +8489,20 @@ static void Firework() {
 
       void Draw() {
         if(!show) return;
-        
+
         // Оптимизированный screenscale для X
         const uint8_t ia_x = x >> 8U;
         const uint8_t ix = scale8(ia_x, MODEL_WIDTH);
         const uint8_t xc = 255U - ((ia_x - (ix * SCALE_M_W)) * SCALE_ERR_W);
-  
+
         // Оптимизированный screenscale для Y
         const uint8_t ia_y = y >> 8U;
         const uint8_t iy = scale8(ia_y, MODEL_HEIGHT);
         const uint8_t yc = 255U - ((ia_y - (iy * SCALE_M_H)) * SCALE_ERR_H);
-  
+
         const uint8_t ye = 255U - yc;
         const uint8_t xe = 255U - xc;
-        
+
         piXY(ix, iy) += CRGB(
           dim8_video(scale8(scale8(color.r, yc), xc)),
           dim8_video(scale8(scale8(color.g, yc), xc)),
@@ -8527,11 +8527,11 @@ static void Firework() {
 
       void Move(uint8_t num, bool Flashing) {
         if(!show) return;
-        
+
         yv -= gGravity;
-        
+
         xv = (int16_t)((int32_t)(xv * gDrag) >> 8U);
-        yv = (int16_t)((int32_t)(yv * gDrag) >> 8U);        
+        yv = (int16_t)((int32_t)(yv * gDrag) >> 8U);
 
         if (theType == 2U) {
           xv = (int16_t)((int32_t)(xv * gDrag) >> 8U);
@@ -8539,7 +8539,7 @@ static void Firework() {
           color.nscale8(255U);
           if (!color) show = 0U;
         }
-        
+
         // if we'd hit the ground, bounce
         if (yv < 0 && (y < (-yv))) {
           if (theType == 2U) {
@@ -8550,14 +8550,14 @@ static void Firework() {
             if (yv < 500) show = 0U;
           }
         }
-        
+
         if (yv < -300) {
           // pinnacle
           if (theType == 1U) {
             if ((y > (uint16_t)0x8000U) && (random8() < 32U) && Flashing) {
               ledsClear();
             }
-  
+
             show = 0U;
             store[num].gSkyburst = true;
             store[num].gBurstx = x;
@@ -8567,7 +8567,7 @@ static void Firework() {
             store[num].gBurstcolor = CRGB(random8(), random8(), random8());
           }
         }
-        
+
         if (theType == 2U) {
           if (((xv > 0) && (x > xv)) || ((xv < 0) && (x < (uint16_t)(0xFFFFU + xv)))) {
             x += xv;
@@ -8610,7 +8610,7 @@ static void Firework() {
 
   static void sparkGen() {
     const uint8_t speed_factor = modes[currentMode].Speed * 4U;
-  
+
     for (uint8_t c = 0U; c < enlargedObjectNUM; c++) {
       if (gDot[c].show == 0U) {
         if (launchcountdown[c] == 0U) {
@@ -8621,11 +8621,11 @@ static void Firework() {
           launchcountdown[c]--;
         }
       }
-      
+
       if (store[c].gSkyburst) {
         store[c].gBurstcolor = CHSV(random8(), 200U, 100U);
         store[c].gSkyburst = false;
-        
+
         const uint8_t nsparks = random8(NUM_SPARKS / 2U, NUM_SPARKS + 1U);
         for (uint8_t b = 0U; b < nsparks; b++) {
           gSparks[b].Skyburst(store[c].gBurstx, store[c].gBursty, store[c].gBurstyv, store[c].gBurstcolor, pcnt);
@@ -8654,7 +8654,7 @@ static void fireworksRoutine()
   if (hue++ % 10U == 0U) {
     deltaValue = random8(25U, 50U);
   }
-  
+
   fadeToBlackBy(leds, NUM_LEDS, deltaValue);
   sparkGen();
 
