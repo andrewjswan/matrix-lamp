@@ -7822,22 +7822,36 @@ static void Colored_Python() {
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    step = 0;
     colorChangeTime = millis();
+
+    // Делитель времени
+    deltaHue2 = 128U - (modes[currentMode].Speed >> 1U);  // / 2
+
+    // Шаг палитры
+    deltaHue = modes[currentMode].Speed % 10U;
+
+    // Толщина змеек
+    constexpr uint8_t thickness_map[] = {5U, 10U, 20U, 30U, 40U};
+    deltaValue = thickness_map[modes[currentMode].Scale % 5U];
+
+    // Выбора палитры
+    const uint8_t palette_number = modes[currentMode].Scale / 10U;
+    if (palette_number < 9U) {
+      step = palette_number;
+      pcnt = 0U; // Флаг: авто-переключения
+    } else {
+      step = 0U;
+      pcnt = 1U;
+    }
 
     loadingFlag = false;
   }
 
-  const uint16_t t = millis() / (128U - (modes[currentMode].Speed / 2U));
-  const uint8_t palette_number = modes[currentMode].Scale / 10U;
-
-  if (palette_number < 9) {
-    step = palette_number;
-  } else {
+  if (pcnt == 1U) {
     if (millis() - colorChangeTime > 30000U) {
       colorChangeTime = millis();
       step++;
-      if(step > 8) step = 0;
+      if (step > 8U) step = 0U;
     }
   }
 
@@ -7853,19 +7867,18 @@ static void Colored_Python() {
     case 8: currentPalette = PartyColors_p;
   }
 
-  uint8_t thickness;
-  switch (modes[currentMode].Scale % 5) {
-    case 0: thickness = 5; break;
-    case 1: thickness = 10; break;
-    case 2: thickness = 20; break;
-    case 3: thickness = 30; break;
-    case 4: thickness = 40; break;
-  }
+  const uint16_t t = millis() / deltaHue2;
+  const uint16_t palette_motion = t * deltaHue;
+  const uint16_t y_time_phase = t * 5U;
 
-  for(uint8_t x = 0U; x < WIDTH; x++) {
-    for(uint8_t y = 0U; y < HEIGHT; y++) {
-      // HeatColors_p -палитра, t*scale/10 -меняет скорость движения вверх, sin8(x*20) -меняет ширину рисунка
-      leds[XY(x,y)]=ColorFromPalette(currentPalette, ((sin8((x * thickness) + sin8(y * 5 + t * 5)) + cos8(y * 10)) + 1) + t * (modes[currentMode].Speed % 10));
+  for (uint8_t y = 0U; y < HEIGHT; y++) {
+    const uint8_t y_cos = cos8(y * 10U);
+    const uint8_t y_sin_phase = y * 5U + y_time_phase;
+
+    for (uint8_t x = 0U; x < WIDTH; x++) {
+      // deltaValue — толщина (thickness)
+      const uint8_t index = ((sin8((x * deltaValue) + sin8(y_sin_phase)) + y_cos) + 1U) + palette_motion;
+      leds[XY(x, y)] = ColorFromPalette(currentPalette, index);
     }
   }
 }
