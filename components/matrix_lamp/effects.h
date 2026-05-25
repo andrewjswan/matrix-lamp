@@ -9268,26 +9268,26 @@ static void flora() {
   constexpr uint32_t FLORA_COLOR = 0x2F1F00;
   constexpr uint8_t posX = (CENTER_X_MINOR > THIRD_X) ? (CENTER_X_MINOR - THIRD_X) : 0U;
 
-  uint8_t h =  random8(HEIGHT - 6U) + 4U;
+  uint8_t h = random8((uint8_t)(HEIGHT - 6U)) + 4U;
 
-  DrawLine(posX + 1, 1U, posX + 1, h - 1, 0x000000);
-  DrawLine(posX + 2, 1U, posX + 2, h, FLORA_COLOR);
+  DrawLine(posX + 1U, 1U, posX + 1U, h - 1U, 0x000000);
+  DrawLine(posX + 2U, 1U, posX + 2U, h, FLORA_COLOR);
+  
+  drawPixelXY(posX + 2U, h - random8((uint8_t)(h / 2U)), random8(2U) == 1U ? 0xFF00E0 : random8(2U) == 1U ? 0xFFFF00 : 0x00FF00);
+  drawPixelXY(posX + 1U, h - random8((uint8_t)(h / 4U)), random8(2U) == 1U ? 0xFF00E0 : 0xFFFF00);
 
-  drawPixelXY(posX + 2, h - random8(h / 2U), random8(2U) == 1 ? 0xFF00E0 : random8(2U) == 1 ? 0xFFFF00 : 0x00FF00);
-  drawPixelXY(posX + 1, h - random8(h / 4U), random8(2U) == 1 ? 0xFF00E0 : 0xFFFF00);
-
-  if (random8(2U) == 1) {
-    drawPixelXY(posX + 1, h / 2U, random8(2U) == 1 ? 0xEF001F : 0x9FFF00);
+  if (random8(2U) == 1U) {
+    drawPixelXY(posX + 1U, h / 2U, random8(2U) == 1U ? 0xEF001F : 0x9FFF00);
   }
 
-  h = (uint16_t(h) * 166U) >> 8; // h = floor(h * 0.65); // Быстрое умножение на 0.65 через сдвиг
+  h = ((uint16_t)h * 166U) >> 8U;  // h = floor(h * 0.65); // Быстрое умножение на 0.65 через сдвиг
 
-  if (WIDTH > 8) {
-    DrawLine(posX - 1, 1U, posX - 1, h - 1, 0x000000);
+  if (WIDTH > 8U) {
+    DrawLine(posX - 1U, 1U, posX - 1U, h - 1U, 0x000000);
   }
-
+  
   DrawLine(posX, 1U, posX, h, FLORA_COLOR);
-  drawPixelXY(posX, h - random8(h / 2U), random8(2U) == 1 ? 0xFF00E0 : 0xFFFF00);
+  drawPixelXY(posX, h - random8((uint8_t)(h / 2U)), random8(2U) == 1U ? 0xFF00E0 : 0xFFFF00);
 }
 
 //---------------------------------------
@@ -9299,22 +9299,22 @@ static void animeBobbles() {
     for (uint8_t y = MAX_Y; y > 0U; y--) {
       if (getPixColorXY(x, y - 1U) == BOBBLE_COLOR) {
         drawPixelXY(x, y, BOBBLE_COLOR);
-        drawPixelXY(x, y - 1U, getPixColorXY(0, y - 1U));
+        drawPixelXY(x, y - 1U, getPixColorXY(0U, y - 1U));
       }
     }
   }
 
-  if (step % 4U == 0) {
-    drawPixelXY(CENTER_X_MAJOR + random8(5U), 0U, BOBBLE_COLOR);
-    if (step % 12 == 0) {
-      drawPixelXY(CENTER_X_MAJOR + 2U + random8(3), 0U, BOBBLE_COLOR);
+  if (step % 4U == 0U) {
+    drawPixelXY((uint8_t)(CENTER_X_MAJOR + random8(5U)), 0U, BOBBLE_COLOR);
+    if (step % 12U == 0U) {
+      drawPixelXY((uint8_t)(CENTER_X_MAJOR + 2U + random8(3U)), 0U, BOBBLE_COLOR);
     }
-  }
+  }  
 }
 
 //---------------------------------------
 static void createScene(uint8_t idx) {
-  const uint8_t MID = MAX_Y / 2;             // floor((H - 1) * 0.5)
+  const uint8_t MID = MAX_Y / 2;                    // floor((H - 1) * 0.5)
   const uint8_t H3  = (uint16_t)(HEIGHT * 3) / 10;  // floor(H * 0.3)
 
   switch (idx) {
@@ -9386,9 +9386,9 @@ static void BotswanaRivers() {
   // ALT_GRADIENT = false более производительный и более плавная растяжка
   //------------------------------------------------------------------------------
   // static const bool ALT_GRADIENT = true;
+
   #define ALT_GRADIENT (1U)
 
-  uint8_t divider = 0;
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
@@ -9396,15 +9396,18 @@ static void BotswanaRivers() {
       setModeSettings(1U + random8(252U), 20 + random8(180U));
     }
 #endif
-    loadingFlag = false;
+
     deltaValue = 255U - modes[currentMode].Speed + 1U;
     step = deltaValue;                                          // чтообы при старте эффекта сразу покрасить лампу
-    divider = floor((modes[currentMode].Scale - 1) / 20);       // маштаб задает смену палитры воды
-    if (ALT_GRADIENT) {
+    hue = (modes[currentMode].Scale - 1U) / 20U;                // divider - маштаб задает смену палитры воды
+
+    #if (ALT_GRADIENT == 1U)
       createSceneM(divider);
-    } else {
+    #else
       createScene(divider);
-    }
+    #endif
+
+    loadingFlag = false;
   }
 
   if (step >= deltaValue) {
@@ -9412,42 +9415,41 @@ static void BotswanaRivers() {
   }
 
   // restore scene after power on ---------
-  if (getPixColorXY(0U, HEIGHT - 2) == CRGB::Black) {
-    if (ALT_GRADIENT) {
-      createSceneM(divider);
-    } else {
-      createScene(divider);
-    }
+  if (getPixColorXY(0U, HEIGHT - 2U) == CRGB::Black) {
+    #if (ALT_GRADIENT == 1U)
+      createSceneM(hue);
+    #else
+      createScene(hue);
+    #endif
   }
 
   // light at the bottom ------------------
-  if (!ALT_GRADIENT) {
+  #if (ALT_GRADIENT == 0U)
     if ((step & 0x01U) == 0U) {
-      if (random8(6) == 1) {
-        //fill_gradient(leds, NUM_LEDS - WIDTH, CHSV(96U, 255U, 200U), NUM_LEDS, CHSV(50U, 255U, 255U), fl::SHORTEST_HUES);
-        if (ORIENTATION < 3 || ORIENTATION == 7) {    // if (STRIP_DIRECTION < 2) {
-          fill_gradient(leds, 0, CHSV(96U, 255U, 190U), random8(WIDTH + random8(6)), CHSV(90U, 200U, 255U), fl::SHORTEST_HUES);
+      if (random8(6U) == 1U) {
+        if (ORIENTATION < 3U || ORIENTATION == 7U) {
+          fill_gradient(leds, 0, CHSV(96U, 255U, 190U), random8((uint8_t)(WIDTH + random8(6U))), CHSV(90U, 200U, 255U), fl::SHORTEST_HUES);
         } else {
-          fill_gradient(leds, NUM_LEDS - random8(WIDTH + random8(6)), CHSV(96U, 255U, 190U), NUM_LEDS, CHSV(90U, 200U, 255U), fl::SHORTEST_HUES);
+          fill_gradient(leds, NUM_LEDS - random8((uint8_t)(WIDTH + random8(6U))), CHSV(96U, 255U, 190U), NUM_LEDS, CHSV(90U, 200U, 255U), fl::SHORTEST_HUES);
         }
       } else {
-        //fill_gradient(leds, NUM_LEDS - WIDTH, CHSV(50U, 128U, 255U), NUM_LEDS, CHSV(90U, 255U, 180U), fl::SHORTEST_HUES);
-        if (ORIENTATION < 3 || ORIENTATION == 7) {    // if (STRIP_DIRECTION < 2) {
+        if (ORIENTATION < 3U || ORIENTATION == 7U) {
           fill_gradient(leds, 0, CHSV(85U, 128U, 255U), random8(WIDTH), CHSV(90U, 255U, 180U), fl::SHORTEST_HUES);
         } else {
           fill_gradient(leds, NUM_LEDS - random8(WIDTH), CHSV(85U, 128U, 255U), NUM_LEDS, CHSV(90U, 255U, 180U), fl::SHORTEST_HUES);
         }
       }
     }
-  }
+  #endif
 
   // LOG.printf_P(PSTR("%02d | hue2 = %03d | min = %03d \n\r"), step, hue2, deltaHue2);
   // -------------------------------------
   animeBobbles();
+  
   if (custom_eff == 1) {
     blurRows(WIDTH, 3U, 10U);
-    // blurScreen(beatsin8(0U, 5U, 0U));
   }
+
   step++;
 }
 #endif
