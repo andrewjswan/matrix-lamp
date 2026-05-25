@@ -8786,8 +8786,8 @@ static void FlowerRuta() {
     }
 
     deltaValue = modes[currentMode].Scale / 10U; // deltaValue - Petals
-    deltaHue = modes[currentMode].Scale % 10U; 
-    
+    deltaHue = modes[currentMode].Scale % 10U;
+
     ledsClear(); // esphome: FastLED.clear();
 
     loadingFlag = false;
@@ -8806,12 +8806,12 @@ static void FlowerRuta() {
     for (uint8_t y = 0U; y < HEIGHT; y++) {
       const uint8_t angle = noise3d[x][y];
       const uint8_t radius = noise3d[x][y];
-      
+
       const uint8_t rad_offset = radius * rad_step;
       const uint8_t angle_petals = angle * deltaValue;
 
       const uint8_t index = sin8(sin8((uint8_t)(scale + angle_petals + rad_offset)) + (uint8_t)(scale * 4U) + sin8((uint8_t)(scale * 4U - rad_offset)) + angle_petals);
-      
+
       leds[XY(x, y)] = CHSV((uint8_t)(ff_x + rad_offset), 255U, index);
     }
   }
