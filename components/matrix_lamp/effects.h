@@ -10315,32 +10315,29 @@ static void drawCrest() {
     {0x000000, 0x000000, 0xFFD700, 0x000000, 0x000000 }
   };
 
-  uint8_t posX = CENTER_X_MAJOR - 3;
-  uint8_t posY = 9;
-  uint32_t color;
-  if (HEIGHT > 16) {
-    posY = CENTER_Y_MINOR - 1;
-  }
+  constexpr uint8_t posX = CENTER_X_MAJOR - 3U;
+  constexpr uint8_t posY = (HEIGHT > 16U) ? (uint8_t)(CENTER_Y_MINOR - 1U) : 9U;
+
   ledsClear(); // esphome: FastLED.clear();
-  for (uint8_t y = 0U; y < 9; y++) {
-    for (uint8_t x = 0U; x < 5; x++) {
-      color = data[y][x];
-      drawPixelXY(posX + x, posY - y, color);
+
+  for (uint8_t y = 0U; y < 9U; y++) {
+    for (uint8_t x = 0U; x < 5U; x++) {
+      const uint32_t color = pgm_read_dword(&(data[y][x]));
+      drawPixelXY((uint8_t)(posX + x), (uint8_t)(posY - y), color);
     }
   }
 }
 
 static void Ukraine() {
-  uint8_t divider;
-  uint32_t color;
-  //static const uint16_t MAX_TIME = 500;
-  uint16_t tMAX = 100;
+  constexpr uint8_t timeout = 100U;
 
-  constexpr uint8_t timeout = 100;
   static const uint32_t colors[2][5] = {
     {CRGB::Blue, CRGB::MediumBlue, 0x0F004F, 0x02002F, 0x1F2FFF },
     {CRGB::Yellow, CRGB::Gold, 0x4E4000, 0xFF6F00, 0xFFFF2F }
   };
+
+  // deltaHue = предрассчитанный индекс режима рестарта (divider)
+  // pcnt     = динамический предел таймаута (tMAX)
 
   // Initialization =========================
   if (loadingFlag) {
@@ -10350,87 +10347,91 @@ static void Ukraine() {
       setModeSettings(random8(250U), 200U + random8(50U));
     }
 #endif
-    loadingFlag = false;
+
     drawCrest();
+
     // minspeed 200 maxspeed 250 ============
     // minscale   0 maxscale 100 ============
     deltaValue = 255U - modes[currentMode].Speed + 1U;
-    step = deltaValue;                        // чтообы при старте эффекта сразу покрасить лампу
-    deltaHue2 = 0U;                           // count для замедления смены цвета
-    deltaHue = 0U;                            // direction | 0 hue-- | 1 hue++ |
-    hue2 = 0U;                                // Brightness
-    ff_x = 1U;                                // counter
-    tMAX = 100U;                              // timeout
-  }
-  divider = floor((modes[currentMode].Scale - 1) / 10); // маштаб задает режим рестарта
-  tMAX = timeout + 100 * divider;
 
-  if ((ff_x > timeout - 10) && (ff_x < timeout)) { // таймаут блокировки отрисовки флага
-    if (ff_x < timeout - 5) {                      // размытие тризуба
+    deltaHue2 = 0U;    // Координата Y текущего мазка флага
+    hue2 = 0U;         // Координата X текущего мазка флага
+    hue = 0U;          // Текущий цветовой индекс палитры флага
+    ff_x = 1U;         // Общий счетчик жизненного цикла сцены
+
+    deltaHue = (modes[currentMode].Scale - 1U) / 10U;
+    pcnt = timeout + 100U * deltaHue; 
+
+    loadingFlag = false;
+  }
+
+  // Фаза плавного размытия Тризуба перед началом прорисовки флага
+  if ((ff_x > (uint16_t)(timeout - 10U)) && (ff_x < timeout)) {   // таймаут блокировки отрисовки флага
+    if (ff_x < (uint16_t)(timeout - 5U)) {                        // размытие тризуба
       blurScreen(beatsin8(5U, 60U, 5U));
     } else {
-      blurScreen(210U - ff_x);
+      blurScreen((uint8_t)(210U - ff_x));
     }
   }
 
-  if (ff_x > tMAX) {
-    if (divider == 0U) {                       // отрисовка тризуба только раз
+  // Проверка наступления фазы автоматического рестарта сцены
+  if (ff_x > pcnt) {
+    if (deltaHue == 0U) {                                         // Режим 0: Тризуб рисуется только один раз при включении
       ff_x = 0U;
-      tMAX += 20;
+      pcnt += 20U;
     } else {
-      if (ff_x > tMAX + 100U * divider) {      // рестар эффект
+      if (ff_x > (uint16_t)(pcnt + 100U * deltaHue)) {            // Режим >0: Циклический перезапуск эффекта
         drawCrest();
         ff_x = 1U;
       }
     }
   }
-  if ((ff_x != 0U) || (divider > 0)) {
+
+  if ((ff_x != 0U) || (deltaHue > 0U)) {
     ff_x++;
   }
 
   // Flag Draw =============================
-  if ((ff_x > timeout) || (ff_x == 0U))  {     // отрисовка флага
+  if ((ff_x > timeout) || (ff_x == 0U)) {                         // отрисовка флага
     if (step >= deltaValue) {
       step = 0U;
-      hue2 = random8(WIDTH - 2);               // случайное смещение мазка по оси Y
-      hue = random8(5);                        // flag color
-      // blurScreen(dim8_raw(beatsin8(3, 64, 100)));
-      // blurScreen(beatsin8(5U, 60U, 5U));
-      // dimAll(200U);
+      hue2 = random8((uint8_t)(WIDTH - 2U));                      // Случайное начальное смещение мазка по X
+      hue = random8(5U);                                          // flag color
     }
-    if (step % 8 == 0 && modes[currentMode].Speed > 230) {
+
+    if ((step % 8U == 0U) && (modes[currentMode].Speed > 230U)) {
       blurScreen(beatsin8(5U, 5U, 72U));
     }
-    hue2++;                                    // x
-    deltaHue2++;                               // y
+    
+    hue2++;                                                       // Движение мазка по горизонтали (X)
+    deltaHue2++;                                                  // Движение мазка по вертикали (Y)
 
     if (hue2 >= WIDTH) {
-      if (deltaHue2 > HEIGHT - 2) {           // если матрица высокая дорисовываем остальные мазки
-        deltaHue2 = random8(5);                // изменяем положение по Y только отрисовав весь флаг
+      if (deltaHue2 > (uint8_t)(HEIGHT - 2U)) {                   // если матрица высокая дорисовываем остальные мазки
+        deltaHue2 = random8(5U);                                  // Изменяем вертикальное (Y) положение только отрисовав весь флаг
       }
+      
       if ((step & 0x01U) == 0U) {
         hue2 = 0U;
       } else {
-        hue2 = random8(WIDTH);                 // смещение первого мазка по оси X
+        hue2 = random8(WIDTH);                                    // Случайный сдвиг следующего мазка по оси X
       }
     }
 
     if (deltaHue2 >= HEIGHT) {
       deltaHue2 = 0U;
       if (deltaValue > 200U) {
-        hue = random8(5);                      // если низкая скорость меняем цвет после каждого витка
+        hue = random8(5U);                                        // На низких скоростях меняем оттенок палитры после каждого витка
       }
     }
 
-    if (deltaHue2 > CENTER_Y - 1) {    // меняем цвет для разных частей флага
-      color = colors[0][hue];
-    } else {
-      color = colors[1][hue];
-    }
+    // меняем цвет для разных частей флага
+    const uint32_t final_color = (deltaHue2 > (uint8_t)(CENTER_Y - 1U)) ? colors[0U][hue] : colors[1U][hue];
 
     // LOG.printf_P(PSTR("color = %08d | hue2 = %d | speed = %03d | custom_eff = %d\n"), color, hue2, deltaValue, custom_eff);
-    drawPixelXY(hue2, deltaHue2, color);
+    drawPixelXY(hue2, deltaHue2, final_color);
     // ----------------------------------
+
     step++;
   }
 }
