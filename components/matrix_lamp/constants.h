@@ -45,10 +45,11 @@ inline constexpr uint8_t CENTER_X_MAJOR = CENTER_X + (WIDTH % 2);
 inline constexpr uint8_t CENTER_Y_MAJOR = CENTER_Y + (HEIGHT % 2);
 
 // Инварианты
-inline constexpr float inv10 =  1.0f /  10.0f;
+inline constexpr float inv10  = 1.0f /  10.0f;
 inline constexpr float inv100 = 1.0f / 100.0f;
 inline constexpr float inv255 = 1.0f / 255.0f;
 inline constexpr float inv256 = 1.0f / 256.0f;
+inline constexpr float invPI  = 1.0f /  M_PI;
 
 // --- ЭФФЕКТЫ ------------------------------------------------------------------------------------------------------------------------------------------
 #define DYNAMIC               ( 0U)                         // динамическая задержка для кадров ( будет использоваться бегунок Скорость )
