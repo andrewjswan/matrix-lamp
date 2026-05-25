@@ -10360,7 +10360,7 @@ static void Ukraine() {
     ff_x = 1U;         // Общий счетчик жизненного цикла сцены
 
     deltaHue = (modes[currentMode].Scale - 1U) / 10U;
-    pcnt = timeout + 100U * deltaHue; 
+    pcnt = timeout + 100U * deltaHue;
 
     loadingFlag = false;
   }
@@ -10402,7 +10402,7 @@ static void Ukraine() {
     if ((step % 8U == 0U) && (modes[currentMode].Speed > 230U)) {
       blurScreen(beatsin8(5U, 5U, 72U));
     }
-    
+
     hue2++;                                                       // Движение мазка по горизонтали (X)
     deltaHue2++;                                                  // Движение мазка по вертикали (Y)
 
@@ -10410,7 +10410,7 @@ static void Ukraine() {
       if (deltaHue2 > (uint8_t)(HEIGHT - 2U)) {                   // если матрица высокая дорисовываем остальные мазки
         deltaHue2 = random8(5U);                                  // Изменяем вертикальное (Y) положение только отрисовав весь флаг
       }
-      
+
       if ((step & 0x01U) == 0U) {
         hue2 = 0U;
       } else {
