@@ -9922,7 +9922,7 @@ static void Watercolor() {
     step = deltaValue;                    // Чтобы при старте эффекта сразу покрасить лампу
     deltaHue = 255U;                      // last color
     hue = 0U;
-    
+
     trackingObjectHue[1] = QUARTER_X;
     trackingObjectHue[3] = QUARTER_Y;
 
@@ -9959,7 +9959,7 @@ static void Watercolor() {
 
     trackingObjectHue[3] = 3U + random8((uint8_t)(HEIGHT - 4U));                // y
     const uint8_t r_sub = random8(3U) + 3U;
-    trackingObjectHue[4] = (trackingObjectHue[3] > r_sub) ? 
+    trackingObjectHue[4] = (trackingObjectHue[3] > r_sub) ?
                            (uint8_t)(trackingObjectHue[3] - r_sub) : 0U;        // y end
 
     trackingObjectHue[5] = 1U;
