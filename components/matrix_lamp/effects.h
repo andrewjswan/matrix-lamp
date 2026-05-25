@@ -9569,7 +9569,7 @@ static void StrobeAndDiffusion() {
   const uint8_t scale_val = modes[currentMode].Scale;
 
   uint8_t STEP = ((uint8_t)(255U - speed_val) / 64U) + 1U; // for strob
-  
+
   if (scale_val > 50U) {
     // diffusion ---
     blurScreen(beatsin8(3U, 64U, 80U));
@@ -9604,23 +9604,23 @@ static void StrobeAndDiffusion() {
       } else {
         drawPixelXY(MAX_X, target_y, CHSV(170U, 255U, 1U));
       }
-      
+
       for (uint8_t x = 1U; x < WIDTH; x++) {
         drawPixelXY((int16_t)(x - 1U), target_y, getPixColorXY(x, target_y));
-      }      
+      }
     } else { // ==>
       if ((step % STEP) == 0U) {  // big layers
         drawPixelXY(0U, target_y, CHSV((uint8_t)(step + deltaHue), 255U, 255U));
       } else {
         drawPixelXY(0U, target_y, CHSV(0U, 255U, 0U));
       }
-      
+
       for (uint8_t x = 1U; x < WIDTH; x++) {
         const int16_t inv_x = WIDTH - x;
         drawPixelXY(inv_x, target_y, getPixColorXY((int16_t)(inv_x - 1U), target_y));
-      }      
+      }
     }
-    
+
     dir = !dir;
   }
 
@@ -9630,7 +9630,7 @@ static void StrobeAndDiffusion() {
   } else {
     step--;
     if (step < 1U) hue2 = 1U;
-  }  
+  }
 }
 #endif
 
