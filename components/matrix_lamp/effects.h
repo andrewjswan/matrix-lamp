@@ -9849,9 +9849,7 @@ static void Tornado() {
 //            EFF_WATERCOLOR
 //               Акварель
 //---------------------------------------
-static void SmearPaint(uint8_t obj[trackingOBJECT_MAX_COUNT]) {
-  uint8_t divider;
-  int temp;
+static void SmearPaint(uint8_t *obj) {
   static const uint32_t colors[6][8] PROGMEM = {
     {0x2F0000,  0xFF4040, 0x6F0000, 0xAF0000, 0xff5f00, CRGB::Red, 0x480000, 0xFF0030},
     {0x002F00, CRGB::LawnGreen, 0x006F00, 0x00AF00, CRGB::DarkMagenta, 0x00FF00, 0x004800, 0x00FF30},
@@ -9860,54 +9858,53 @@ static void SmearPaint(uint8_t obj[trackingOBJECT_MAX_COUNT]) {
     {0x2F002F, 0xFF4040, 0x6F004A, 0xFF0030, CRGB::DarkMagenta, CRGB::Magenta, 0x480048, 0x3F00FF},
     {CRGB::Blue, CRGB::Red, CRGB::Gold, CRGB::Green, CRGB::DarkCyan, CRGB::DarkMagenta, 0x000000, 0xFF7F00 }
   };
-  if (trackingObjectHue[5] == 1) {  // direction >>>
+
+  if (trackingObjectHue[5] == 1U) {  // direction >>>
     obj[1]++;
     if (obj[1] >= obj[2]) {
-      trackingObjectHue[5] = 0;     // swap direction
-      obj[3]--;                     // new line
+      trackingObjectHue[5] = 0U;     // swap direction
+      obj[3]--;                      // new line
       if ((step & 0x01U) == 0U) {
         obj[1]++;
       } else {
         obj[1]--;
       }
-
       obj[0]--;
     }
-  } else {                          // direction <<<
+  } else {                           // direction <<<
     obj[1]--;
     if (obj[1] <= (obj[2] - obj[0])) {
-      trackingObjectHue[5] = 1;     // swap direction
-      obj[3]--;                     // new line
-      if (obj[0] >= 1) {
-        temp = obj[0] - 1;
-        if (temp < 0) {
-          temp = 0;
-        }
-        obj[0] = temp;
+      trackingObjectHue[5] = 1U;     // swap direction
+      obj[3]--;                      // new line
+      if (obj[0] >= 1U) {
+        obj[0] = (obj[0] > 1U) ? (uint8_t)(obj[0] - 1U) : 0U;
         obj[1]++;
       }
     }
   }
 
-  if (obj[3] == 255) {
-    deltaHue = 255;
+  if (obj[3] == 255U) {
+    deltaHue = 255U;
   }
 
-  divider = floor((modes[currentMode].Scale - 1) / 16.7f);
   if ((obj[1] >= WIDTH) || (obj[3] == obj[4])) {
     // deltaHue value == 255 activate -------
     // set new parameter for new smear ------
-    deltaHue = 255;
+    deltaHue = 255U;
   }
-  drawPixelXY(obj[1], obj[3], colors[divider][hue]);
+
+  // divider = floor((modes[currentMode].Scale - 1) / 16.7f);
+  // drawPixelXY(obj[1], obj[3], colors[divider][hue]);
+  const uint32_t color = pgm_read_dword(&(colors[deltaHue2][hue]));
+  drawPixelXY(obj[1], obj[3], color);
 
   // alternative variant without dimmer effect
   // uint8_t h = obj[3] - obj[4];
-  // uint8_t br = 266 - 12 * h;
-  // if (h > 0) {
-  // drawPixelXY(obj[1], obj[3], makeDarker(colors[divider][hue], br));
+  // uint8_t br = 266U - 12U * h;
+  // if (h > 0U) {
+  // drawPixelXY(obj[1], obj[3], makeDarker(color, br));
   // } else {
-  // drawPixelXY(obj[1], obj[3], makeDarker(colors[divider][hue], 240));
+  // drawPixelXY(obj[1], obj[3], makeDarker(color, 240U));
   // }
 }
 
@@ -9920,14 +9917,21 @@ static void Watercolor() {
       setModeSettings(1U + random8(252U), 1 + random8(250U));
     }
 #endif
-    loadingFlag = false;
-    ledsClear(); // esphome: FastLED.clear();
+
     deltaValue = 255U - modes[currentMode].Speed + 1U;
-    step = deltaValue;                    // чтообы при старте эффекта сразу покрасить лампу
-    hue = 0;
-    deltaHue = 255;                       // last color
+    step = deltaValue;                    // Чтобы при старте эффекта сразу покрасить лампу
+    deltaHue = 255U;                      // last color
+    hue = 0U;
+    
     trackingObjectHue[1] = QUARTER_X;
     trackingObjectHue[3] = QUARTER_Y;
+
+    deltaHue2 = (uint8_t)((modes[currentMode].Scale - 1U) * 0.05988f);
+    if (deltaHue2 > 5U) deltaHue2 = 5U;
+
+    ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
 
   if (step >= deltaValue) {
@@ -9938,36 +9942,37 @@ static void Watercolor() {
   // ******************************
   // set random parameter for smear
   // ******************************
-  if (deltaHue == 255) {
+  if (deltaHue == 255U) {
+    trackingObjectHue[0] = 4U + random8(QUARTER_X);                             // width
 
-    trackingObjectHue[0] = 4 + random8(QUARTER_X);                              // width
-    trackingObjectHue[1] = random8(WIDTH - trackingObjectHue[0]);               // x
-    int temp =  trackingObjectHue[1] + trackingObjectHue[0];
+    trackingObjectHue[1] = random8((uint8_t)(WIDTH - trackingObjectHue[0]));    // x
+    uint8_t temp = trackingObjectHue[1] + trackingObjectHue[0];
     if (temp >= MAX_X) {
       temp = MAX_X;
-      if (trackingObjectHue[1] > 1) {
+      if (trackingObjectHue[1] > 1U) {
         trackingObjectHue[1]--;
       } else {
         trackingObjectHue[1]++;
       }
     }
     trackingObjectHue[2] = temp;                                                // x end
-    trackingObjectHue[3] = 3 + random8(HEIGHT - 4);                             // y
-    temp = trackingObjectHue[3] - random8(3) - 3;
-    if (temp <= 0) {
-      temp = 0;
-    }
-    trackingObjectHue[4] = temp;                                                // y end
-    trackingObjectHue[5] = 1;
+
+    trackingObjectHue[3] = 3U + random8((uint8_t)(HEIGHT - 4U));                // y
+    const uint8_t r_sub = random8(3U) + 3U;
+    trackingObjectHue[4] = (trackingObjectHue[3] > r_sub) ? 
+                           (uint8_t)(trackingObjectHue[3] - r_sub) : 0U;        // y end
+
+    trackingObjectHue[5] = 1U;
     //divider = floor((modes[currentMode].Scale - 1) / 16.7);                   // маштаб задает смену палитры
     hue = random8(8);
     // if (step % 127 == 0) {
     //   ESP_LOGD("Watercolor", "BR %03d | SP %03d | SC %03d | divider %d | [ %d ]", modes[currentMode].Brightness, modes[currentMode].Speed, modes[currentMode].Scale, divider, hue);
     // }
-    hue2 = 255;
-    deltaHue = 0;
+    hue2 = 255U;
+    deltaHue = 0U;
   }
   // ******************************
+
   SmearPaint(trackingObjectHue);
 
   // LOG.printf_P(PSTR("%02d | hue2 = %03d | min = %03d \n\r"), step, hue2, deltaHue2);
@@ -9979,6 +9984,7 @@ static void Watercolor() {
     // blurRows(WIDTH, 3U, 10U);
   }
   //  }
+
   step++;
 }
 #endif
