@@ -10051,7 +10051,7 @@ static void drawPalette(int16_t posX, int16_t posY, uint8_t STEP) {
   ledsClear(); // esphome: FastLED.clear();
 
   for (uint8_t y = 0U; y < maxY; y++) {
-    const int16_t PY = y * STEP; 
+    const int16_t PY = y * STEP;
 
     if (PY >= -(int16_t)STEP && PY < HEIGHT) {
       const uint8_t current_sat = (uint8_t)(255U - sat * y);
@@ -10099,11 +10099,11 @@ static void WebTools() {
   constexpr uint8_t FPS_D = 24U;
   const uint8_t speed = (modes[currentMode].Speed > 65U) ? modes[currentMode].Speed : 65U;
 
-  // static uint8_t STEP = 3U;           // deltaHue             => Смысловой шаг STEP                                     
-  // static int posX = -STEP;            // trackingObjectPosX   => Координата posX (приводим к int16_t для знака)         
-  // static int posY = 0;                // trackingObjectPosY   => Координата posY (приводим к int16_t для знака)         
+  // static uint8_t STEP = 3U;           // deltaHue             => Смысловой шаг STEP
+  // static int posX = -STEP;            // trackingObjectPosX   => Координата posX (приводим к int16_t для знака)
+  // static int posY = 0;                // trackingObjectPosY   => Координата posY (приводим к int16_t для знака)
   // static int nextX = -STEP * 2;       // trackingObjectSpeedX => Целевая координата nextX (приводим к int16_t для знака)
-  // static bool stop_moving = true;     // trackingObjectState  => Флаг stop_moving (1U - стоим, 0U - движемся)           
+  // static bool stop_moving = true;     // trackingObjectState  => Флаг stop_moving (1U - стоим, 0U - движемся)
 
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
@@ -10116,7 +10116,7 @@ static void WebTools() {
     FPSdelay = 1U;
     step = 0;
 
-    deltaHue = 2U + (modes[currentMode].Scale / 35U); 
+    deltaHue = 2U + (modes[currentMode].Scale / 35U);
 
     trackingObjectPosX[0] = 0.0f;
     trackingObjectPosY[0] = 0.0f;
@@ -10167,7 +10167,7 @@ static void WebTools() {
   trackingObjectPosX[0] = posX;
   trackingObjectSpeedX[0] = nextX;
 
-  if (trackingObjectState[0] == 1U) {  // stop_moving 
+  if (trackingObjectState[0] == 1U) {  // stop_moving
     FPSdelay = 80U;
     step++;
   } else {
