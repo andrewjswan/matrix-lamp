@@ -9028,11 +9028,6 @@ static void Octopus() {
 //           Масляные Краски
 //---------------------------------------
 static void OilPaints() {
-
-  uint8_t divider;
-  uint8_t entry_point;
-  uint16_t value;
-  uint16_t max_val;
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
@@ -9041,87 +9036,88 @@ static void OilPaints() {
     }
     #endif
 
-    loadingFlag = false;
-    ledsClear(); // esphome: FastLED.clear();
-    // blurScreen(beatsin8(5U, 50U, 5U));
     deltaValue = 255U - modes[currentMode].Speed + 1U;
-    step = deltaValue;                    // чтообы при старте эффекта сразу покрасить лампу
-    hue = floor(21.25f * (random8(11) + 1)); // next color
-    deltaHue = hue - 22;                  // last color
-    deltaHue2 = 80;                       // min bright
-    max_val = constrain(pow(2, WIDTH), 1U, 65535U);
-    //    for (int i = WIDTH; i < (NUM_LEDS - WIDTH); i++) {
-    //      leds[i] = CHSV(120U, 24U, 64U);
-    //    }
+    step = deltaValue;                                                        // чтообы при старте эффекта сразу покрасить лампу
+    hue = (random8(11U) + 1U) * 21.25f;                                       // next color
+    deltaHue = hue - 22U;                                                     // last color
+    deltaHue2 = 80U - (uint8_t)(logf(modes[currentMode].Brightness) * 6.0f);  // min bright
+    uint32_t calc_max = (1U << WIDTH) - 1U;
+    ff_z = (calc_max > 65535U) ? 65535U : (uint16_t)calc_max;                 // ff_z - max_val
+
+    ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
 
   if (step >= deltaValue) {
     step = 0U;
-    // LOG.printf_P(PSTR("%03d | log: %f | val: %03d\n\r"), modes[currentMode].Brightness, log(modes[currentMode].Brightness), deltaHue2);
+    // ESP_LOGD("OilPaints", PSTR("%03d | log: %f | val: %03d\n\r"), modes[currentMode].Brightness, log(modes[currentMode].Brightness), deltaHue2);
   }
 
   // Create Oil Paints --------------
   // выбираем краски  ---------------
   if (step % CENTER_Y_MINOR == 0) {
-    divider = floor((modes[currentMode].Scale - 1) / 10);             // маштаб задает диапазон изменения цвета
+    const uint8_t divider = (modes[currentMode].Scale - 1U) / 10U;    // маштаб задает диапазон изменения цвета
     deltaHue = hue;                                                   // set last color
-    hue += 6 * divider;                                               // new color
-    hue2 = 255;                                                       // restore brightness
-    deltaHue2 = 80 - floor(log(modes[currentMode].Brightness) * 6);   // min bright
-    entry_point = random8(WIDTH);                                     // start X position
+    hue += 6U * divider;                                              // new color
+    hue2 = 255U;                                                      // restore brightness
+
+    const uint8_t entry_point = random8(WIDTH);                       // start X position
     trackingObjectHue[entry_point] = hue;                             // set start position
-    drawPixelXY(entry_point,  HEIGHT - 2, CHSV(hue, 255U, 255U));
+
+    drawPixelXY(entry_point, HEIGHT - 2U, CHSV(hue, 255U, 255U));
     // !!! ********
     if (custom_eff == 1) {
-      drawPixelXY(entry_point + 1,  HEIGHT - 3, CHSV(hue + 30, 255U, 255U));
+      drawPixelXY((uint8_t)(entry_point + 1U), HEIGHT - 3U, CHSV((uint8_t)(hue + 30U), 255U, 255U));
     }
     // ************
-    // LOG.printf_P(PSTR("BR %03d | SP %03d | SC %03d | hue %03d\n\r"), modes[currentMode].Brightness, modes[currentMode].Speed, modes[currentMode].Scale, hue);
+    // ESP_LOGD("OilPaints", PSTR("BR %03d | SP %03d | SC %03d | hue %03d\n\r"), modes[currentMode].Brightness, modes[currentMode].Speed, modes[currentMode].Scale, hue);
   }
 
   // формируем форму краски, плавно расширяя струю ----
-  if (random8(3) == 1) {
-    // LOG.println("<--");
+  if (random8(3U) == 1U) {
+    // ESP_LOGD("OilPaints", "<--");
     for (uint8_t x = 1U; x < WIDTH; x++) {
       if (trackingObjectHue[x] == hue) {
-        trackingObjectHue[x - 1] = hue;
+        trackingObjectHue[x - 1U] = hue;
         break;
       }
     }
   } else {
-    // LOG.println("-->");
-    for (uint8_t x = MAX_X; x > 0U ; x--) {
+    // ESP_LOGD("OilPaints", "-->");
+    for (uint8_t x = (uint8_t)(MAX_X - 1U); x > 0U; x--) {
       if (trackingObjectHue[x] == hue) {
-        trackingObjectHue[x + 1] = hue;
+        trackingObjectHue[x + 1U] = hue;
         break;
       }
-      // LOG.printf_P(PSTR("x = %02d | value = %03d | hue = %03d \n\r"), x, trackingObjectHue[x], hue);
+      // ESP_LOGD("OilPaints", PSTR("x = %02d | value = %03d | hue = %03d \n\r"), x, trackingObjectHue[x], hue);
     }
   }
-  // LOG.println("------------------------------------");
+  // ESP_LOGD("OilPaints", "------------------------------------");
 
   // выводим сформированную строку --------------------- максимально яркую в момент смены цвета
   for (uint8_t x = 0U; x < WIDTH; x++) {
-    //                                                                                set color  next |    last  |
-    drawPixelXY(x,  MAX_Y, CHSV(trackingObjectHue[x], 255U, (trackingObjectHue[x] == hue) ? hue2 : deltaHue2));
+    const uint8_t current_bri = (trackingObjectHue[x] == hue) ? hue2 : deltaHue2;
+    drawPixelXY(x, MAX_Y, CHSV(trackingObjectHue[x], 255U, current_bri));
   }
-  //  LOG.println("");
+
   // уменьшаем яркость для следующих строк
-  if (hue2 > (deltaHue2 + 16)) {
+  if (hue2 > (uint8_t)(deltaHue2 + 16U)) {
     hue2 -= 16U;
   }
+
   // сдвигаем неравномерно поток вниз ---
-  value = random16(max_val);
-  //LOG.printf_P(PSTR("value = %06d | "), value);
+  const uint16_t mask_value = random16(ff_z);
+  // ESP_LOGD("OilPaints", PSTR("value = %06d | "), mask_value);
   for (uint8_t x = 0U; x < WIDTH; x++) {
-    if (bitRead(value, x) == 0) {
-      //LOG.print (" X");
+    if (bitRead(mask_value, x) == 0U) {
+      // ESP_LOGD("OilPaints", " X");
       for (uint8_t y = 0U; y < MAX_Y; y++) {
         drawPixelXY(x, y, getPixColorXY(x, y + 1U));
       }
     }
   }
-  // LOG.printf_P(PSTR("%02d | hue2 = %03d | min = %03d \n\r"), step, hue2, deltaHue2);
+  // ESP_LOGD("OilPaints", PSTR("%02d | hue2 = %03d | min = %03d \n\r"), step, hue2, deltaHue2);
   // -------------------------------------
 
   step++;
