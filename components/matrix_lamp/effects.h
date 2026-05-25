@@ -7900,7 +7900,7 @@ static void Contacts() {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
                               // scale | speed
-      setModeSettings(random8(25U, 90U), random8(5U, 250U));
+      setModeSettings(random8(25U, 91U), random8(5U, 251U));
     }
     #endif
 
@@ -7976,54 +7976,64 @@ static void Contacts() {
 //                © Stepko
 //        Adaptation © SlingMaster
 // =====================================
+
 // CRGBPalette16 currentPalette(PartyColors_p);
+
+inline constexpr uint8_t Sat = 255U;
+inline constexpr uint8_t MaxRad = WIDTH + HEIGHT;
+inline constexpr uint8_t DROP_COUNT = (((WIDTH + HEIGHT) / 8U) > 1U) ? ((WIDTH + HEIGHT) / 8U) : 2U;
+
 static void DropInWater() {
-#define Sat (255U)
-#define MaxRad (WIDTH + HEIGHT)
-#define DROP_COUNT ((((WIDTH + HEIGHT) / 8U) > 1U) ? ((WIDTH + HEIGHT) / 8U) : 2U)
-
-  static int32_t rad[DROP_COUNT];
-  static uint8_t posx[DROP_COUNT], posy[DROP_COUNT];
-
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      // scale | speed
-      setModeSettings(random(0U, 100U), random(160U, 215U));
+                              // scale | speed
+      setModeSettings(random8(0U, 101U), random8(160U, 216U));
     }
 #endif
 
-    loadingFlag = false;
     hue = modes[currentMode].Scale * 2.55f;
-    for (int32_t i = 0U; i < DROP_COUNT - 1; i++)  {
-      posx[i] = random(MAX_X);
-      posy[i] = random(MAX_Y);
-      rad[i] = random(-1, MaxRad);
+    for (uint8_t i = 0U; i < DROP_COUNT; i++) {
+      trackingObjectPosX[i] = random8(WIDTH);
+      trackingObjectPosY[i] = random8(HEIGHT);
+
+      // Для знаковых диапазонов, заходящих в минус, используем стандартный random
+      trackingObjectShift[i] = random(-1, MaxRad);
     }
+
+    loadingFlag = false;
   }
 
-  fill_solid(currentPalette, 16, CHSV(hue, Sat, 230));
-  currentPalette[10] = CHSV(hue, Sat - 60, 255);
-  currentPalette[9] = CHSV(hue, 255 - Sat, 210);
-  currentPalette[8] = CHSV(hue, 255 - Sat, 210);
-  currentPalette[7] = CHSV(hue, Sat - 60, 255);
-  fillAll(ColorFromPalette(currentPalette, 1));
+  fill_solid(currentPalette, 16U, CHSV(hue, Sat, 230U));
+  currentPalette[10] = CHSV(hue, Sat - 60U, 255U);
+  currentPalette[9] = CHSV(hue, 255U - Sat, 210U);
+  currentPalette[8] = CHSV(hue, 255U - Sat, 210U);
+  currentPalette[7] = CHSV(hue, Sat - 60U, 255U);
+  fillAll(ColorFromPalette(currentPalette, 1U));
 
-  for (uint8_t i = DROP_COUNT - 1; i > 0 ; i--) {
-    drawCircle(posx[i], posy[i], rad[i], ColorFromPalette(currentPalette, (256 / 16) * 8.5f - rad[i]));
-    drawCircle(posx[i], posy[i], rad[i] - 1, ColorFromPalette(currentPalette, (256 / 16) * 7.5f - rad[i]));
-    if (rad[i] >= MaxRad) {
-      rad[i] = 0; // random(-1, MaxRad);
-      posx[i] = random(WIDTH);
-      posy[i] = random(HEIGHT);
+  for (int8_t i = (int8_t)(DROP_COUNT - 1U); i >= 0; i--) {
+    const float current_rad = trackingObjectShift[i];
+
+    constexpr float OUTER_RING_COLOR = (256.0f / 16.0f) * 8.5f;
+    constexpr float INNER_RING_COLOR = (256.0f / 16.0f) * 7.5f;
+
+    drawCircle(trackingObjectPosX[i], trackingObjectPosY[i], current_rad, ColorFromPalette(currentPalette, OUTER_RING_COLOR - current_rad));
+    drawCircle(trackingObjectPosX[i], trackingObjectPosY[i], current_rad - 1.0f, ColorFromPalette(currentPalette, INNER_RING_COLOR - current_rad));
+
+    if (current_rad >= MaxRad) {
+      trackingObjectShift[i] = 0.0f;
+      trackingObjectPosX[i] = random8(WIDTH);
+      trackingObjectPosY[i] = random8(HEIGHT);
     } else {
-      rad[i]++;
+      trackingObjectShift[i]++;
     }
   }
-  if (modes[currentMode].Scale == 100) {
+
+  if (modes[currentMode].Scale == 100U) {
     hue++;
   }
-  blur2d(WIDTH, HEIGHT, 64);
+
+  blur2d(WIDTH, HEIGHT, 64U);
 }
 #endif
 
