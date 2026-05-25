@@ -9487,51 +9487,63 @@ static void BotswanaRivers() {
 //                Spectrum
 //---------------------------------------
 static void  Spectrum() {
-  //static const uint8_t COLOR_RANGE = 32;
-  static uint8_t customHue;
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      // scale | speed
+                             // scale | speed
       setModeSettings(random8(1, 100U), random8(215, 255U));
     }
 #endif // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-    ff_y = map(WIDTH, 8, 64, 310, 63);
+    ff_y = map(WIDTH, 8U, 64U, 310U, 63U);
     ff_z = ff_y;
-    speedfactor = map(modes[currentMode].Speed, 1, 255, 32, 4); // _speed = map(speed, 1, 255, 128, 16);
-    customHue = floor(modes[currentMode].Scale - 1U) * 2.55f;
+    speedfactor = map(modes[currentMode].Speed, 1U, 255U, 32U, 4U);
+    pcnt = (uint8_t)((modes[currentMode].Scale - 1U) * 2.55f);  // customHue
+
     ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
-  uint8_t color = customHue + hue;
-  if (modes[currentMode].Scale >= 99) {
-    if (hue2++ & 0x01 && deltaHue++ & 0x01 && deltaHue2++ & 0x01) hue += 8;
-    fillMyPal16(customHue + hue, modes[currentMode].Scale & 0x01, MBAuroraColors_arr);
+  
+  uint8_t color = pcnt + hue;
+  const uint8_t scale_odd = modes[currentMode].Scale & 0x01U;
+  
+  if (modes[currentMode].Scale >= 99U) {
+    hue2++; deltaHue++; deltaHue2++;
+    if ((hue2 & 0x01U) && (deltaHue & 0x01U) && (deltaHue2 & 0x01U)) {
+      hue += 8U;
+    }
+    fillMyPal16((uint8_t)(pcnt + hue), scale_odd, MBAuroraColors_arr);
   } else {
-    color = customHue;
-    fillMyPal16(customHue + AURORA_COLOR_RANGE - beatsin8(AURORA_COLOR_PERIOD, 0U, AURORA_COLOR_RANGE * 2), modes[currentMode].Scale & 0x01, MBAuroraColors_arr);
+    color = pcnt;
+    fillMyPal16((uint8_t)(pcnt + AURORA_COLOR_RANGE - beatsin8(AURORA_COLOR_PERIOD, 0U, (uint8_t)(AURORA_COLOR_RANGE * 2U))), scale_odd, MBAuroraColors_arr);
   }
 
+  const float emitterX = (((random8() & 0x01U) == 0U) ? 545.0f : 390.0f) / HEIGHT;
+  const uint32_t timer_div_speed = polarTimer / speedfactor;
+  
+  constexpr float inv_height = 1.0f / HEIGHT;
+  
   for (uint8_t x = 0U; x < WIDTH; x++) {
     if ((x & 0x01U) == 0U) {
-      leds[XY(x, 0)] = CHSV(color, 255U, 128U);
+      leds[XY(x, 0U)] = CHSV(color, 255U, 128U);
     }
 
-    emitterX = ((random8(2) == 0U) ? 545.0f : 390.0f) / HEIGHT;
+    const uint16_t x_phase = x * ff_z; 
+    const float emitterX = (((random8() & 0x01U) == 0U) ? 545.0f : 390.0f) * inv_height;
+    
     for (uint8_t y = 2U; y < MAX_Y; y++) {
-      polarTimer++;
-      leds[XY(x, y)] =
-        ColorFromPalette(myPal,
-                         qsub8(
-                           fastled_helper::perlin8(polarTimer % 2 + x * ff_z,
-                                   y * 16 + polarTimer % 16,
-                                   polarTimer / speedfactor
-                                  ),
-                           std::abs(CENTER_Y_F - (float)y) * emitterX
-                         )
-                        ) ;
-    }
+      polarTimer++; 
+
+      const uint8_t noise = fastled_helper::perlin8(
+        (uint16_t)((polarTimer & 0x01U) + x_phase), 
+        (uint8_t)((y << 4U) + (polarTimer & 0x0FU)), 
+        timer_div_speed
+      );
+      const uint8_t fade_y = std::abs(CENTER_Y_F - (float)y) * emitterX;
+
+      leds[XY(x, y)] = ColorFromPalette(myPal, qsub8(noise, fade_y));
+    }    
   }
 }
 #endif
