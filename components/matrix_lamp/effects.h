@@ -9387,7 +9387,7 @@ static void BotswanaRivers() {
   //------------------------------------------------------------------------------
   // static const bool ALT_GRADIENT = true;
 
-  #define ALT_GRADIENT (1U)
+  #define ALT_GRADIENT (0U)
 
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
