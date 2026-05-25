@@ -8841,8 +8841,8 @@ static void MagicLantern() {
     if (std::abs(70 - (int16_t)modes[currentMode].Scale) <= 5) {
       pcnt = 170U;
     }
-    
-    hue2 = (modes[currentMode].Speed < 25U) ? 1U : 0U;    
+
+    hue2 = (modes[currentMode].Speed < 25U) ? 1U : 0U;
 
     ledsClear(); // esphome: FastLED.clear();
 
@@ -8850,7 +8850,7 @@ static void MagicLantern() {
   }
 
   dimAll(170);
-  
+
   hue = (modes[currentMode].Scale > 95U) ? (uint8_t)((step >> 5U) * 32U) : (uint8_t)(modes[currentMode].Scale * 2.55f);
 
   // ------
@@ -8876,13 +8876,13 @@ static void MagicLantern() {
         }
       }
     }
-    
+
     if (x % STEP == 0U) {
       // body --
       gradientVertical(x_offset, HEIGHT - PADDING, x_offset + 1U, HEIGHT, hue, (uint8_t)(hue + 2U), 255U, 20U, 255U);
       gradientVertical(x_inv_offset, 0U, x_inv_offset + 1U, PADDING, hue, hue, 42U, 255U, 255U);
     }
-  }  
+  }
   // ------
 
   deltaValue++;
