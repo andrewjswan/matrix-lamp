@@ -8366,7 +8366,7 @@ static void Firework() {
     if (custom_eff == 1) {
       const uint8_t line_h = HEIGHT - step;
       DrawLine(0U, 0U, 0U, line_h, CHSV(skyColor, 255U, 32U));
-      DrawLine(max_w, 0U, max_w, line_h, CHSV(skyColor, 255U, 32U));
+      DrawLine(MAX_X, 0U, MAX_X, line_h, CHSV(skyColor, 255U, 32U));
     }
     /* ------------------------------------------------------ */
 
