@@ -10535,7 +10535,7 @@ static void Bamboo() {
 // =====================================
 //          Блуждающий кубик
 // =====================================
-//
+
 #define RANDOM_COLOR          (1U)                          // случайный цвет при отскоке
 
 static int16_t coordB[2U];
@@ -10551,64 +10551,79 @@ static void ballRoutine() {
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-    //ledsClear(); // esphome: FastLED.clear();
-
+    constexpr int16_t start_coord = CENTER_X * 10;
     for (uint8_t i = 0U; i < 2U; i++) {
-      coordB[i] = CENTER_X * 10;
-      vectorB[i] = random(8, 20);
+      coordB[i] = start_coord;
+      vectorB[i] = random8(8U, 20U);
     }
-    // ballSize;
-    deltaValue = map(modes[currentMode].Scale * 2.55f, 0U, 255U, 2U, max(MIN_SIDE / 3, 4));
-    ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
-    _pulse_color = CHSV(random(0, 9) * 28, 255U, 255U);
+
+    // Расчет размера мячика (ballSize)
+    deltaValue = map((uint8_t)(modes[currentMode].Scale * 2.55f), 0U, 255U, 2U, (uint8_t)max(MIN_SIDE / 3, 4));
+
+    // Генерация стартовых цветов
+    ballColor = CHSV((uint8_t)(random8(9U) * 28U), 255U, 255U);
+    _pulse_color = CHSV((uint8_t)(random8(9U) * 28U), 255U, 255U);
+
+    loadingFlag = false;
   }
 
-  //  if (!(modes[currentMode].Scale & 0x01))
-  //  {
-  //    hue += (modes[currentMode].Scale - 1U) % 11U * 8U + 1U;
+  ledsClear(); // esphome: FastLED.clear();
 
-  //    ballColor = CHSV(hue, 255U, 255U);
-  //  }
+  const uint8_t size = deltaValue;
+  const bool has_pulse = (modes[currentMode].Scale & 0x01U);
 
-  if ((modes[currentMode].Scale & 0x01)) {
-    for (uint8_t i = 0U; i < deltaValue; i++) {
-      for (uint8_t j = 0U; j < deltaValue; j++) {
-        leds[XY(coordB[0U] / 10 + i, coordB[1U] / 10 + j)] = _pulse_color;
+  const int16_t ball_x = coordB[0U] / 10;
+  const int16_t ball_y = coordB[1U] / 10;
+
+  // Отрисовка следа импульса (если Scale нечетный)
+  if (has_pulse) {
+    for (uint8_t i = 0U; i < size; i++) {
+      const int16_t px = ball_x + i;
+      for (uint8_t j = 0U; j < size; j++) {
+        leds[XY(px, ball_y + j)] = _pulse_color;
       }
     }
   }
+
+  // Обсчет физики шага движения по осям X и Y
   for (uint8_t i = 0U; i < 2U; i++) {
     coordB[i] += vectorB[i];
     if (coordB[i] < 0) {
       coordB[i] = 0;
       vectorB[i] = -vectorB[i];
-      if (RANDOM_COLOR) ballColor = CHSV(random(0, 9) * 28, 255U, 255U); // if (RANDOM_COLOR && (modes[currentMode].Scale & 0x01))
-      //vectorB[i] += random(0, 6) - 3;
+      #if (RANDOM_COLOR == 1U)
+        ballColor = CHSV((uint8_t)(random8(9U) * 28U), 255U, 255U);
+      #endif
     }
   }
-  if (coordB[0U] > (int16_t)((WIDTH - deltaValue) * 10)) {
-    coordB[0U] = (WIDTH - deltaValue) * 10;
+
+  // Проверка правого края матрицы по оси X с учетом размера мячика
+  const int16_t max_x_limit = (WIDTH - size) * 10;
+  if (coordB[0U] > max_x_limit) {
+    coordB[0U] = max_x_limit;
     vectorB[0U] = -vectorB[0U];
-    if (RANDOM_COLOR) ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
-    //vectorB[0] += random(0, 6) - 3;
+    #if (RANDOM_COLOR == 1U)
+      ballColor = CHSV((uint8_t)(random8(9U) * 28U), 255U, 255U);
+    #endif
   }
-  if (coordB[1U] > (int16_t)((HEIGHT - deltaValue) * 10)) {
-    coordB[1U] = (HEIGHT - deltaValue) * 10;
+
+  // Проверка верхнего края матрицы по оси Y с учетом размера мячика
+  const int16_t max_y_limit = (HEIGHT - size) * 10;
+  if (coordB[1U] > max_y_limit) {
+    coordB[1U] = max_y_limit;
     vectorB[1U] = -vectorB[1U];
-    if (RANDOM_COLOR) ballColor = CHSV(random(0, 9) * 28, 255U, 255U);
-    //vectorB[1] += random(0, 6) - 3;
+    #if (RANDOM_COLOR == 1U)
+      ballColor = CHSV((uint8_t)(random8(9U) * 28U), 255U, 255U);
+    #endif
   }
 
-  //  if (modes[currentMode].Scale & 0x01)
-  //    dimAll(135U);
-  // dimAll(255U - (modes[currentMode].Scale - 1U) % 11U * 24U);
-  //  else
-  ledsClear(); // esphome: FastLED.clear();
+  const int16_t final_x = coordB[0U] / 10;
+  const int16_t final_y = coordB[1U] / 10;
 
-  for (uint8_t i = 0U; i < deltaValue; i++) {
-    for (uint8_t j = 0U; j < deltaValue; j++) {
-      leds[XY(coordB[0U] / 10 + i, coordB[1U] / 10 + j)] = ballColor;
+  for (uint8_t i = 0U; i < size; i++) {
+    const int16_t px = final_x + i;
+    for (uint8_t j = 0U; j < size; j++) {
+      leds[XY(px, final_y + j)] = ballColor;
     }
   }
 }
