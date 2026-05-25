@@ -9243,7 +9243,7 @@ static void RadialWave() {
 
     loadingFlag = false;
   }
-  
+
   if (deltaHue < 5U) {
     ff_x = scale / (3U - (deltaHue >> 1U));
   } else {
@@ -9251,7 +9251,7 @@ static void RadialWave() {
   }
 
   scale++;
-  
+
   constexpr uint8_t rad_step = 255U / WIDTH;
   for (uint8_t x = 0U; x < WIDTH; x++) {
     for (uint8_t y = 0U; y < HEIGHT; y++) {
