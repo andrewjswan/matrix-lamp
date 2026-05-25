@@ -8917,7 +8917,7 @@ static void squaresNdotsRoutine() {
 
     deltaHue = (modes[currentMode].Scale & 0x01U) ? 1U : 0U;
     deltaValue = modes[currentMode].Scale * 2.55f;
-    
+
     for (uint8_t i = 0U; i < shtukX; i++)
       line[i] = random8(3U);
     for (uint8_t i = 0U; i < shtukY; i++)
@@ -8931,7 +8931,7 @@ static void squaresNdotsRoutine() {
 
   const uint8_t i = random8(shtukX);
   const uint8_t j = random8(shtukY);
-  
+
   const int16_t x0 = i * 3U + (poleX + (deltaHue ? line[j] : 0U)) % 3U - 2;
   const int16_t y0 = j * 3U + (poleY + (deltaHue ? 0U : shiftValue[i])) % 3U - 2;
   uint8_t hole = 0U;
@@ -8941,7 +8941,7 @@ static void squaresNdotsRoutine() {
       drawPixelXY(x, y, ((hole == 4U) ^ type) ? CRGB::Black : color);
       hole++;
     }
-  }  
+  }
 }
 #endif
 
