@@ -9835,7 +9835,7 @@ static void Tornado() {
 
   constexpr uint16_t sat_step = 512U / HEIGHT;
   constexpr uint8_t edge_y = HEIGHT / 8U;
-  
+
   for (uint8_t x = 0U; x < WIDTH; x++) {
     for (uint8_t y = 0U; y < HEIGHT; y++) {
       uint8_t angle = noise3d[0][x][y];
@@ -9847,7 +9847,7 @@ static void Tornado() {
   for (uint8_t y = 0U; y < HEIGHT; y++) {
     const uint16_t sat_calc = y * sat_step;
     const uint8_t saturation = (sat_calc > 255U) ? 255U : (uint8_t)sat_calc;
-    
+
     const uint8_t brightness = (y < edge_y) ? (uint8_t)(255U - ((edge_y - y) << 4U)) : 255U;
 
     for (uint8_t x = 0U; x < WIDTH; x++) {
@@ -9855,7 +9855,7 @@ static void Tornado() {
       const uint8_t radius = noise3d[1U][x][y];
 
       const uint8_t hue_index = (angle * deltaValue) - scale + (radius * deltaValue);
-      
+
       leds[XY(x, y)] = CHSV(hue_index, saturation, brightness);
     }
   }
