@@ -8986,7 +8986,7 @@ static void Octopus() {
 
     deltaValue = modes[currentMode].Scale / 10U; // deltaValue - legs
     deltaHue = modes[currentMode].Scale % 10U;   // deltaHue - step
- 
+
     loadingFlag = false;
   }
 
