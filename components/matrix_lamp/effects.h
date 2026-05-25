@@ -9727,15 +9727,11 @@ static void Spindle() {
 //              EFF_SWIRL
 //--------------------------------------
 static void Swirl() {
-  uint32_t color;
-  uint8_t divider = 0;
-  uint8_t lastHue = 0;
-
   static const uint32_t colors[5][6] PROGMEM = {
     {CRGB::Blue, CRGB::DarkRed, CRGB::Aqua, CRGB::Magenta, CRGB::Gold, CRGB::Green },
     {CRGB::Yellow, CRGB::LemonChiffon, CRGB::LightYellow, CRGB::Gold, CRGB::Chocolate, CRGB::Goldenrod},
     {CRGB::Green, CRGB::DarkGreen, CRGB::LawnGreen, CRGB::SpringGreen, CRGB::Cyan, CRGB::Black },
-    {CRGB::Blue, CRGB::DarkBlue, CRGB::MidnightBlue, CRGB::MediumSeaGreen, CRGB::MediumBlue, CRGB:: DeepSkyBlue },
+    {CRGB::Blue, CRGB::DarkBlue, CRGB::MidnightBlue, CRGB::MediumSeaGreen, CRGB::MediumBlue, CRGB::DeepSkyBlue },
     {CRGB::Magenta, CRGB::Red, CRGB::DarkMagenta, CRGB::IndianRed, CRGB::Gold, CRGB::MediumVioletRed }
   };
 
@@ -9747,21 +9743,27 @@ static void Swirl() {
     }
     #endif
 
-    loadingFlag = false;
-    ledsClear(); // esphome: FastLED.clear();
     deltaValue = 255U - modes[currentMode].Speed + 1U;
-    step = deltaValue;                      // чтообы при старте эффекта сразу покрасить лампу
-    deltaHue2 = 0U;                         // count для замедления смены цвета
-    deltaHue = 0U;                          // direction | 0 hue-- | 1 hue++ |
-    hue2 = 0U;                              // x
+    step = deltaValue;                                // чтообы при старте эффекта сразу покрасить лампу
+
+    deltaHue2 = 0U;                                   // Координата Y вихря
+    hue2 = 0U;                                        // Координата X вихря
+    hue = 0U;                                         // Индекс текущего цвета
+    pcnt = 0U;                                        // lastHue
+
+    deltaHue = (modes[currentMode].Scale - 1U) / 20U; // маштаб задает смену палитры
+
+    ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
 
   if (step >= deltaValue) {
     step = 0U;
   }
-  divider = floor((modes[currentMode].Scale - 1) / 20); // маштаб задает смену палитры
+
   // задаем цвет и рисуем завиток --------
-  color = colors[divider][hue];
+  const uint32_t color = pgm_read_dword(&(colors[deltaHue][hue]));
   drawPixelXY(hue2, deltaHue2, color);
 
   hue2++;                     // x
@@ -9775,26 +9777,30 @@ static void Swirl() {
   }
   // -------------------------------------
 
-  if  (hue2 > WIDTH) {
+  if (hue2 >= WIDTH) {
     hue2 = 0U;
   }
 
   if (deltaHue2 >= HEIGHT) {
     deltaHue2 = 0U;
-    // new swirl ------------
-    hue2 = random8(WIDTH - 2);
-    // select new color -----
-    hue = random8(6);
 
-    if (lastHue == hue) {
-      hue = hue + 1;
-      if (hue >= 6) {
-        hue = 0;
+    // new swirl ------------
+    hue2 = random8((uint8_t)(WIDTH - 2U));
+
+    // select new color -----
+    hue = random8(6U);
+
+    if (pcnt == hue) {
+      hue++;
+      if (hue >= 6U) {
+        hue = 0U;
       }
     }
-    lastHue = hue;
+    pcnt = hue;
   }
-  blurScreen(4U + random8(8));
+
+  blurScreen((uint8_t)(4U + random8(8U)));
+
   step++;
 }
 #endif
