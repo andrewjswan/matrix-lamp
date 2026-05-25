@@ -8424,22 +8424,27 @@ static void Firework() {
 
 #ifdef DEF_FIREWORK_2
 //---------- Эффект "Фейерверк" Салют ---
-//адаптация и переписал - kostyamat
-//https://gist.github.com/jasoncoon/0cccc5ba7ab108c0a373
-//https://github.com/marcmerlin/FastLED_NeoMatrix_SmartMatrix_LEDMatrix_GFX_Demos/blob/master/FastLED/FireWorks2/FireWorks2.ino
+// адаптация и переписал - kostyamat
+// https://gist.github.com/jasoncoon/0cccc5ba7ab108c0a373
+// https://github.com/marcmerlin/FastLED_NeoMatrix_SmartMatrix_LEDMatrix_GFX_Demos/blob/master/FastLED/FireWorks2/FireWorks2.ino
 
-  constexpr uint8_t  MODEL_BORDER = (HEIGHT - 4U);                              // как далеко за экран может вылетить снаряд, если снаряд вылетает за экран, то всышка белого света (не особо логично)
-  constexpr uint16_t MODEL_WIDTH = (MODEL_BORDER + WIDTH  + MODEL_BORDER);      // не трогать, - матиматика
-  constexpr uint16_t MODEL_HEIGHT = (MODEL_BORDER + HEIGHT + MODEL_BORDER);     // -//-
-  constexpr uint16_t PIXEL_X_OFFSET = ((MODEL_WIDTH  - WIDTH) / 2);             // -//-
-  constexpr uint16_t PIXEL_Y_OFFSET = ((MODEL_HEIGHT - HEIGHT) / 2);            // -//-
+  constexpr uint8_t  MODEL_BORDER = HEIGHT - 4U;                              // как далеко за экран может вылетить снаряд, если снаряд вылетает за экран, то всышка белого света (не особо логично)
+  constexpr uint16_t MODEL_WIDTH = MODEL_BORDER + WIDTH  + MODEL_BORDER;      // не трогать, - матиматика
+  constexpr uint16_t MODEL_HEIGHT = MODEL_BORDER + HEIGHT + MODEL_BORDER;     // -//-
+  constexpr uint16_t PIXEL_X_OFFSET = (MODEL_WIDTH  - WIDTH) / 2U;            // -//-
+  constexpr uint16_t PIXEL_Y_OFFSET = (MODEL_HEIGHT - HEIGHT) / 2U            // -//-
 
-  constexpr uint8_t SPARK = 8U;                                                 // максимальное количество снарядов
-  constexpr uint8_t NUM_SPARKS = WIDTH;                                         // количество разлетающихся петард (частей снаряда)
+  constexpr uint8_t SPARK = 8U;                                               // максимальное количество снарядов
+  constexpr uint8_t NUM_SPARKS = WIDTH;                                       // количество разлетающихся петард (частей снаряда)
 
   constexpr saccum78 gGravity = 10;
   constexpr fract8  gBounce = 127;
   constexpr fract8  gDrag = 255;
+
+  constexpr uint8_t SCALE_M_W = 256U / MODEL_WIDTH;
+  constexpr uint8_t SCALE_M_H = 256U / MODEL_HEIGHT;
+  constexpr uint8_t SCALE_ERR_W = 255U / MODEL_WIDTH;
+  constexpr uint8_t SCALE_ERR_H = 255U / MODEL_HEIGHT;
 
   typedef struct _DOTS_STORE {
     accum88 gBurstx;
@@ -8451,102 +8456,109 @@ static void Firework() {
   } DOTS_STORE;
   static DOTS_STORE store[SPARK];
 
-  static CRGB& piXY(uint8_t x, uint8_t y);
+  static CRGB overrun;
+  static CRGB& piXY(uint8_t x, uint8_t y) {
+    const int16_t real_x = x - PIXEL_X_OFFSET;
+    const int16_t real_y = y - PIXEL_Y_OFFSET;
+    
+    if ((uint16_t)real_x < WIDTH && (uint16_t)real_y < HEIGHT) {
+      return leds[XY(real_x, real_y)];
+    }
+    return overrun;
+  }
 
   class Dot {    // класс для создания снарядов и питард
     public:
-      uint8_t    show;
-      uint8_t    theType;
-      accum88 x;
-      accum88 y;
+      uint8_t  show;
+      uint8_t  theType;
+      accum88  x;
+      accum88  y;
       saccum78 xv;
       saccum78 yv;
-      accum88 r;
-      CRGB color;
+      accum88  r;
+      CRGB     color;
 
       Dot() {
         show = 0;
         theType = 0;
-        x =  0;
-        y =  0;
-        xv = 0;
-        yv = 0;
+        x = 0; y =  0;
+        xv = 0; yv = 0;
         r  = 0;
         color.setRGB(0, 0, 0);
       }
 
-      void Draw()
-      {
+      void Draw() {
         if(!show) return;
-        uint8_t ix, xe, xc;
-        uint8_t iy, ye, yc;
-        screenscale(x, MODEL_WIDTH, ix, xe);
-        screenscale(y, MODEL_HEIGHT, iy, ye);
-        yc = 255 - ye;
-        xc = 255 - xe;
-
-        CRGB c00 = CRGB(dim8_video( scale8( scale8( color.r, yc), xc)),
-                        dim8_video( scale8( scale8( color.g, yc), xc)),
-                        dim8_video( scale8( scale8( color.b, yc), xc))
-                       );
-        CRGB c01 = CRGB(dim8_video( scale8( scale8( color.r, ye), xc)),
-                        dim8_video( scale8( scale8( color.g, ye), xc)),
-                        dim8_video( scale8( scale8( color.b, ye), xc))
-                       );
-
-        CRGB c10 = CRGB(dim8_video( scale8( scale8( color.r, yc), xe)),
-                        dim8_video( scale8( scale8( color.g, yc), xe)),
-                        dim8_video( scale8( scale8( color.b, yc), xe))
-                       );
-        CRGB c11 = CRGB(dim8_video( scale8( scale8( color.r, ye), xe)),
-                        dim8_video( scale8( scale8( color.g, ye), xe)),
-                        dim8_video( scale8( scale8( color.b, ye), xe))
-                       );
-
-        piXY(ix, iy) += c00;
-        piXY(ix, iy + 1) += c01;
-        piXY(ix + 1, iy) += c10;
-        piXY(ix + 1, iy + 1) += c11;
+        
+        // Оптимизированный screenscale для X
+        const uint8_t ia_x = x >> 8U;
+        const uint8_t ix = scale8(ia_x, MODEL_WIDTH);
+        const uint8_t xc = 255U - ((ia_x - (ix * SCALE_M_W)) * SCALE_ERR_W);
+  
+        // Оптимизированный screenscale для Y
+        const uint8_t ia_y = y >> 8U;
+        const uint8_t iy = scale8(ia_y, MODEL_HEIGHT);
+        const uint8_t yc = 255U - ((ia_y - (iy * SCALE_M_H)) * SCALE_ERR_H);
+  
+        const uint8_t ye = 255U - yc;
+        const uint8_t xe = 255U - xc;
+        
+        piXY(ix, iy) += CRGB(
+          dim8_video(scale8(scale8(color.r, yc), xc)),
+          dim8_video(scale8(scale8(color.g, yc), xc)),
+          dim8_video(scale8(scale8(color.b, yc), xc))
+        );
+        piXY(ix, iy + 1U) += CRGB(
+          dim8_video(scale8(scale8(color.r, ye), xc)),
+          dim8_video(scale8(scale8(color.g, ye), xc)),
+          dim8_video(scale8(scale8(color.b, ye), xc))
+        );
+        piXY(ix + 1U, iy) += CRGB(
+          dim8_video(scale8(scale8(color.r, yc), xe)),
+          dim8_video(scale8(scale8(color.g, yc), xe)),
+          dim8_video(scale8(scale8(color.b, yc), xe))
+        );
+        piXY(ix + 1U, iy + 1U) += CRGB(
+          dim8_video(scale8(scale8(color.r, ye), xe)),
+          dim8_video(scale8(scale8(color.g, ye), xe)),
+          dim8_video(scale8(scale8(color.b, ye), xe))
+        );
       }
 
-      void Move(uint8_t num, bool Flashing)
-      {
+      void Move(uint8_t num, bool Flashing) {
         if(!show) return;
+        
         yv -= gGravity;
-        xv = scale15by8_local(xv, gDrag);
-        yv = scale15by8_local(yv, gDrag);
+        
+        xv = (int16_t)((int32_t)(xv * gDrag) >> 8U);
+        yv = (int16_t)((int32_t)(yv * gDrag) >> 8U);        
 
-        if(theType == 2) {
-          xv = scale15by8_local(xv, gDrag);
-          yv = scale15by8_local(yv, gDrag);
-          color.nscale8(255);
-          if(!color) {
-            show = 0;
-          }
+        if (theType == 2U) {
+          xv = (int16_t)((int32_t)(xv * gDrag) >> 8U);
+          yv = (int16_t)((int32_t)(yv * gDrag) >> 8U);
+          color.nscale8(255U);
+          if (!color) show = 0U;
         }
+        
         // if we'd hit the ground, bounce
-        if(yv < 0 && (y < (-yv))) {
-          if(theType == 2) {
-            show = 0;
+        if (yv < 0 && (y < (-yv))) {
+          if (theType == 2U) {
+            show = 0U;
           } else {
             yv = -yv;
-            yv = scale15by8_local(yv, gBounce);
-            if(yv < 500) {
-              show = 0;
-            }
+            yv = (int16_t)((int32_t)(yv * gBounce) >> 8U);
+            if (yv < 500) show = 0U;
           }
         }
-        if (yv < -300) { // && (!(oyv < 0))) {
+        
+        if (yv < -300) {
           // pinnacle
-          if(theType == 1) {
-
-            if((y > (uint16_t)(0x8000)) && (random8() < 32) && Flashing) {
-              // boom
+          if (theType == 1U) {
+            if ((y > (uint16_t)0x8000U) && (random8() < 32U) && Flashing) {
               ledsClear();
             }
-
-            show = 0;
-
+  
+            show = 0U;
             store[num].gSkyburst = true;
             store[num].gBurstx = x;
             store[num].gBursty = y;
@@ -8555,134 +8567,105 @@ static void Firework() {
             store[num].gBurstcolor = CRGB(random8(), random8(), random8());
           }
         }
-        if(theType == 2) {
-          if(((xv >  0) && (x > xv)) ||
-              ((xv < 0) && (x < (0xFFFF + xv))))  {
+        
+        if (theType == 2U) {
+          if (((xv > 0) && (x > xv)) || ((xv < 0) && (x < (uint16_t)(0xFFFFU + xv)))) {
             x += xv;
           } else {
-            show = 0;
+            show = 0U;
           }
         } else {
           x += xv;
         }
         y += yv;
-
       }
 
-      void GroundLaunch()
-      {
-        yv = 600 + random16(400 + (25 * HEIGHT));
-        if(yv > 1200) yv = 1200;
-        xv = (int16_t)random16(600) - (int16_t)300;
+      void GroundLaunch() {
+        yv = 600 + random16(400U + (25U * HEIGHT));
+        if (yv > 1200) yv = 1200;
+        xv = (int16_t)random16(600U) - 300;
         y = 0;
-        x = 0x8000;
-        color = CHSV(0, 0, 130); // цвет запускаемого снаряда
-        show = 1;
+        x = 0x8000U;
+        color = CHSV(0U, 0U, 130U); // цвет запускаемого снаряда
+        show = 1U;
       }
 
-      void Skyburst(accum88 basex, accum88 basey, saccum78 basedv, CRGB& basecolor, uint8_t dim)
-      {
-        yv = (int16_t)0 + (int16_t)random16(1500) - (int16_t)500;
-        xv = basedv + (int16_t)random16(2000) - (int16_t)1000;
+      void Skyburst(accum88 basex, accum88 basey, saccum78 basedv, const CRGB& basecolor, uint8_t dim) {
+        yv = (int16_t)random16(1500U) - 500;
+        xv = basedv + (int16_t)random16(2000U) - 1000;
         y = basey;
         x = basex;
         color = basecolor;
-        //EffectMath::makeBrighter(color, 50);
-        color *= dim; //50;
-        theType = 2;
-        show = 1;
+        color *= dim;
+        theType = 2U;
+        show = 1U;
       }
-
-      //  CRGB &piXY(uint8_t x, uint8_t y);
-
-      int16_t scale15by8_local(int16_t i, fract8 _scale)
-      {
-        int16_t result;
-        result = (int32_t)((int32_t)i * _scale) / 256;
-        return result;
-      };
-
-      void screenscale(accum88 a, uint8_t N, uint8_t &screen, uint8_t &screenerr)
-      {
-        uint8_t ia = a >> 8;
-        screen = scale8(ia, N);
-        uint8_t m = screen * (256 / N);
-        screenerr = (ia - m) * scale8(255, N);
-        return;
-      };
   };
 
   static uint16_t launchcountdown[SPARK];
-  //bool flashing = true; // нахрен эти вспышки прямо в коде false напишу
   static Dot gDot[SPARK];
   static Dot gSparks[NUM_SPARKS];
 
-  static CRGB overrun;
-  static CRGB& piXY(uint8_t x, uint8_t y) {
-    x -= PIXEL_X_OFFSET;
-    //x = (x - PIXEL_X_OFFSET) % WIDTH; // зацикливаем поле по иксу
-    y -= PIXEL_Y_OFFSET;
-    if(x < WIDTH && y < HEIGHT) {
-      return leds[XY(x, y)];
-    } else
-      //return empty; // fixed //  CRGB empty = CRGB(0,0,0);
-      return overrun;//CRGB(0,0,0);
-  }
+  // bool flashing = true; // нахрен эти вспышки прямо в коде false напишу
 
   static void sparkGen() {
-    for (uint8_t c = 0U; c < enlargedObjectNUM; c++) { // modes[currentMode].Scale / хз
-      if(gDot[c].show == 0) {
-        if(launchcountdown[c] == 0) {
+    const uint8_t speed_factor = modes[currentMode].Speed * 4U;
+  
+    for (uint8_t c = 0U; c < enlargedObjectNUM; c++) {
+      if (gDot[c].show == 0U) {
+        if (launchcountdown[c] == 0U) {
           gDot[c].GroundLaunch();
-          gDot[c].theType = 1;
-          launchcountdown[c] = random16(1200 - modes[currentMode].Speed*4) + 1;
+          gDot[c].theType = 1U;
+          launchcountdown[c] = random16(1200U - speed_factor) + 1U;
         } else {
-          launchcountdown[c] --;
+          launchcountdown[c]--;
         }
       }
-     if(store[c].gSkyburst) {
-       store[c].gBurstcolor = CHSV(random8(), 200, 100);
-       store[c].gSkyburst = false;
-       uint8_t nsparks = random8(NUM_SPARKS / 2, NUM_SPARKS + 1);
-       for(uint8_t b = 0U; b < nsparks; b++) {
-         gSparks[b].Skyburst(store[c].gBurstx, store[c].gBursty, store[c].gBurstyv, store[c].gBurstcolor, pcnt);
-       }
-     }
-  }
-
-  //myLamp.blur2d(20);
+      
+      if (store[c].gSkyburst) {
+        store[c].gBurstcolor = CHSV(random8(), 200U, 100U);
+        store[c].gSkyburst = false;
+        
+        const uint8_t nsparks = random8(NUM_SPARKS / 2U, NUM_SPARKS + 1U);
+        for (uint8_t b = 0U; b < nsparks; b++) {
+          gSparks[b].Skyburst(store[c].gBurstx, store[c].gBursty, store[c].gBurstyv, store[c].gBurstcolor, pcnt);
+        }
+      }
+    }
   }
 
 static void fireworksRoutine()
 {
-  if (loadingFlag)
-  {
-    loadingFlag = false;
-    enlargedObjectNUM = (modes[currentMode].Scale - 1U) / 99.0f * (SPARK - 1U) + 1U;
+  if (loadingFlag) {
+    constexpr float inv99 = 1.0f / 99.0f;
+    enlargedObjectNUM = (modes[currentMode].Scale - 1U) * inv99 * (SPARK - 1U) + 1U;
     if (enlargedObjectNUM > SPARK) enlargedObjectNUM = SPARK;
 
-    for (uint8_t c = 0U; c < SPARK; c++)
-      launchcountdown[c] = 0;
+    for (uint8_t c = 0U; c < SPARK; c++) {
+      launchcountdown[c] = 0U;
+    }
+
+    loadingFlag = false;
   }
 
-  //random16_add_entropy(analogRead(A0));
-  pcnt = beatsin8(100, 20, 100);
-  if (hue++ % 10 == 0U){//  EVERY_N_MILLIS(EFFECTS_RUN_TIMER * 10) {
-    deltaValue = random8(25, 50);
-  }
-  //  EVERY_N_MILLIS(10) {//странный интервал
-    fadeToBlackBy(leds, NUM_LEDS, deltaValue);
-    sparkGen();
-    //memset8(leds, 0, NUM_LEDS * 3);
+  // random16_add_entropy(analogRead(A0));
+  pcnt = beatsin8(100U, 20U, 100U);
 
-    for (uint8_t a = 0U; a < enlargedObjectNUM; a++) { //modes[currentMode].Scale / хз
-      gDot[a].Move(a, false);//flashing);
-      gDot[a].Draw();
-    }
-    for(uint8_t b = 0U; b < NUM_SPARKS; b++) {
-      gSparks[b].Move(0, false);//flashing);
-      gSparks[b].Draw();
-    }
+  if (hue++ % 10U == 0U) {
+    deltaValue = random8(25U, 50U);
+  }
+  
+  fadeToBlackBy(leds, NUM_LEDS, deltaValue);
+  sparkGen();
+
+  for (uint8_t a = 0U; a < enlargedObjectNUM; a++) {
+    gDot[a].Move(a, false);     // flashing);
+    gDot[a].Draw();
+  }
+  for (uint8_t b = 0U; b < NUM_SPARKS; b++) {
+    gSparks[b].Move(0U, false); // flashing);
+    gSparks[b].Draw();
+  }
 }
 #endif
 
