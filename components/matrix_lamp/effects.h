@@ -8674,86 +8674,91 @@ static void fireworksRoutine()
 
 static void Hourglass() {
   constexpr float SIZE = 0.4f;
-  constexpr uint8_t h = static_cast<uint8_t>(SIZE * HEIGHT);
-  // constexpr uint8_t topPos  = HEIGHT - h;
+  constexpr uint8_t h = (uint8_t)(SIZE * HEIGHT);
   constexpr uint8_t route = HEIGHT - h - 1U;
   constexpr uint8_t STEP = 18U;
-
-  uint8_t posX = 0;
 
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      //                          scale | speed 210
+                                // scale | speed 210
       setModeSettings(15U + random8(225U), random8(255U));
     }
 #endif
 
-    loadingFlag = false;
-    pcnt = 0;
-    deltaHue2 = 0;
-    hue2 = 0;
+    pcnt = 0U;
+    deltaHue2 = 0U;
+    hue2 = 0U;
 
-    ledsClear(); // esphome: FastLED.clear();
     hue = modes[currentMode].Scale * 2.55f;
     for (uint8_t x = 0U; x < CENTER_X; x++) {
+      const uint8_t bri = 255U - (x * STEP);
       for (uint8_t y = 0U; y < h; y++) {
-        drawPixelXY(CENTER_X_MINOR - x, HEIGHT - y - 1, CHSV(hue, 255, 255 - x * STEP));
-        drawPixelXY(CENTER_X_MAJOR + x, HEIGHT - y - 1, CHSV(hue, 255, 255 - x * STEP));
+        drawPixelXY(CENTER_X_MINOR - x, MAX_Y - y, CHSV(hue, 255U, bri));
+        drawPixelXY(CENTER_X_MAJOR + x, MAX_Y - y, CHSV(hue, 255U, bri));
       }
     }
+
+    ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
 
-  if (hue2 == 0) {
-    posX = floor(pcnt / 2);
-    uint8_t posY = HEIGHT - h - pcnt;
-    // LOG.printf_P(PSTR("• [%03d] | posX %03d | deltaHue2 %03d | \n"), step, posX, deltaHue2);
+  uint8_t posX = 0;
+
+  if (hue2 == 0U) {
+    posX = pcnt / 2U;
+    const uint8_t posY = HEIGHT - h - pcnt;
+    // ESP_LOGD(PSTR("Hourglass", "• [%03d] | posX %03d | deltaHue2 %03d | \n"), step, posX, deltaHue2);
 
     /* move sand -------- */
-    if ((posY < (HEIGHT - h - 2)) && (posY > deltaHue2)) {
-      drawPixelXY(CENTER_X_MAJOR, posY, CHSV(hue, 255, 255));
-      drawPixelXY(CENTER_X_MAJOR, posY - 2, CHSV(hue, 255, 255));
-      drawPixelXY(CENTER_X_MAJOR, posY - 4, CHSV(hue, 255, 255));
+    if ((posY < (uint8_t)(HEIGHT - h - 2U)) && (posY > deltaHue2)) {
+      const CRGB sand_col = CHSV(hue, 255U, 255U);
+      drawPixelXY(CENTER_X_MAJOR, posY, sand_col);
+      drawPixelXY(CENTER_X_MAJOR, posY - 2U, sand_col);
+      drawPixelXY(CENTER_X_MAJOR, posY - 4U, sand_col);
 
-      if (posY < (HEIGHT - h - 3)) {
-        drawPixelXY(CENTER_X_MAJOR, posY + 1, CHSV(hue, 255, 0));
+      if (posY < (uint8_t)(HEIGHT - h - 3U)) {
+        drawPixelXY(CENTER_X_MAJOR, posY + 1U, CHSV(hue, 255U, 0U));
       }
     }
 
     /* draw body hourglass */
+    const uint8_t sand_bri = 255U - (posX * STEP);
     if ((pcnt & 0x01U) == 0U) {
-      drawPixelXY(CENTER_X_MAJOR - posX, HEIGHT - deltaHue2 - 1, CHSV(hue, 255, 0));
-      drawPixelXY(CENTER_X_MAJOR - posX, deltaHue2, CHSV(hue, 255, 255 - posX * STEP));
+      drawPixelXY(CENTER_X_MAJOR - posX, HEIGHT - deltaHue2 - 1U, CHSV(hue, 255U, 0U));
+      drawPixelXY(CENTER_X_MAJOR - posX, deltaHue2, CHSV(hue, 255U, sand_bri));
     } else {
-      drawPixelXY(CENTER_X_MAJOR + posX, HEIGHT - deltaHue2 - 1, CHSV(hue, 255, 0));
-      drawPixelXY(CENTER_X_MAJOR + posX, deltaHue2, CHSV(hue, 255, 255 - posX * STEP));
+      drawPixelXY(CENTER_X_MAJOR + posX, HEIGHT - deltaHue2 - 1U, CHSV(hue, 255U, 0U));
+      drawPixelXY(CENTER_X_MAJOR + posX, deltaHue2, CHSV(hue, 255U, sand_bri));
     }
 
     if (pcnt > MAX_X) {
       deltaHue2++;
-      pcnt = 0;
-      if (modes[currentMode].Scale > 95) {
+      pcnt = 0U;
+      if (modes[currentMode].Scale > 95U) {
         hue += 4U;
       }
     }
 
     pcnt++;
     if (deltaHue2 > h) {
-      deltaHue2 = 0;
-      hue2 = 1;
+      deltaHue2 = 0U;
+      hue2 = 1U;
     }
   }
+
   // имитация переворота песочных часов
-  if (hue2 > 0) {
+  if (hue2 > 0U) {
     for (uint8_t x = 0U; x < WIDTH; x++) {
-      for (uint8_t y = HEIGHT; y > 0U; y--) {
+      for (uint8_t y = MAX_Y; y > 0U; y--) {
         drawPixelXY(x, y, getPixColorXY(x, y - 1U));
-        drawPixelXY(x, y - 1, 0x000000);
       }
+      drawPixelXY(x, 0U, 0x000000);
     }
     hue2++;
     if (hue2 > route) {
-      hue2 = 0;
+      hue2 = 0U;
     }
   }
 }
