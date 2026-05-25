@@ -8059,7 +8059,7 @@ static void FeatherCandleRoutine() {
     #endif
 
     hue = 0;
-    
+
     trackingObjectState[0] = low_level;
     trackingObjectState[1] = low_level;
     trackingObjectState[2] = low_level;
@@ -8077,9 +8077,9 @@ static void FeatherCandleRoutine() {
     const int8_t offY = (HEIGHT - deltaHue2) / 2U;
     pcnt       = (offX < 0) ? 0U : (uint8_t)offX;      // Сохраняем offsetX
     deltaValue = (offY < 0) ? 0U : (uint8_t)offY;      // Сохраняем offsetY
-    
+
     ledsClear(); // esphome: FastLED.clear();
-    
+
     loadingFlag = false;
   }
 
@@ -8089,9 +8089,9 @@ static void FeatherCandleRoutine() {
     ptr = anim;                         // Reset animation data pointer to start
     a   = pgm_read_byte(ptr++);         // and take first value
   }
-  const uint8_t x1 = a >> 4U;           // X1 = high 4 bits 
+  const uint8_t x1 = a >> 4U;           // X1 = high 4 bits
   const uint8_t y1 = a & 0x0FU;         // Y1 = low 4 bits
-  
+
   a = pgm_read_byte(ptr++);             // New frame X2/Y2
   const uint8_t x2 = a >> 4U;           // X2 = high 4 bits
   const uint8_t y2 = a & 0x0FU;         // Y2 = low 4 bits
@@ -8103,14 +8103,14 @@ static void FeatherCandleRoutine() {
       img[y_w + x] = pgm_read_byte(ptr++);
     }
   }
-  
+
   // Расчет базового цвета один раз за кадр
-  const uint8_t color = (uint8_t)((modes[currentMode].Scale - 1U) * 2.57f);  
+  const uint8_t color = (uint8_t)((modes[currentMode].Scale - 1U) * 2.57f);
 
   // Предрасчет шага интерполяции (Fixed Point 8.8) для полной ликвидации делений в цикле
   const uint16_t step_y = (uint16_t)((h << 8U) / deltaHue2);
   const uint16_t step_x = (uint16_t)((w << 8U) / deltaHue);
-    
+
   // draw flame -------------------
   for (uint8_t dy = 0U; dy < deltaHue2; dy++) {
     const uint8_t sy = (dy * step_y) >> 8U;
@@ -8131,7 +8131,7 @@ static void FeatherCandleRoutine() {
       }
     }
   }
-  
+
   // draw body FeatherCandle ------
   const uint8_t bodyH = (deltaHue2 >= 5U) ? (deltaHue2 / 5U) : 1U;
   if (bodyH > 0U && (deltaValue + bodyH) < HEIGHT) {
@@ -8168,7 +8168,7 @@ static void FeatherCandleRoutine() {
       }
       break;
   }
-  
+
   if (hue > 3U) {
     hue++;
   } else {
