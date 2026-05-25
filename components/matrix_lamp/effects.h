@@ -4909,7 +4909,7 @@ static void shadowsRoutine() {
   const uint8_t effectBrightness = modes[currentMode].Scale * 2.55f;
 
   uint16_t hue16 = sHue16;
-  
+
   sLastMillis  = ms;
   sPseudotime += deltams * msmultiplier;
   sHue16 += deltams * beatsin88(400, 5, 9);
@@ -7821,7 +7821,7 @@ static void Colored_Python() {
         setModeSettings(random8(100U), random8(1, 255U));
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-    
+
     step = 0;
     colorChangeTime = millis();
 
@@ -7830,7 +7830,7 @@ static void Colored_Python() {
 
   const uint16_t t = millis() / (128U - (modes[currentMode].Speed / 2U));
   const uint8_t palette_number = modes[currentMode].Scale / 10U;
-  
+
   if (palette_number < 9) {
     step = palette_number;
   } else {
@@ -7891,10 +7891,10 @@ static void Contacts() {
     }
     #endif
     FPSdelay = 80U;
-  
+
     deltaHue2 = map(modes[currentMode].Speed, 0U, 255U, 32U, 1U);
     hue = modes[currentMode].Scale / 14U;
-  
+
     ledsClear(); // esphome: FastLED.clear();
     loadingFlag = false;
   }
@@ -11155,7 +11155,7 @@ static void Serpentine() {
   const uint8_t step1 = map8(modes[currentMode].Speed, 10U, 60U);
   const uint16_t ms = millis();
   const uint8_t fade = 180 - std::abs(128 - step);
-  
+
   fadeToBlackBy(leds, NUM_LEDS, fade);
 
   // -----------------
