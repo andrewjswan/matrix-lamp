@@ -9272,7 +9272,7 @@ static void flora() {
 
   DrawLine(posX + 1U, 1U, posX + 1U, h - 1U, 0x000000);
   DrawLine(posX + 2U, 1U, posX + 2U, h, FLORA_COLOR);
-  
+
   drawPixelXY(posX + 2U, h - random8((uint8_t)(h / 2U)), random8(2U) == 1U ? 0xFF00E0 : random8(2U) == 1U ? 0xFFFF00 : 0x00FF00);
   drawPixelXY(posX + 1U, h - random8((uint8_t)(h / 4U)), random8(2U) == 1U ? 0xFF00E0 : 0xFFFF00);
 
@@ -9285,7 +9285,7 @@ static void flora() {
   if (WIDTH > 8U) {
     DrawLine(posX - 1U, 1U, posX - 1U, h - 1U, 0x000000);
   }
-  
+
   DrawLine(posX, 1U, posX, h, FLORA_COLOR);
   drawPixelXY(posX, h - random8((uint8_t)(h / 2U)), random8(2U) == 1U ? 0xFF00E0 : 0xFFFF00);
 }
@@ -9309,7 +9309,7 @@ static void animeBobbles() {
     if (step % 12U == 0U) {
       drawPixelXY((uint8_t)(CENTER_X_MAJOR + 2U + random8(3U)), 0U, BOBBLE_COLOR);
     }
-  }  
+  }
 }
 
 //---------------------------------------
@@ -9445,7 +9445,7 @@ static void BotswanaRivers() {
   // LOG.printf_P(PSTR("%02d | hue2 = %03d | min = %03d \n\r"), step, hue2, deltaHue2);
   // -------------------------------------
   animeBobbles();
-  
+
   if (custom_eff == 1) {
     blurRows(WIDTH, 3U, 10U);
   }
