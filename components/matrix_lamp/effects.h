@@ -10017,42 +10017,52 @@ static void Watercolor() {
 //             © SlingMaster
 // =====================================
 /* --------------------------------- */
-static int getRandomPos(uint8_t STEP) {
-  uint8_t val = floor(random(0, (STEP * 16 - MAX_X)) / STEP) * STEP;
-  return -val;
+static int16_t getRandomPos(uint8_t STEP) {
+  const uint8_t max_rnd = (uint8_t)(STEP * 16U - MAX_X);
+  const uint8_t val = (random8(max_rnd) / STEP) * STEP;
+  return -(int16_t)val;
 }
 
 /* --------------------------------- */
-static int getHue(uint8_t x, uint8_t y) {
-  return (x * 32 +  y * 24U);
+static uint8_t  getHue(uint8_t x, uint8_t y) {
+  return (uint8_t)(x * 32U + y * 24U);
 }
 
 /* --------------------------------- */
 static uint8_t getSaturationStep() {
-  return (modes[currentMode].Speed > 170U) ? ((HEIGHT > 24) ? 12 : 24) : 0;
+  // return (modes[currentMode].Speed > 170U) ? ((HEIGHT > 24) ? 12 : 24) : 0;
+  return pcnt;
 }
 
 /* --------------------------------- */
 static uint8_t getBrightnessStep() {
-  return (modes[currentMode].Speed < 85U) ? ((HEIGHT > 24) ? 16 : 24) : 0;
+  // return (modes[currentMode].Speed < 85U) ? ((HEIGHT > 24) ? 16 : 24) : 0;
+  return deltaValue;
 }
 
 /* --------------------------------- */
-static void drawPalette(int posX, int posY, uint8_t STEP) {
-  int PX, PY;
-  const uint8_t SZ = STEP - 1;
-  const uint8_t maxY = floor(HEIGHT / SZ);
-  uint8_t sat = getSaturationStep();
-  uint8_t br  = getBrightnessStep();
+static void drawPalette(int16_t posX, int16_t posY, uint8_t STEP) {
+  const uint8_t SZ = STEP - 1U;
+  const uint8_t maxY = HEIGHT / SZ;
+
+  const uint8_t sat = getSaturationStep();
+  const uint8_t br  = getBrightnessStep();
 
   ledsClear(); // esphome: FastLED.clear();
+
   for (uint8_t y = 0U; y < maxY; y++) {
-    for (uint8_t x = 0U; x < 16; x++) {
-      PY = y * STEP;
-      PX = posX + x * STEP;
-      if ((PX >= - STEP) && (PY >= - STEP) && (PX < WIDTH) && (PY < HEIGHT)) {
-        // LOG.printf_P(PSTR("y: %03d | br • %03d | sat • %03d\n"), y, (240U - br * y), sat);
-        drawRecCHSV(PX, PY, PX + SZ, PY + SZ, CHSV(getHue(x, y), (255U - sat * y), (240U - br * y)));
+    const int16_t PY = y * STEP; 
+
+    if (PY >= -(int16_t)STEP && PY < HEIGHT) {
+      const uint8_t current_sat = (uint8_t)(255U - sat * y);
+      const uint8_t current_br  = (uint8_t)(240U - br * y);
+
+      for (uint8_t x = 0U; x < 16U; x++) {
+        const int16_t PX = posX + x * STEP;
+        if (PX >= -(int16_t)STEP && PX < WIDTH) {
+          // LOG.printf_P(PSTR("y: %03d | br • %03d | sat • %03d\n"), y, (240U - br * y), sat);
+          drawRecCHSV(PX, PY, PX + SZ, PY + SZ, CHSV(getHue(x, y), current_sat, current_br));
+        }
       }
     }
   }
@@ -10060,22 +10070,25 @@ static void drawPalette(int posX, int posY, uint8_t STEP) {
 
 /* --------------------------------- */
 static void selectColor(uint8_t sc) {
-  uint8_t offset = (WIDTH >= 16) ? QUARTER_X : 0;
-  hue = getHue(random(offset, WIDTH - offset), random(HEIGHT));
-  uint8_t sat = getSaturationStep();
-  uint8_t br  = getBrightnessStep();
+  constexpr uint8_t offset = (WIDTH >= 16U) ? QUARTER_X : 0U;
+
+  hue = getHue(offset + random8((uint8_t)(WIDTH - (offset << 1U))), random8(HEIGHT));
+
+  const uint8_t sat = getSaturationStep();
+  const uint8_t br  = getBrightnessStep();
 
   for (uint8_t y = 0U; y < HEIGHT; y++) {
-    for (uint8_t x = offset; x < (WIDTH - offset); x++) {
-      CHSV curColor = CHSV(hue, (255U - sat * y), (240U - br * y));
+    const uint8_t current_sat = (uint8_t)(255U - sat * y);
+    const uint8_t current_br  = (uint8_t)(240U - br * y);
+
+    for (uint8_t x = offset; x < (uint8_t)(WIDTH - offset); x++) {
+      const CHSV curColor = CHSV(hue, current_sat, current_br);
+
       if (CRGB(curColor) == getPixColorXY(x, y)) {
-        /* show srlect color */
+        /* show select color */
         drawRecCHSV(x, y, x + sc, y + sc, CHSV(hue, 64U, 255U));
-        // ajs: FastLED.show();
-        // ajs: delay(400);
         drawRecCHSV(x, y, x + sc, y + sc, CHSV(hue, 255U, 255U));
-        y = HEIGHT;
-        x = WIDTH;
+        return;
       }
     }
   }
@@ -10084,13 +10097,13 @@ static void selectColor(uint8_t sc) {
 /* --------------------------------- */
 static void WebTools() {
   constexpr uint8_t FPS_D = 24U;
+  const uint8_t speed = (modes[currentMode].Speed > 65U) ? modes[currentMode].Speed : 65U;
 
-  static uint8_t STEP = 3U;
-  static int posX = -STEP;
-  static int posY = 0;
-  static int nextX = -STEP * 2;
-  static bool stop_moving = true;
-  uint8_t speed = modes[currentMode].Speed > 65U ? modes[currentMode].Speed : 65U;   //constrain (modes[currentMode].Speed, 65, 255);
+  // static uint8_t STEP = 3U;           // deltaHue             => Смысловой шаг STEP                                     
+  // static int posX = -STEP;            // trackingObjectPosX   => Координата posX (приводим к int16_t для знака)         
+  // static int posY = 0;                // trackingObjectPosY   => Координата posY (приводим к int16_t для знака)         
+  // static int nextX = -STEP * 2;       // trackingObjectSpeedX => Целевая координата nextX (приводим к int16_t для знака)
+  // static bool stop_moving = true;     // trackingObjectState  => Флаг stop_moving (1U - стоим, 0U - движемся)           
 
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
@@ -10099,75 +10112,80 @@ static void WebTools() {
        setModeSettings(random(10U, 90U), random(10U, 255U));
     }
 #endif
-    loadingFlag = false;
+
     FPSdelay = 1U;
     step = 0;
-    STEP = 2U + floor(modes[currentMode].Scale / 35);
-    posX = 0;
-    posY = 0;
-    drawPalette(posX, posY, STEP);
+
+    deltaHue = 2U + (modes[currentMode].Scale / 35U); 
+
+    trackingObjectPosX[0] = 0.0f;
+    trackingObjectPosY[0] = 0.0f;
+
+    trackingObjectSpeedX[0] = -(int16_t)(deltaHue * 2U);
+    trackingObjectState[0] = 1U;                                                        // stop_moving = true
+
+    pcnt = (modes[currentMode].Speed > 170U) ? ((HEIGHT > 24U) ? 12U : 24U) : 0U;       // sat_step
+    deltaValue = (modes[currentMode].Speed < 85U) ? ((HEIGHT > 24U) ? 16U : 24U) : 0U;  // br_step
+
+    drawPalette((int16_t)trackingObjectPosX[0], (int16_t)trackingObjectPosY[0], deltaHue);
+
+    loadingFlag = false;
   }
 
+  int16_t posX = (int16_t)trackingObjectPosX[0];
+  int16_t nextX = (int16_t)trackingObjectSpeedX[0];
+
   /* auto scenario */
-  if (step == 0) {               /* restart ----------- */
+  if (step == 0U) {                                  /* restart ----------     */
     nextX = 0;
     FPSdelay = FPS_D;
-  }
-  else
-  if (step == speed / 16 + 1){   /* start move -------- 16*/
-    nextX = getRandomPos(STEP);
+  } else if (step == (uint8_t)(speed / 16U + 1U)) {  /* start move -------  16 */
+    nextX = getRandomPos(deltaHue);
     FPSdelay = FPS_D;
-  }
-  else
-  if (step == speed / 10 + 1){   /* find --------------100 */
-    nextX = getRandomPos(STEP);
+  } else if (step == (uint8_t)(speed / 10U + 1U)) {  /* find ------------- 100 */
+    nextX = getRandomPos(deltaHue);
     FPSdelay = FPS_D;
-  }
-  else
-  if (step == speed / 7 + 1){    /* find 2 ----------- 150*/
-    nextX = getRandomPos(STEP);
+  } else if (step == (uint8_t)(speed / 7U + 1U)) {   /* find 2 ----------- 150 */
+    nextX = getRandomPos(deltaHue);
     FPSdelay = FPS_D;
-  }
-  else
-  if (step == speed / 6 + 1){    /* find 3 -----------200 */
-    nextX = - STEP * random(4, 8);
-    // nextX = getRandomPos(STEP);
+  } else if (step == (uint8_t)(speed / 6U + 1U)) {   /* find 3 ----------- 200 */
+    nextX = -(int16_t)(deltaHue * random8(4U, 8U));
     FPSdelay = FPS_D;
-  }
-  else
-  if (step == speed / 5 + 1){    /* select color ------220 */
+  } else if (step == (uint8_t)(speed / 5U + 1U)) {   /* select color ----- 220 */
     FPSdelay = 200U;
-    selectColor(STEP - 1);
-  }
-  else
-  if (step == speed / 4 + 1){    /* show color -------- 222*/
+    selectColor((uint8_t)(deltaHue - 1U));
+  } else if (step == (uint8_t)(speed / 4U + 1U)) {   /* show color ------- 222 */
     FPSdelay = FPS_D;
     nextX = WIDTH;
-  }
-  else
-  if (step == speed / 4 + 3){
-    step = 252;
+  } else if (step == (uint8_t)(speed / 4U + 3U)) {
+    step = 252U;
   }
 
   if (posX < nextX) posX++;
   if (posX > nextX) posX--;
 
-  if (stop_moving) {
+  trackingObjectPosX[0] = posX;
+  trackingObjectSpeedX[0] = nextX;
+
+  if (trackingObjectState[0] == 1U) {  // stop_moving 
     FPSdelay = 80U;
     step++;
   } else {
-    drawPalette(posX, posY, STEP);
-    if ((nextX == WIDTH) || (nextX == 0)) {
+    drawPalette(posX, (int16_t)trackingObjectPosY[0], deltaHue);
+
+    if ((nextX == (int16_t)WIDTH) || (nextX == 0)) {
       /* show select color bar gradient */
       // LOG.printf_P(PSTR("step: %03d | Next x: %03d • %03d | fps %03d\n"), step, nextX, posX, FPSdelay);
       if (posX > 1) {
-        gradientHorizontal(0, 0, (posX - 1), HEIGHT, hue, hue, 255U, 96U, 255U);
+        gradientHorizontal(0, 0, (uint8_t)(posX - 1), HEIGHT, hue, hue, 255U, 96U, 255U);
       }
-      if (posX > 3) DrawLine(posX - 3, CENTER_Y_MINOR, posX - 3, CENTER_Y_MAJOR, CHSV(hue, 192U, 255U));
+      if (posX > 3) {
+        DrawLine((uint8_t)(posX - 3), CENTER_Y_MINOR, (uint8_t)(posX - 3), CENTER_Y_MAJOR, CHSV(hue, 192U, 255U));
+      }
     }
   }
 
-  stop_moving = (posX == nextX);
+  trackingObjectState[0] = (posX == nextX) ? 1U : 0U;  // stop_moving = (posX == nextX);
 }
 #endif
 
