@@ -8814,10 +8814,6 @@ static void FlowerRuta() {
 //            Чарівний Ліхтар
 // --------------------------------------
 static void MagicLantern() {
-  static uint8_t saturation;
-  static uint8_t brightness;
-  static uint8_t low_br;
-  //uint8_t delta;
   constexpr uint8_t PADDING = QUARTER_Y;
   constexpr uint8_t WARM_LIGHT = 55U;
   constexpr uint8_t STEP = 4U;
@@ -8830,57 +8826,68 @@ static void MagicLantern() {
     }
 #endif
 
-    loadingFlag = false;
     deltaValue = 0;
     step = deltaValue;
-    if (modes[currentMode].Speed > 52) {
-      brightness = map(modes[currentMode].Speed, 1, 255, 50U, 250U);
-      low_br = 50U;
+
+    // deltaHue2 = brightness, deltaHue = low_br, pcnt = saturation
+    if (modes[currentMode].Speed > 52U) {
+      deltaHue2 = map(modes[currentMode].Speed, 1U, 255U, 50U, 250U);
+      deltaHue = 50U;
     } else {
-      brightness = 0U;
-      low_br = 0U;
+      deltaHue2 = 0U;
+      deltaHue = 0U;
     }
-    saturation = (modes[currentMode].Scale > 50U) ? 64U : 0U;
-    if (std::abs(70 - modes[currentMode].Scale) <= 5) saturation = 170U;
+    pcnt = (modes[currentMode].Scale > 50U) ? 64U : 0U;
+    if (std::abs(70 - (int16_t)modes[currentMode].Scale) <= 5) {
+      pcnt = 170U;
+    }
+    
+    hue2 = (modes[currentMode].Speed < 25U) ? 1U : 0U;    
+
     ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
 
   dimAll(170);
-  hue = (modes[currentMode].Scale > 95) ? floor(step / 32) * 32U : modes[currentMode].Scale * 2.55f;
+  
+  hue = (modes[currentMode].Scale > 95U) ? (uint8_t)((step >> 5U) * 32U) : (uint8_t)(modes[currentMode].Scale * 2.55f);
 
   // ------
-  for (uint8_t x = 0U; x < WIDTH + 1 ; x++) {
+  for (uint8_t x = 0U; x <= WIDTH; x++) {
+    const int16_t x_offset = x - deltaValue;
+    const int16_t x_inv_offset = WIDTH - x + deltaValue;
 
     // light ---
-    if (low_br > 0) {
-      gradientVertical(x - deltaValue, CENTER_Y_MAJOR, x + 1U - deltaValue, HEIGHT - PADDING - 1,  WARM_LIGHT, WARM_LIGHT, brightness, low_br, saturation);
-      gradientVertical(WIDTH - x + deltaValue, CENTER_Y_MAJOR, WIDTH - x + 1U + deltaValue, HEIGHT - PADDING - 1,  WARM_LIGHT, WARM_LIGHT, brightness, low_br, saturation);
-      gradientVertical(x - deltaValue, PADDING + 1, x + 1U - deltaValue, CENTER_Y_MAJOR, WARM_LIGHT, WARM_LIGHT, low_br + 10, brightness, saturation);
-      gradientVertical(WIDTH - x + deltaValue, PADDING + 1, WIDTH - x + 1U + deltaValue, CENTER_Y_MAJOR, WARM_LIGHT, WARM_LIGHT, low_br + 10, brightness, saturation);
+    if (deltaHue > 0U) {
+      gradientVertical(x_offset, CENTER_Y_MAJOR, x_offset + 1U, HEIGHT - PADDING - 1U, WARM_LIGHT, WARM_LIGHT, deltaHue2, deltaHue, pcnt);
+      gradientVertical(x_inv_offset, CENTER_Y_MAJOR, x_inv_offset + 1U, HEIGHT - PADDING - 1U, WARM_LIGHT, WARM_LIGHT, deltaHue2, deltaHue, pcnt);
+      gradientVertical(x_offset, PADDING + 1U, x_offset + 1U, CENTER_Y_MAJOR, WARM_LIGHT, WARM_LIGHT, (uint8_t)(deltaHue + 10U), deltaHue2, pcnt);
+      gradientVertical(x_inv_offset, PADDING + 1U, x_inv_offset + 1U, CENTER_Y_MAJOR, WARM_LIGHT, WARM_LIGHT, (uint8_t)(deltaHue + 10U), deltaHue2, pcnt);
     } else {
-      if (x % (STEP + 1) == 0) {
-        leds[XY(random8(WIDTH), random8(PADDING + 2, HEIGHT - PADDING - 2))] = CHSV(step - 32U, random8(128U, 255U), 255U);
+      if (x % (STEP + 1U) == 0U) {
+        leds[XY(random8(WIDTH), random8((uint8_t)(PADDING + 2U), (uint8_t)(HEIGHT - PADDING - 2U)))] = CHSV((uint8_t)(step - 32U), random8(128U, 255U), 255U);
       }
-      if ((modes[currentMode].Speed < 25) & (low_br == 0)) {
-        deltaValue = 0;
-        if (x % 2 != 0) {
-          gradientVertical(x - deltaValue, HEIGHT - PADDING, x + 1U - deltaValue, HEIGHT,  hue, hue + 2, 64U, 20U, 255U);
-          gradientVertical((WIDTH - x + deltaValue), 0U,  (WIDTH - x + 1U + deltaValue), PADDING,  hue, hue, 42U, 64U, 255U);
+      if ((hue2 == 1U) && (deltaHue == 0U)) {
+        deltaValue = 0U;
+        if ((x % 2U) != 0U) {
+          gradientVertical(x_offset, HEIGHT - PADDING, x_offset + 1U, HEIGHT, hue, (uint8_t)(hue + 2U), 64U, 20U, 255U);
+          gradientVertical(x_inv_offset, 0U, x_inv_offset + 1U, PADDING, hue, hue, 42U, 64U, 255U);
         }
-        //        deltaValue = 0;
       }
     }
-    if (x % STEP == 0) {
+    
+    if (x % STEP == 0U) {
       // body --
-      gradientVertical(x - deltaValue, HEIGHT - PADDING, x + 1U - deltaValue, HEIGHT,  hue, hue + 2, 255U, 20U, 255U);
-      gradientVertical((WIDTH - x + deltaValue), 0U,  (WIDTH - x + 1U + deltaValue), PADDING,  hue, hue, 42U, 255U, 255U);
+      gradientVertical(x_offset, HEIGHT - PADDING, x_offset + 1U, HEIGHT, hue, (uint8_t)(hue + 2U), 255U, 20U, 255U);
+      gradientVertical(x_inv_offset, 0U, x_inv_offset + 1U, PADDING, hue, hue, 42U, 255U, 255U);
     }
-  }
+  }  
   // ------
 
   deltaValue++;
   if (deltaValue >= STEP) {
-    deltaValue = 0;
+    deltaValue = 0U;
   }
 
   step++;
