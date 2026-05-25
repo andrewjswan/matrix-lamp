@@ -8223,7 +8223,7 @@ static void VirtualExplosion(uint8_t f_type, int8_t timeline) {
       saturation  = random8(128U, 255U);
       break;
   }
-  
+
   if ((timeline > MAX_Y) && (timeline < ACTION_TIME)) {
     for (uint8_t x = 0U; x < WIDTH; x++) {
       for (uint8_t y = horizont; y < MAX_Y; y++) {
@@ -8327,7 +8327,7 @@ static void Firework() {
       gradientVertical(0, 0, WIDTH, HORIZONT, skyColor, skyColor, (uint8_t)(hue + 1U), 0U, 255U);
     }
   }
-  
+
   /* deltaHue2 - Firework type */
   VirtualExplosion(deltaHue2, step);
 
@@ -8335,7 +8335,7 @@ static void Firework() {
     /* фаза взрыва */
     FPSdelay += 5U;
   }
-  
+
   constexpr uint8_t rows = (uint8_t)((HEIGHT + 1U) / 3U);
   deltaHue = (modes[currentMode].Speed >> 6U) << 6U; // / 64) * 64;
   if (step > CENTER_Y_MAJOR) {
@@ -8373,13 +8373,13 @@ static void Firework() {
     const uint8_t saturation = (step > (uint8_t)(DOT_EXPLOSION - 2U)) ? 192U : 20U;
     drawPixelXY((int16_t)(CENTER_X_MINOR + deltaHue2), step, CHSV(50U, saturation, 80U));
     drawPixelXY((int16_t)(CENTER_X_MAJOR - deltaHue2), (int16_t)(step - HORIZONT), CHSV(50U, saturation, 80U));
-    
+
     /* sky brightness */
     if (hue > 2U) {
       hue -= 1U;
     }
   }
-  
+
   if (step > PHASE_V2) {
     /* sky brightness */
     if (hue < MAX_BRIGHTNESS) {
