@@ -9149,7 +9149,7 @@ static void Plasma_Waves() {
 
     ff_z = 0U; // Сбрасываем глобальный счетчик - frameCount
     deltaValue = 132U - (modes[currentMode].Speed >> 1U);
-    
+
     loadingFlag = false;
   }
 
@@ -9224,7 +9224,7 @@ static void Plasma_Waves() {
           b = (uint8_t)(pgm_read_byte(&exp_gamma[b]) * 3U);
           break;
       }
-      
+
       leds[XY(x, y)] = CRGB(r, g, b);
     }
   }
