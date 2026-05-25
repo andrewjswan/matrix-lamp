@@ -8047,10 +8047,11 @@ static void DropInWater() {
 //                Свеча
 //---------------------------------------
 // const uint8_t PROGMEM anim[] =                      // FeatherCandle animation data
-constexpr uint8_t  level = 160;
-constexpr uint8_t  low_level = 110;
-constexpr uint8_t  w    = 7;                           // image width
-constexpr uint8_t  h    = 15;                          // image height
+
+constexpr uint8_t level     = 160U;
+constexpr uint8_t low_level = 110U;
+inline constexpr uint8_t  w = 7U;                      // image width
+inline constexpr uint8_t  h = 15U;                     // image height
 
 static const uint8_t *ptr  = anim;                     // Current pointer into animation data
 static uint8_t        img[w * h];                      // Buffer for rendering image
@@ -8067,113 +8068,127 @@ static void FeatherCandleRoutine() {
     }
     #endif
 
-    loadingFlag = false;
-
-    ledsClear(); // esphome: FastLED.clear();
     hue = 0;
+
     trackingObjectState[0] = low_level;
     trackingObjectState[1] = low_level;
     trackingObjectState[2] = low_level;
     trackingObjectState[4] = CENTER_X_MAJOR;
+
+    // dynamic flame scaling
+    const float scale_w = (float)WIDTH / w;
+    const float scale_h = (float)HEIGHT / h;
+    const float scale = clamp((scale_w < scale_h) ? scale_w : scale_h, 0.4f, 4.0f);
+
+    deltaHue  = (uint8_t)(w * scale + 0.5f);           // Сохраняем drawW
+    deltaHue2 = (uint8_t)(h * scale + 0.5f);           // Сохраняем drawH
+
+    const int8_t offX = (WIDTH - deltaHue) / 2U;
+    const int8_t offY = (HEIGHT - deltaHue2) / 2U;
+    pcnt       = (offX < 0) ? 0U : (uint8_t)offX;      // Сохраняем offsetX
+    deltaValue = (offY < 0) ? 0U : (uint8_t)offY;      // Сохраняем offsetY
+
+    ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
 
+  // Считывание кадра анимации из PROGMEM
   uint8_t a = pgm_read_byte(ptr++);     // New frame X1/Y1
-  if (a >= 0x90) {                      // EOD marker? (valid X1 never exceeds 8)
+  if (a >= 0x90U) {                     // EOD marker? (valid X1 never exceeds 8)
     ptr = anim;                         // Reset animation data pointer to start
     a   = pgm_read_byte(ptr++);         // and take first value
   }
-  uint8_t x1 = a >> 4;                  // X1 = high 4 bits
-  uint8_t y1 = a & 0x0F;                // Y1 = low 4 bits
-  a  = pgm_read_byte(ptr++);            // New frame X2/Y2
-  uint8_t x2 = a >> 4;                  // X2 = high 4 bits
-  uint8_t y2 = a & 0x0F;                // Y2 = low 4 bits
+  const uint8_t x1 = a >> 4U;           // X1 = high 4 bits
+  const uint8_t y1 = a & 0x0FU;         // Y1 = low 4 bits
+
+  a = pgm_read_byte(ptr++);             // New frame X2/Y2
+  const uint8_t x2 = a >> 4U;           // X2 = high 4 bits
+  const uint8_t y2 = a & 0x0FU;         // Y2 = low 4 bits
 
   // Read rectangle of data from anim[] into portion of img[] buffer
-  for (uint8_t y = y1; y <= y2; y++)
+  for (uint8_t y = y1; y <= y2; y++) {
+    const uint16_t y_w = y * w;
     for (uint8_t x = x1; x <= x2; x++) {
-      img[y * w + x] = pgm_read_byte(ptr++);
+      img[y_w + x] = pgm_read_byte(ptr++);
     }
+  }
 
-  int i = 0;
-  uint8_t color = (modes[currentMode].Scale - 1U) * 2.57f;
+  // Расчет базового цвета один раз за кадр
+  const uint8_t color = (uint8_t)((modes[currentMode].Scale - 1U) * 2.57f);
 
-  // dynamic flame scaling
-  float scale = clamp(min((float)WIDTH / w, (float)HEIGHT / h), 0.4f, 4.0f);
-
-  uint8_t drawW = (uint8_t)(w * scale + 0.5f);
-  uint8_t drawH = (uint8_t)(h * scale + 0.5f);
-
-  int8_t offsetX = (WIDTH - drawW) / 2;
-  int8_t offsetY = (HEIGHT - drawH) / 2;
-
-  if (offsetX < 0) offsetX = 0;
-  if (offsetY < 0) offsetY = 0;
+  // Предрасчет шага интерполяции (Fixed Point 8.8) для полной ликвидации делений в цикле
+  const uint16_t step_y = (uint16_t)((h << 8U) / deltaHue2);
+  const uint16_t step_x = (uint16_t)((w << 8U) / deltaHue);
 
   // draw flame -------------------
-  for (uint8_t dy = 0; dy < drawH; dy++) {
-    uint8_t sy = (dy * h) / drawH;
-    for (uint8_t dx = 0; dx < drawW; dx++) {
-      uint8_t sx = (dx * w) / drawW;
-      uint8_t brightness = img[sy * w + sx];
+  for (uint8_t dy = 0U; dy < deltaHue2; dy++) {
+    const uint8_t sy = (dy * step_y) >> 8U;
+    const uint16_t sy_w = sy * w;
+    const uint8_t py = deltaValue + dy;
 
-      if (brightness > 0) {
-        uint8_t px = offsetX + dx;
-        uint8_t py = offsetY + dy;
-        if (px < WIDTH && py < HEIGHT) {
-          leds[XY(px, py)] = CHSV(brightness > 240 ? color : color - 10U, 255U, brightness);
+    if (py < HEIGHT) {
+      for (uint8_t dx = 0U; dx < deltaHue; dx++) {
+        const uint8_t sx = (dx * step_x) >> 8U;
+        const uint8_t brightness = img[sy_w + sx];
+
+        if (brightness > 0U) {
+          const uint8_t px = pcnt + dx;
+          if (px < WIDTH) {
+            leds[XY(px, py)] = CHSV(brightness > 240U ? color : (uint8_t)(color - 10U), 255U, brightness);
+          }
         }
       }
     }
   }
 
   // draw body FeatherCandle ------
-  uint8_t bodyH = (drawH >= 5) ? (drawH / 5) : 1;
-  if (bodyH > 0 && (offsetY + bodyH) < HEIGHT) {
-    gradientVertical(0, offsetY, WIDTH, offsetY + bodyH, color, color, 48, 128, 20U);
+  const uint8_t bodyH = (deltaHue2 >= 5U) ? (deltaHue2 / 5U) : 1U;
+  if (bodyH > 0U && (deltaValue + bodyH) < HEIGHT) {
+    gradientVertical(0U, deltaValue, WIDTH, deltaValue + bodyH, color, color, 48U, 128U, 20U);
   }
 
   // drops of wax move -------------
   switch (hue) {
-    case 0:
-      if (trackingObjectState[0] + 3 < level) trackingObjectState[0] += 3;
+    case 0U:
+      if (trackingObjectState[0] + 3U < level) trackingObjectState[0] += 3U;
       else trackingObjectState[0] = level;
       break;
-    case 1:
-      if (trackingObjectState[0] > low_level + 3) trackingObjectState[0] -= 3;
+    case 1U:
+      if (trackingObjectState[0] > low_level + 3U) trackingObjectState[0] -= 3U;
       else trackingObjectState[0] = low_level;
 
-      if (trackingObjectState[1] + 3 < level) trackingObjectState[1] += 3;
+      if (trackingObjectState[1] + 3U < level) trackingObjectState[1] += 3U;
       else trackingObjectState[1] = level;
       break;
-    case 2:
-      if (trackingObjectState[1] > low_level + 3) trackingObjectState[1] -= 3;
+    case 2U:
+      if (trackingObjectState[1] > low_level + 3U) trackingObjectState[1] -= 3U;
       else trackingObjectState[1] = low_level;
 
-      if (trackingObjectState[2] + 3 < level) trackingObjectState[2] += 3;
+      if (trackingObjectState[2] + 3U < level) trackingObjectState[2] += 3U;
       else trackingObjectState[2] = level;
       break;
-    case 3:
-      if (trackingObjectState[2] > low_level + 3) trackingObjectState[2] -= 3;
+    case 3U:
+      if (trackingObjectState[2] > low_level + 3U) trackingObjectState[2] -= 3U;
       else trackingObjectState[2] = low_level;
 
       if (trackingObjectState[2] == low_level) {
         hue++;
-        // set random position drop of wax
-        trackingObjectState[4] = CENTER_X_MAJOR - 3 + random8(6);
+        trackingObjectState[4] = CENTER_X_MAJOR - 3U + random8(6U);
       }
       break;
   }
 
-  if (hue > 3) {
+  if (hue > 3U) {
     hue++;
   } else {
     if (trackingObjectState[4] < WIDTH) {
-      if (hue < 2)
-        leds[XY(trackingObjectState[4], 2)] = CHSV(50U, 20U, trackingObjectState[0]);
-      if (hue == 1 || hue == 2)
-        leds[XY(trackingObjectState[4], 1)] = CHSV(50U, 15U, trackingObjectState[1]);
-      if (hue > 1)
-        leds[XY(trackingObjectState[4], 0)] = CHSV(50U, 5U, trackingObjectState[2]);
+      if (hue < 2U)
+        leds[XY(trackingObjectState[4], 2U)] = CHSV(50U, 20U, trackingObjectState[0]);
+      if (hue == 1U || hue == 2U)
+        leds[XY(trackingObjectState[4], 1U)] = CHSV(50U, 15U, trackingObjectState[1]);
+      if (hue > 1U)
+        leds[XY(trackingObjectState[4], 0U)] = CHSV(50U, 5U, trackingObjectState[2]);
     }
   }
 
