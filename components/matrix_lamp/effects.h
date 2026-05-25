@@ -4909,7 +4909,7 @@ static void shadowsRoutine() {
   const uint8_t effectBrightness = modes[currentMode].Scale * 2.55f;
 
   uint16_t hue16 = sHue16;
-  
+
   sLastMillis  = ms;
   sPseudotime += deltams * msmultiplier;
   sHue16 += deltams * beatsin88(400, 5, 9);
@@ -7821,7 +7821,7 @@ static void Colored_Python() {
         setModeSettings(random8(100U), random8(1, 255U));
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-    
+
     colorChangeTime = millis();
 
     // Делитель времени
@@ -7842,7 +7842,7 @@ static void Colored_Python() {
     } else {
       step = 0U;
       pcnt = 1U;
-    }      
+    }
 
     loadingFlag = false;
   }
@@ -7870,7 +7870,7 @@ static void Colored_Python() {
   const uint16_t t = millis() / deltaHue2;
   const uint16_t palette_motion = t * deltaHue;
   const uint16_t y_time_phase = t * 5U;
-  
+
   for (uint8_t y = 0U; y < HEIGHT; y++) {
     const uint8_t y_cos = cos8(y * 10U);
     const uint8_t y_sin_phase = y * 5U + y_time_phase;
@@ -7880,7 +7880,7 @@ static void Colored_Python() {
       const uint8_t index = ((sin8((x * deltaValue) + sin8(y_sin_phase)) + y_cos) + 1U) + palette_motion;
       leds[XY(x, y)] = ColorFromPalette(currentPalette, index);
     }
-  }  
+  }
 }
 #endif
 
@@ -11151,7 +11151,7 @@ static void Serpentine() {
   const uint8_t step1 = map8(modes[currentMode].Speed, 10U, 60U);
   const uint16_t ms = millis();
   const uint8_t fade = 180 - std::abs(128 - step);
-  
+
   fadeToBlackBy(leds, NUM_LEDS, fade);
 
   // -----------------
