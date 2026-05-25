@@ -9504,10 +9504,10 @@ static void  Spectrum() {
 
     loadingFlag = false;
   }
-  
+
   uint8_t color = pcnt + hue;
   const uint8_t scale_odd = modes[currentMode].Scale & 0x01U;
-  
+
   if (modes[currentMode].Scale >= 99U) {
     hue2++; deltaHue++; deltaHue2++;
     if ((hue2 & 0x01U) && (deltaHue & 0x01U) && (deltaHue2 & 0x01U)) {
@@ -9521,29 +9521,29 @@ static void  Spectrum() {
 
   const float emitterX = (((random8() & 0x01U) == 0U) ? 545.0f : 390.0f) / HEIGHT;
   const uint32_t timer_div_speed = polarTimer / speedfactor;
-  
+
   constexpr float inv_height = 1.0f / HEIGHT;
-  
+
   for (uint8_t x = 0U; x < WIDTH; x++) {
     if ((x & 0x01U) == 0U) {
       leds[XY(x, 0U)] = CHSV(color, 255U, 128U);
     }
 
-    const uint16_t x_phase = x * ff_z; 
+    const uint16_t x_phase = x * ff_z;
     const float emitterX = (((random8() & 0x01U) == 0U) ? 545.0f : 390.0f) * inv_height;
-    
+
     for (uint8_t y = 2U; y < MAX_Y; y++) {
-      polarTimer++; 
+      polarTimer++;
 
       const uint8_t noise = fastled_helper::perlin8(
-        (uint16_t)((polarTimer & 0x01U) + x_phase), 
-        (uint8_t)((y << 4U) + (polarTimer & 0x0FU)), 
+        (uint16_t)((polarTimer & 0x01U) + x_phase),
+        (uint8_t)((y << 4U) + (polarTimer & 0x0FU)),
         timer_div_speed
       );
       const uint8_t fade_y = std::abs(CENTER_Y_F - (float)y) * emitterX;
 
       leds[XY(x, y)] = ColorFromPalette(myPal, qsub8(noise, fade_y));
-    }    
+    }
   }
 }
 #endif
