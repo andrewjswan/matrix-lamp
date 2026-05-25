@@ -7818,7 +7818,7 @@ static void Colored_Python() {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
         //                     scale | speed
-        setModeSettings(random8(100U), random8(1, 255U));
+        setModeSettings(random8(100U), random8(1U, 255U));
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
@@ -7899,51 +7899,70 @@ static void Contacts() {
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      // scale | speed
-      setModeSettings(random(25U, 90U), random(5U, 250U));
+                              // scale | speed
+      setModeSettings(random8(25U, 90U), random8(5U, 250U));
     }
     #endif
-    loadingFlag = false;
+
     FPSdelay = 80U;
+
+    deltaHue2 = map(modes[currentMode].Speed, 0U, 255U, 32U, 1U);
+    hue = modes[currentMode].Scale / 14U;
+
     ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
 
-  const int32_t a = millis() / map(modes[currentMode].Speed, 0, 255, 32, 1);
-  hue = floor(modes[currentMode].Scale / 14);
-  for (int x = 0; x < WIDTH; x++) {
-    for (int y = 0; y < HEIGHT; y++) {
-      int index = XY(x, y);
-      uint8_t color1 = pgm_read_byte(&exp_gamma[sin8(cos8((x * 7 + a / 5)) - cos8((y * 10) + a / 3) / 4 + a)]);
-      uint8_t color2 = pgm_read_byte(&exp_gamma[(sin8(x * 16 + a / 3) + cos8(y * 8 + a / 2)) / 2]);
-      uint8_t color3 = pgm_read_byte(&exp_gamma[sin8(cos8(x * 8 + a / 3) + sin8(y * 8 + a / 4) + a)]);
-      if (hue == 0) {
-        leds[index].b = color3 >> 2;
-        leds[index].g = color2;
-        leds[index].r = 0;
-      } else if (hue == 1) {
-        leds[index].b = color1;
-        leds[index].g = 0;
-        leds[index].r = color3 >> 2;
-      } else if (hue == 2) {
-        leds[index].b = 0;
-        leds[index].g = color1 >> 2;
-        leds[index].r = color3;
-      } else if (hue == 3) {
-        leds[index].b = color1;
-        leds[index].g = color2;
-        leds[index].r = color3;
-      } else if (hue == 4) {
-        leds[index].b = color3;
-        leds[index].g = color1;
-        leds[index].r = color2;
-      } else if (hue == 5) {
-        leds[index].b = color2;
-        leds[index].g = color3;
-        leds[index].r = color1;
-      } else if (hue >= 6) {
-        leds[index].b = color3;
-        leds[index].g = color1;
-        leds[index].r = color2;
+  const int32_t a = millis() / deltaHue2;
+  const int32_t a_div2 = a >> 1U; // / 2
+  const int32_t a_div3 = a / 3U;
+  const int32_t a_div4 = a >> 2U; // / 4
+  const int32_t a_div5 = a / 5U;
+
+  for (uint8_t y = 0U; y < HEIGHT; y++) {
+    const uint8_t y8_a2_cos  = cos8(y * 8U + a_div2);
+    const uint8_t y8_a4_sin  = sin8(y * 8U + a_div4);
+    const uint8_t y10_a3_cos = cos8((y * 10U) + a_div3) >> 2U; // / 4
+
+    for (uint8_t x = 0U; x < WIDTH; x++) {
+      const uint8_t color1 = pgm_read_byte(&exp_gamma[sin8(cos8(x * 7U + a_div5) - y10_a3_cos + a)]);
+      const uint8_t color2 = pgm_read_byte(&exp_gamma[(uint8_t)(sin8(x * 16U + a_div3) + y8_a2_cos) >> 1U]);
+      const uint8_t color3 = pgm_read_byte(&exp_gamma[sin8(cos8(x * 8U + a_div3) + y8_a4_sin + a)]);
+
+      const uint16_t index = XY(x, y);
+
+      switch (hue) {
+        case 0U:
+          leds[index].r = 0U;
+          leds[index].g = color2;
+          leds[index].b = color3 >> 2U;
+          break;
+        case 1U:
+          leds[index].r = color3 >> 2U;
+          leds[index].g = 0U;
+          leds[index].b = color1;
+          break;
+        case 2U:
+          leds[index].r = color3;
+          leds[index].g = color1 >> 2U;
+          leds[index].b = 0U;
+          break;
+        case 3U:
+          leds[index].r = color3;
+          leds[index].g = color2;
+          leds[index].b = color1;
+          break;
+        case 5U:
+          leds[index].r = color1;
+          leds[index].g = color3;
+          leds[index].b = color2;
+          break;
+        default: // Кейсы 4, 6
+          leds[index].r = color2;
+          leds[index].g = color1;
+          leds[index].b = color3;
+          break;
       }
     }
   }
