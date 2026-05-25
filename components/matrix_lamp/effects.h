@@ -9543,86 +9543,94 @@ static void  Spectrum() {
 //          Strobe Haos Diffusion
 //             © SlingMaster
 // =====================================
-/*должен быть перед эффектом Матрицf бегунок Скорость не регулирует задержку между кадрами,
-  но меняет частоту строба*/
+/* должен быть перед эффектом Матрицf бегунок Скорость не регулирует задержку между кадрами,
+   но меняет частоту строба */
 static void StrobeAndDiffusion() {
-  //constexpr uint8_t SIZE = 3U;
+  // constexpr uint8_t SIZE = 3U;
   constexpr uint8_t DELTA = 1U;         // центровка по вертикали
-
-  uint8_t STEP = 2U;
 
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      // scale | speed
+                               // scale | speed
       setModeSettings(1U + random8(100U), 1U + random8(150U));
     }
 #endif
-    loadingFlag = false;
+
     FPSdelay = 25U; // LOW_DELAY;
     hue2 = 1;
+
     ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
 
-  STEP = floor((255 - modes[currentMode].Speed) / 64) + 1U; // for strob
-  if (modes[currentMode].Scale > 50) {
+  const uint8_t speed_val = modes[currentMode].Speed;
+  const uint8_t scale_val = modes[currentMode].Scale;
+
+  uint8_t STEP = ((uint8_t)(255U - speed_val) / 64U) + 1U; // for strob
+  
+  if (scale_val > 50U) {
     // diffusion ---
-    blurScreen(beatsin8(3, 64, 80));
+    blurScreen(beatsin8(3U, 64U, 80U));
     FPSdelay = LOW_DELAY;
     STEP = 1U;
-    if (modes[currentMode].Scale < 75) {
+    if (scale_val < 75U) {
       // chaos ---
-      FPSdelay = 30;
-      VirtualSnow(1);
+      FPSdelay = 30U;
+      VirtualSnow(1U);
     }
-
   } else {
     // strob -------
-    if (modes[currentMode].Scale > 25) {
-      dimAll(200);
-      FPSdelay = 30;
+    if (scale_val > 25U) {
+      dimAll(200U);
+      FPSdelay = 30U;
     } else {
-      dimAll(240);
-      FPSdelay = 40;
+      dimAll(240U);
+      FPSdelay = 40U;
     }
   }
 
   constexpr uint8_t rows = (HEIGHT + 1) / 3U;
-  deltaHue = floor(modes[currentMode].Speed / 64) * 64;
+  deltaHue = (speed_val >> 6U) << 6U;  // modes[currentMode].Speed / 64 * 64
+
   bool dir = false;
   for (uint8_t y = 0U; y < rows; y++) {
-    if (dir) {
-      if ((step % STEP) == 0) {   // small layers
-        drawPixelXY(MAX_X, y * 3 + DELTA, CHSV(step, 255U, 255U));
-      } else {
-        drawPixelXY(MAX_X, y * 3 + DELTA, CHSV(170U, 255U, 1U));
-      }
-    } else {
-      if ((step % STEP) == 0) {   // big layers
-        drawPixelXY(0, y * 3 + DELTA, CHSV((step + deltaHue), 255U, 255U));
-      } else {
-        drawPixelXY(0, y * 3 + DELTA, CHSV(0U, 255U, 0U));
-      }
-    }
+    const uint8_t target_y = y * 3U + DELTA;
 
-    // сдвигаем слои  ------------------
-    for (uint8_t x = 1U ; x < WIDTH; x++) {
-      if (dir) {  // <==
-        drawPixelXY(x - 1, y * 3 + DELTA, getPixColorXY(x, y * 3 + DELTA));
-      } else {    // ==>
-        drawPixelXY(WIDTH - x, y * 3 + DELTA, getPixColorXY(WIDTH - x - 1, y * 3 + DELTA));
+    if (dir) { // <==
+      if ((step % STEP) == 0U) {  // small layers
+        drawPixelXY(MAX_X, target_y, CHSV(step, 255U, 255U));
+      } else {
+        drawPixelXY(MAX_X, target_y, CHSV(170U, 255U, 1U));
       }
+      
+      for (uint8_t x = 1U; x < WIDTH; x++) {
+        drawPixelXY((int16_t)(x - 1U), target_y, getPixColorXY(x, target_y));
+      }      
+    } else { // ==>
+      if ((step % STEP) == 0U) {  // big layers
+        drawPixelXY(0U, target_y, CHSV((uint8_t)(step + deltaHue), 255U, 255U));
+      } else {
+        drawPixelXY(0U, target_y, CHSV(0U, 255U, 0U));
+      }
+      
+      for (uint8_t x = 1U; x < WIDTH; x++) {
+        const int16_t inv_x = WIDTH - x;
+        drawPixelXY(inv_x, target_y, getPixColorXY((int16_t)(inv_x - 1U), target_y));
+      }      
     }
+    
     dir = !dir;
   }
 
-  if (hue2 == 1) {
-    step ++;
-    if (step >= 254) hue2 = 0;
+  if (hue2 == 1U) {
+    step++;
+    if (step >= 254U) hue2 = 0U;
   } else {
-    step --;
-    if (step < 1) hue2 = 1;
-  }
+    step--;
+    if (step < 1U) hue2 = 1U;
+  }  
 }
 #endif
 
