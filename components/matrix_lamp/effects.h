@@ -10482,7 +10482,7 @@ static void Bamboo() {
     trackingObjectPosX[0] = STP;
     trackingObjectPosY[0] = 0.0f;
     trackingObjectState[0] = 0U; // direct = false
-    
+
     hue = gamma[map(modes[currentMode].Scale, 5U, 95U, 0U, 6U)];
 
     step = 0U;
@@ -10525,18 +10525,18 @@ static void Bamboo() {
 
         for (uint8_t i = 1U; i < (uint8_t)(SY - 3U); i++) {
           const uint8_t v_fade = (uint8_t)(255U - V_STEP * i);
-          
+
           if (i < 3U) {
             uint8_t posY1 = y - i + 1U - DELTA + index;
             drawPixelXYF(x_wind - 3.0f, posY1, CHSV(nextColor(posY1, 96U, colLine), 255U, v_fade));
-            
+
             uint8_t posY2 = y - i + index;
             drawPixelXYF(x_wind, posY2, CHSV(nextColor(posY2, 96U, colLine), 255U, (uint8_t)(255U - VG_STEP * i)));
           }
-          
+
           uint8_t posY3 = y - i - DELTA + index;
           drawPixelXYF(x_wind - 4.0f, posY3, CHSV(nextColor(posY3, 180U, colLine), 180U, v_fade));
-          
+
           uint8_t posY4 = y - i + 1U + index;
           drawPixelXYF(x_wind - 1.0f, posY4, CHSV(nextColor(posY4, ((i == 1U) ? 96U : 80U), colLine), 255U, v_fade));
         }
