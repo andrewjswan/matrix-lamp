@@ -8676,7 +8676,7 @@ static void Hourglass() {
   constexpr float SIZE = 0.4f;
   constexpr uint8_t h = (uint8_t)(SIZE * HEIGHT);
   constexpr uint8_t route = HEIGHT - h - 1U;
-  constexpr uint8_t STEP = 18U;  
+  constexpr uint8_t STEP = 18U;
 
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
@@ -8755,12 +8755,12 @@ static void Hourglass() {
         drawPixelXY(x, y, getPixColorXY(x, y - 1U));
       }
       drawPixelXY(x, 0U, 0x000000);
-    }      
+    }
     hue2++;
     if (hue2 > route) {
       hue2 = 0U;
     }
-  }  
+  }
 }
 #endif
 
