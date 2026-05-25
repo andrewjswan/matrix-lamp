@@ -9133,7 +9133,6 @@ static void OilPaints() {
 // --------------------------------------
 
 static void Plasma_Waves() {
-  static int64_t frameCount = 0;
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
@@ -9142,71 +9141,86 @@ static void Plasma_Waves() {
     }
 #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
+    hue = modes[currentMode].Scale / 10U;
+
+    ff_z = 0U; // Сбрасываем глобальный счетчик - frameCount
+    deltaValue = 132U - (modes[currentMode].Speed >> 1U);
+
     loadingFlag = false;
-    hue = modes[currentMode].Scale / 10;
   }
-  FPSdelay = 1;//64 - modes[currentMode].Speed / 4;
 
-  frameCount++;
-  uint8_t t1 = cos8((42 * frameCount) / (132 - modes[currentMode].Speed / 2));
-  uint8_t t2 = cos8((35 * frameCount) / (132 - modes[currentMode].Speed / 2));
-  uint8_t t3 = cos8((38 * frameCount) / (132 - modes[currentMode].Speed / 2));
+  FPSdelay = 1U;  // 64 - modes[currentMode].Speed / 4;
 
-  for (uint16_t y = 0U; y < HEIGHT; y++) {
-    for (uint16_t x = 0U; x < WIDTH; x++) {
+  ff_z++;
+
+  const uint8_t t1 = cos8((42U * ff_z) / deltaValue);
+  const uint8_t t2 = cos8((35U * ff_z) / deltaValue);
+  const uint8_t t3 = cos8((38U * ff_z) / deltaValue);
+
+  const uint8_t t1_div2 = t1 >> 1U;
+  const uint8_t t3_div2 = t3 >> 2U;
+
+  const uint8_t current_scale = modes[currentMode].Scale;
+
+  for (uint8_t y = 0U; y < HEIGHT; y++) {
+    const uint8_t y8 = y << 3U;
+    const uint8_t g_y_phase = y8 + t1 + current_scale;
+    const uint8_t b_y_phase = y8 + t2;
+
+    for (uint8_t x = 0U; x < WIDTH; x++) {
       // Calculate 3 seperate plasma waves, one for each color channel
-      uint8_t r = cos8((x << 3) + (t1 >> 1) + cos8(t2 + (y << 3) + modes[currentMode].Scale));
-      uint8_t g = cos8((y << 3) + t1 + cos8((t3 >> 2) + (x << 3)) +modes[currentMode].Scale);
-      uint8_t b = cos8((y << 3) + t2 + cos8(t1 + x + (g >> 2) + modes[currentMode].Scale));
+      uint8_t r = cos8((x << 3U) + t1_div2 + cos8((uint8_t)(t2 + y8 + current_scale)));
+      uint8_t g = cos8(g_y_phase + cos8((uint8_t)(t3_div2 + (x << 3U))));
+      uint8_t b = cos8(b_y_phase + cos8((uint8_t)(t1 + x + (g >> 2U) + current_scale)));
 
       switch (hue) {
-          case 0:
-              r = pgm_read_byte(&exp_gamma[r]);
-              g = pgm_read_byte(&exp_gamma[g]);
-              b = pgm_read_byte(&exp_gamma[b]);
-              break;
-          case 1:
-              r = pgm_read_byte(&exp_gamma[r]);
-              b = pgm_read_byte(&exp_gamma[g]);
-              g = pgm_read_byte(&exp_gamma[b]);
-              break;
-          case 2:
-              g = pgm_read_byte(&exp_gamma[r]);
-              r = pgm_read_byte(&exp_gamma[g]);
-              b = pgm_read_byte(&exp_gamma[b]);
-              break;
-          case 3:
-              r = pgm_read_byte(&exp_gamma[r])/2;
-              g = pgm_read_byte(&exp_gamma[g]);
-              b = pgm_read_byte(&exp_gamma[b]);
-              break;
-          case 4:
-              r = pgm_read_byte(&exp_gamma[r]);
-              g = pgm_read_byte(&exp_gamma[g])/2;
-              b = pgm_read_byte(&exp_gamma[b]);
-              break;
-          case 5:
-              r = pgm_read_byte(&exp_gamma[r]);
-              g = pgm_read_byte(&exp_gamma[g]);
-              b = pgm_read_byte(&exp_gamma[b])/2;
-              break;
-          case 6:
-              r = pgm_read_byte(&exp_gamma[r])*3;
-              g = pgm_read_byte(&exp_gamma[g]);
-              b = pgm_read_byte(&exp_gamma[b]);
-              break;
-          case 7:
-              r = pgm_read_byte(&exp_gamma[r]);
-              g = pgm_read_byte(&exp_gamma[g])*3;
-              b = pgm_read_byte(&exp_gamma[b]);
-              break;
-          case 8:
-              r = pgm_read_byte(&exp_gamma[r]);
-              g = pgm_read_byte(&exp_gamma[g]);
-              b = pgm_read_byte(&exp_gamma[b])*3;
-              break;
-
+        case 0U:
+          r = pgm_read_byte(&exp_gamma[r]);
+          g = pgm_read_byte(&exp_gamma[g]);
+          b = pgm_read_byte(&exp_gamma[b]);
+          break;
+        case 1U:
+          r = pgm_read_byte(&exp_gamma[r]);
+          b = pgm_read_byte(&exp_gamma[g]);
+          g = pgm_read_byte(&exp_gamma[b]);
+          break;
+        case 2U:
+          g = pgm_read_byte(&exp_gamma[r]);
+          r = pgm_read_byte(&exp_gamma[g]);
+          b = pgm_read_byte(&exp_gamma[b]);
+          break;
+        case 3U:
+          r = pgm_read_byte(&exp_gamma[r]) >> 1U;
+          g = pgm_read_byte(&exp_gamma[g]);
+          b = pgm_read_byte(&exp_gamma[b]);
+          break;
+        case 4U:
+          r = pgm_read_byte(&exp_gamma[r]);
+          g = pgm_read_byte(&exp_gamma[g]) >> 1U;
+          b = pgm_read_byte(&exp_gamma[b]);
+          break;
+        case 5U:
+          r = pgm_read_byte(&exp_gamma[r]);
+          g = pgm_read_byte(&exp_gamma[g]);
+          b = pgm_read_byte(&exp_gamma[b]) >> 1U;
+          break;
+        case 6U:
+          r = (uint8_t)(pgm_read_byte(&exp_gamma[r]) * 3U);
+          g = pgm_read_byte(&exp_gamma[g]);
+          b = pgm_read_byte(&exp_gamma[b]);
+          break;
+        case 7U:
+          r = pgm_read_byte(&exp_gamma[r]);
+          g = (uint8_t)(pgm_read_byte(&exp_gamma[g]) * 3U);
+          b = pgm_read_byte(&exp_gamma[b]);
+          break;
+        default: // 8U и все остальные
+          r = pgm_read_byte(&exp_gamma[r]);
+          g = pgm_read_byte(&exp_gamma[g]);
+          b = (uint8_t)(pgm_read_byte(&exp_gamma[b]) * 3U);
+          break;
       }
+
       leds[XY(x, y)] = CRGB(r, g, b);
     }
   }
