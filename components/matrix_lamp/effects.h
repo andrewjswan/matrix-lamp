@@ -8905,30 +8905,35 @@ static void squaresNdotsRoutine() {
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings) {
-        // scale | speed
+                                 // scale | speed
         setModeSettings(1U + random8(100U), 1U + random8(255U));
       }
     #endif
 
-    loadingFlag = false;
     shtukX = THIRD_X + 1U;
     shtukY = THIRD_Y + 1U;
     poleX = modes[currentMode].Speed % 3U;
-    poleY = modes[currentMode].Speed / 3U % 3U;
+    poleY = (modes[currentMode].Speed / 3U) % 3U;
 
+    deltaHue = (modes[currentMode].Scale & 0x01U) ? 1U : 0U;
+    deltaValue = modes[currentMode].Scale * 2.55f;
+    
     for (uint8_t i = 0U; i < shtukX; i++)
       line[i] = random8(3U);
     for (uint8_t i = 0U; i < shtukY; i++)
       shiftValue[i] = random8(3U);
+
+    loadingFlag = false;
   }
 
-  bool type = random8(2U);
-  CRGB color = CHSV(random8(), 255U - random8(modes[currentMode].Scale * 2.55f), 255U);
+  const bool type = random8() & 0x01U;  // random8(2U);
+  const CRGB color = CHSV(random8(), (uint8_t)(255U - random8(deltaValue)), 255U);
 
-  uint8_t i = random8(shtukX);
-  uint8_t j = random8(shtukY);
-  int16_t x0 = i * 3 + (poleX + ((modes[currentMode].Scale & 0x01) ? line[j] : 0)) % 3 - 2;
-  int16_t y0 = j * 3 + (poleY + ((modes[currentMode].Scale & 0x01) ? 0 : shiftValue[i])) % 3 - 2;
+  const uint8_t i = random8(shtukX);
+  const uint8_t j = random8(shtukY);
+  
+  const int16_t x0 = i * 3U + (poleX + (deltaHue ? line[j] : 0U)) % 3U - 2;
+  const int16_t y0 = j * 3U + (poleY + (deltaHue ? 0U : shiftValue[i])) % 3U - 2;
   uint8_t hole = 0U;
 
   for (int16_t x = x0; x < x0 + 3; x++) {
@@ -8936,7 +8941,7 @@ static void squaresNdotsRoutine() {
       drawPixelXY(x, y, ((hole == 4U) ^ type) ? CRGB::Black : color);
       hole++;
     }
-  }
+  }  
 }
 #endif
 
