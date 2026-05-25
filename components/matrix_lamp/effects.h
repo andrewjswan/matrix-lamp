@@ -8780,8 +8780,8 @@ static void FlowerRuta() {
     constexpr float inv_pi = 1.0f / M_PI;
     for (int16_t x = -CENTER_X_MAJOR; x < CENTER_X_MAJOR; x++) {
       for (int16_t y = -CENTER_Y_MAJOR; y < CENTER_Y_MAJOR; y++) {
-        noise3d[x + CENTER_X_MAJOR][y + CENTER_Y_MAJOR] = (atan2(x, y) * inv_pi) * 128.0f + 127.0f;  // thanks ldirko
-        noise3d[x + CENTER_X_MAJOR][y + CENTER_Y_MAJOR] = hypot(x, y);                               // thanks Sutaburosu
+        noise3d[0U][x + CENTER_X_MAJOR][y + CENTER_Y_MAJOR] = (atan2(x, y) * inv_pi) * 128.0f + 127.0f;  // thanks ldirko
+        noise3d[1U][x + CENTER_X_MAJOR][y + CENTER_Y_MAJOR] = hypot(x, y);                               // thanks Sutaburosu
       }
     }
 
@@ -8804,8 +8804,8 @@ static void FlowerRuta() {
   constexpr uint8_t rad_step = 255U / WIDTH;
   for (uint8_t x = 0U; x < WIDTH; x++) {
     for (uint8_t y = 0U; y < HEIGHT; y++) {
-      const uint8_t angle = noise3d[x][y];
-      const uint8_t radius = noise3d[x][y];
+      const uint8_t angle = noise3d[0U][x][y];
+      const uint8_t radius = noise3d[1U][x][y];
 
       const uint8_t rad_offset = radius * rad_step;
       const uint8_t angle_petals = angle * deltaValue;
