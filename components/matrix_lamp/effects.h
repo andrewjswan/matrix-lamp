@@ -10203,7 +10203,6 @@ static void WebTools() {
 //--------------------------------------
 
 static void colorsWine() {
-  uint8_t divider;
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
@@ -10211,9 +10210,11 @@ static void colorsWine() {
       setModeSettings(20U + random8(200U), 200U);
     }
 #endif
-    loadingFlag = false;
+
     fillAll(CHSV(55U, 255U, 65U));
-    deltaValue = 255U - modes[currentMode].Speed + 1U;
+
+    step = 255U - modes[currentMode].Speed + 1U;
+
     // minspeed 230 maxspeed 250 ============
     // minscale  40 maxscale  75 ============
     // красное вино hue > 0 & <=10
@@ -10221,34 +10222,36 @@ static void colorsWine() {
     // белое вино   hue > 20U & <= 40
     // шампанское   hue > 40U & <= 60
 
-    deltaHue2 = 0U;                         // count для замедления смены цвета
-    step = deltaValue;                      // чтообы при старте эффекта сразу покрасить лампу
-    deltaHue = 1U;                          // direction | 0 hue-- | 1 hue++ |
-    hue = 55U;                              // Start Color
-    hue2 = 65U;                             // Brightness
-    pcnt = 0;
+    deltaHue2 = 0U;                                             // count для замедления смены цвета
+    deltaHue = 1U;                                              // direction | 0 hue-- | 1 hue++ |
+    hue = 55U;                                                  // Start Color
+    hue2 = 65U;                                                 // Brightness
+    pcnt = 0U;                                                  // Координата пузырька перляжа
+
+    deltaValue = 5U - ((modes[currentMode].Scale - 1U) / 20U);  // маштаб задает скорость изменения цвета 5 уровней
+
+    loadingFlag = false;
   }
 
   deltaHue2++;
-  // маштаб задает скорость изменения цвета 5 уровней
-  divider = 5 - floor((modes[currentMode].Scale - 1) / 20);
 
   // возвращаем яркость для перехода к белому
-  if (hue >= 10 && hue2 < 100U) {
+  if (hue >= 10U && hue2 < 100U) {
     hue2++;
   }
+
   // уменьшаем яркость для красного вина
-  if (hue < 10 && hue2 > 40U) {
+  if (hue < 10U && hue2 > 40U) {
     hue2--;
   }
 
   // изменение цвета вина -----
   if (deltaHue == 1U) {
-    if (deltaHue2 % divider == 0) {
+    if (deltaHue2 % deltaValue == 0U) {
       hue++;
     }
   } else {
-    if (deltaHue2 % divider == 0) {
+    if (deltaHue2 % deltaValue == 0U) {
       hue--;
     }
   }
@@ -10258,37 +10261,37 @@ static void colorsWine() {
 
   // сдвигаем всё вверх -----------
   for (uint8_t x = 0U; x < WIDTH; x++) {
-    for (uint8_t y = HEIGHT; y > 0U; y--) {
+    for (uint8_t y = MAX_Y; y > 0U; y--) {
       drawPixelXY(x, y, getPixColorXY(x, y - 1U));
     }
   }
 
+  // Добавляем перляж (пузырьки) исключительно для шампанского (hue > 40)
   if (hue > 40U) {
-    // добавляем перляж для шампанского
-    pcnt = random(0, WIDTH);
+    pcnt = random8(WIDTH);
   } else {
-    pcnt = 0;
+    pcnt = 0U;
   }
 
   // заполняем нижнюю строку с учетом перляжа
   for (uint8_t x = 0U; x < WIDTH; x++) {
-    if ((x == pcnt) && (pcnt > 0)) {
-      // с перляжем ------
-      drawPixelXY(x, 0U, CHSV(hue, 150U, hue2 + 20U + random(0, 50U)));
+    if ((x == pcnt) && (pcnt > 0U)) {
+      // Пузырек шампанского (чуть светлее и прозрачнее)
+      drawPixelXY(x, 0U, CHSV(hue, 150U, (uint8_t)(hue2 + 20U + random8(50U))));
     } else {
+      // Стандартная толща вина
       drawPixelXY(x, 0U, CHSV(hue, 255U, hue2));
     }
   }
 
   // меняем направление изменения цвета вина от красного к шампанскому и обратно
   // в диапазоне шкалы HUE |0-60|
-  if  (hue == 0U) {
+  if (hue == 0U) {
     deltaHue = 1U;
   }
   if (hue == 60U) {
     deltaHue = 0U;
   }
-  step++;
 }
 #endif
 
