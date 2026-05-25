@@ -8781,11 +8781,10 @@ static void FlowerRuta() {
     }
 #endif
 
-    constexpr float inv_pi = 1.0f / M_PI;
     for (int16_t x = -CENTER_X_MAJOR; x < CENTER_X_MAJOR; x++) {
       for (int16_t y = -CENTER_Y_MAJOR; y < CENTER_Y_MAJOR; y++) {
-        noise3d[0U][x + CENTER_X_MAJOR][y + CENTER_Y_MAJOR] = (atan2(x, y) * inv_pi) * 128.0f + 127.0f;  // thanks ldirko
-        noise3d[1U][x + CENTER_X_MAJOR][y + CENTER_Y_MAJOR] = hypot(x, y);                               // thanks Sutaburosu
+        noise3d[0U][x + CENTER_X_MAJOR][y + CENTER_Y_MAJOR] = (atan2(x, y) * invPI) * 128.0f + 127.0f;  // thanks ldirko
+        noise3d[1U][x + CENTER_X_MAJOR][y + CENTER_Y_MAJOR] = hypot(x, y);                              // thanks Sutaburosu
       }
     }
 
@@ -8979,12 +8978,11 @@ static void Octopus() {
     }
     #endif
 
-    constexpr float inv_pi = 1.0f / M_PI;
     for (int16_t x = -CENTER_X_MAJOR; x < CENTER_X_MAJOR + ((int8_t)WIDTH % 2); x++) {
       for (int16_t y = -CENTER_Y_MAJOR; y < CENTER_Y_MAJOR + ((int8_t)HEIGHT % 2); y++) {
         // ИСПРАВЛЕНО: Запись строго в свои слои 0U и 1U трехмерного массива noise3d
-        noise3d[0U][x + CENTER_X_MAJOR][y + CENTER_Y_MAJOR] = (atan2(x, y) * inv_pi) * 128.0f + 127.0f;  // thanks ldirko
-        noise3d[1U][x + CENTER_X_MAJOR][y + CENTER_Y_MAJOR] = hypot(x, y);                               // thanks Sutaburosu
+        noise3d[0U][x + CENTER_X_MAJOR][y + CENTER_Y_MAJOR] = (atan2(x, y) * invPI) * 128.0f + 127.0f;  // thanks ldirko
+        noise3d[1U][x + CENTER_X_MAJOR][y + CENTER_Y_MAJOR] = hypot(x, y);                              // thanks Sutaburosu
       }
     }
 
@@ -9243,11 +9241,10 @@ static void RadialWave() {
     }
     #endif
 
-    constexpr float inv_pi = 1.0f / M_PI;
     for (int16_t x = -CENTER_X_MAJOR; x < CENTER_X_MAJOR + ((int8_t)WIDTH % 2); x++) {
       for (int16_t y = -CENTER_Y_MAJOR; y < CENTER_Y_MAJOR + ((int8_t)HEIGHT % 2); y++) {
-        noise3d[0U][x + CENTER_X_MAJOR][y + CENTER_Y_MAJOR] = (atan2(x, y) * inv_pi) * 128.0f + 127.0f;  // thanks ldirko
-        noise3d[1U][x + CENTER_X_MAJOR][y + CENTER_Y_MAJOR] = hypot(x, y);                               // thanks Sutaburosu
+        noise3d[0U][x + CENTER_X_MAJOR][y + CENTER_Y_MAJOR] = (atan2(x, y) * invPI) * 128.0f + 127.0f;  // thanks ldirko
+        noise3d[1U][x + CENTER_X_MAJOR][y + CENTER_Y_MAJOR] = hypot(x, y);                              // thanks Sutaburosu
       }
     }
 
@@ -9820,23 +9817,46 @@ static void Tornado() {
       setModeSettings(random8(100U, 255U), random8(20U, 100U));
     }
 #endif
-    //scale = 1;
-    loadingFlag = 0;
 
-    //ledsClear(); // esphome: FastLED.clear();
-    for (int8_t x = -CENTER_X_MAJOR; x < CENTER_X_MAJOR; x++) {
-      for (int8_t y = -OFFSET; y < H; y++) {
-        noise3d[0][x + CENTER_X_MAJOR][y + OFFSET] = 128 * (atan2(y, x) / PI);
-        noise3d[1][x + CENTER_X_MAJOR][y + OFFSET] = hypot(x, y);                    // thanks Sutaburosu
+    for (int16_t x = -CENTER_X_MAJOR; x < CENTER_X_MAJOR; x++) {
+      for (int16_t y = -OFFSET; y < H; y++) {
+        noise3d[0U][x + CENTER_X_MAJOR][y + OFFSET] = 128.0f * (atan2(y, x) * invPI);
+        noise3d[1U][x + CENTER_X_MAJOR][y + OFFSET] = hypot(x, y);  // thanks Sutaburosu
       }
     }
+
+    deltaValue = modes[currentMode].Scale / 10U;
+    deltaHue = modes[currentMode].Speed / 10U;
+
+    loadingFlag = false;
   }
-  scale += modes[currentMode].Speed / 10;
+
+  scale += deltaHue;
+
+  constexpr uint16_t sat_step = 512U / HEIGHT;
+  constexpr uint8_t edge_y = HEIGHT / 8U;
+  
   for (uint8_t x = 0U; x < WIDTH; x++) {
     for (uint8_t y = 0U; y < HEIGHT; y++) {
       uint8_t angle = noise3d[0][x][y];
       uint8_t radius = noise3d[1][x][y];
       leds[XY(x, y)] = CHSV((angle * modes[currentMode].Scale / 10) - scale + (radius * modes[currentMode].Scale / 10), min(((uint16_t)y*512U/(uint16_t)HEIGHT),255U), (y < (HEIGHT/8) ? 255 - (((HEIGHT/8) - y) * 16) : 255));
+    }
+  }
+
+  for (uint8_t y = 0U; y < HEIGHT; y++) {
+    const uint16_t sat_calc = y * sat_step;
+    const uint8_t saturation = (sat_calc > 255U) ? 255U : (uint8_t)sat_calc;
+    
+    const uint8_t brightness = (y < edge_y) ? (uint8_t)(255U - ((edge_y - y) << 4U)) : 255U;
+
+    for (uint8_t x = 0U; x < WIDTH; x++) {
+      const uint8_t angle = noise3d[0U][x][y];
+      const uint8_t radius = noise3d[1U][x][y];
+
+      const uint8_t hue_index = (angle * deltaValue) - scale + (radius * deltaValue);
+      
+      leds[XY(x, y)] = CHSV(hue_index, saturation, brightness);
     }
   }
 }
