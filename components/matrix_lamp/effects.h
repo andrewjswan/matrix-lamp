@@ -9029,7 +9029,7 @@ static void OilPaints() {
     deltaHue2 = 80U - (uint8_t)(logf(modes[currentMode].Brightness) * 6.0f);  // min bright
     uint32_t calc_max = (1U << WIDTH) - 1U;
     ff_z = (calc_max > 65535U) ? 65535U : (uint16_t)calc_max;                 // ff_z - max_val
-  
+
     ledsClear(); // esphome: FastLED.clear();
 
     loadingFlag = false;
@@ -9055,7 +9055,7 @@ static void OilPaints() {
     // !!! ********
     if (custom_eff == 1) {
       drawPixelXY((uint8_t)(entry_point + 1U), HEIGHT - 3U, CHSV((uint8_t)(hue + 30U), 255U, 255U));
-    }    
+    }
     // ************
     // ESP_LOGD("OilPaints", PSTR("BR %03d | SP %03d | SC %03d | hue %03d\n\r"), modes[currentMode].Brightness, modes[currentMode].Speed, modes[currentMode].Scale, hue);
   }
@@ -9068,7 +9068,7 @@ static void OilPaints() {
         trackingObjectHue[x - 1U] = hue;
         break;
       }
-    }    
+    }
   } else {
     // ESP_LOGD("OilPaints", "-->");
     for (uint8_t x = (uint8_t)(MAX_X - 1U); x > 0U; x--) {
@@ -9077,7 +9077,7 @@ static void OilPaints() {
         break;
       }
       // ESP_LOGD("OilPaints", PSTR("x = %02d | value = %03d | hue = %03d \n\r"), x, trackingObjectHue[x], hue);
-    }    
+    }
   }
   // ESP_LOGD("OilPaints", "------------------------------------");
 
@@ -9085,7 +9085,7 @@ static void OilPaints() {
   for (uint8_t x = 0U; x < WIDTH; x++) {
     const uint8_t current_bri = (trackingObjectHue[x] == hue) ? hue2 : deltaHue2;
     drawPixelXY(x, MAX_Y, CHSV(trackingObjectHue[x], 255U, current_bri));
-  }  
+  }
 
   // уменьшаем яркость для следующих строк
   if (hue2 > (uint8_t)(deltaHue2 + 16U)) {
@@ -9102,7 +9102,7 @@ static void OilPaints() {
         drawPixelXY(x, y, getPixColorXY(x, y + 1U));
       }
     }
-  }  
+  }
   // ESP_LOGD("OilPaints", PSTR("%02d | hue2 = %03d | min = %03d \n\r"), step, hue2, deltaHue2);
   // -------------------------------------
 
