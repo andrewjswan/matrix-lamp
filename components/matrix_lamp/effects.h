@@ -7818,7 +7818,7 @@ static void Colored_Python() {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
         //                     scale | speed
-        setModeSettings(random8(100U), random8(1, 255U));
+        setModeSettings(random8(100U), random8(1U, 255U));
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
@@ -7886,16 +7886,18 @@ static void Contacts() {
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-                             // scale | speed
-      setModeSettings(random(25U, 90U), random(5U, 250U));
+                              // scale | speed
+      setModeSettings(random8(25U, 90U), random8(5U, 250U));
     }
     #endif
+
     FPSdelay = 80U;
 
     deltaHue2 = map(modes[currentMode].Speed, 0U, 255U, 32U, 1U);
     hue = modes[currentMode].Scale / 14U;
 
     ledsClear(); // esphome: FastLED.clear();
+
     loadingFlag = false;
   }
 
