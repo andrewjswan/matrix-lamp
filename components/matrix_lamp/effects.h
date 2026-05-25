@@ -9402,9 +9402,9 @@ static void BotswanaRivers() {
     hue = (modes[currentMode].Scale - 1U) / 20U;                // divider - маштаб задает смену палитры воды
 
     #if (ALT_GRADIENT == 1U)
-      createSceneM(divider);
+      createSceneM(hue);
     #else
-      createScene(divider);
+      createScene(hue);
     #endif
 
     loadingFlag = false;
