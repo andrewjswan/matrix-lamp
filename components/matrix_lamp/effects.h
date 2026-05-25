@@ -7770,7 +7770,7 @@ static void ColorFrizzles() {
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      // scale | speed
+      //                        scale | speed
       setModeSettings(random(10U, 90U), 128);
     }
     #endif
@@ -7899,7 +7899,7 @@ static void Contacts() {
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-                              // scale | speed
+      //                         scale | speed
       setModeSettings(random8(25U, 91U), random8(5U, 251U));
     }
     #endif
@@ -7987,7 +7987,7 @@ static void DropInWater() {
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-                              // scale | speed
+      //                         scale | speed
       setModeSettings(random8(0U, 101U), random8(160U, 216U));
     }
 #endif
@@ -8062,8 +8062,7 @@ static void FeatherCandleRoutine() {
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      // brightness | scale | speed
-      // { 21, 220,  40}
+      //                         scale | speed
       setModeSettings(1U + random8(99U), 190U + random8(65U));
     }
     #endif
@@ -8286,7 +8285,7 @@ static void Firework() {
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-                               // scale | speed
+      //                          scale | speed
       setModeSettings(1U + random8(100U), 1U + random8(250U));
     }
 #endif
@@ -8681,7 +8680,7 @@ static void Hourglass() {
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-                                // scale | speed 210
+      //                           scale | speed 210
       setModeSettings(15U + random8(225U), random8(255U));
     }
 #endif
@@ -8777,7 +8776,7 @@ static void FlowerRuta() {
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-                              // scale | speed
+      //                         scale | speed
       setModeSettings(random8(11U, 69U), random8(150U, 255U));
     }
 #endif
@@ -8922,7 +8921,7 @@ static void squaresNdotsRoutine() {
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings) {
-                                 // scale | speed
+        //                          scale | speed
         setModeSettings(1U + random8(100U), 1U + random8(255U));
       }
     #endif
@@ -8975,7 +8974,7 @@ static void Octopus() {
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-                              // scale | speed
+      //                          scale | speed
       setModeSettings(random8(10U, 101U), random8(150U, 255U));
     }
     #endif
@@ -9239,7 +9238,7 @@ static void RadialWave() {
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-                              // scale | speed
+      //                         scale | speed
       setModeSettings(random(10U, 101U), random(150U, 255U));
     }
     #endif
@@ -9492,7 +9491,7 @@ static void  Spectrum() {
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-                             // scale | speed
+      //                        scale | speed
       setModeSettings(random8(1, 100U), random8(215, 255U));
     }
 #endif // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
@@ -9566,7 +9565,7 @@ static void StrobeAndDiffusion() {
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-                               // scale | speed
+      //                          scale | speed
       setModeSettings(1U + random8(100U), 1U + random8(150U));
     }
 #endif
@@ -9656,61 +9655,67 @@ static void StrobeAndDiffusion() {
 //               Веретено
 // =====================================
 static void Spindle() {
-  static bool dark;
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      // scale | speed
+      //                         scale | speed
       setModeSettings(random8(1U, 100U), random8(100U, 255U));
     }
 #endif
-    loadingFlag = false;
-    hue = random8(8) * 32; // modes[currentMode].Scale;
+
+    hue = random8(8U) * 32U; // modes[currentMode].Scale;
     hue2 = 255U;
-    dark = modes[currentMode].Scale < 76U;
+
+    loadingFlag = false;
   }
 
-  if  (modes[currentMode].Scale < 81) {
+  const uint8_t scale_val = modes[currentMode].Scale;
+
+  if (scale_val < 81U) {
     blurScreen(128U);
-  } else
-  if  (modes[currentMode].Scale < 86) {
+  } else if (scale_val < 86U) {
     blurScreen(96U);
-  } else
-  if  (modes[currentMode].Scale < 91) {
+  } else if (scale_val < 91U) {
     blurScreen(64U);
-  } else
-   if  (modes[currentMode].Scale < 96) {
+  } else if (scale_val < 96U) {
     blurScreen(32U);
-   }
+  }
+
+  CHSV color;
+  color.hue = hue;
 
   // <==== scroll =====
   for (uint8_t y = 0U ; y < HEIGHT; y++) {
     for (uint8_t x = 0U ; x < MAX_X; x++) {
       hue2--;
-      if (dark) {   // black delimiter -----
-        drawPixelXY(MAX_X, y, CHSV(hue, 255, hue2));
-      } else {      // white delimiter -----
-        drawPixelXY(MAX_X, y, CHSV(hue, 64 + hue2 / 2, 255 - hue2 / 4));
+
+      if (scale_val < 76U) {  // black delimiter -----
+        color.sat = 255U;
+        color.val = hue2;
+      } else {               // white delimiter -----
+        color.sat = 64U + (hue2 >> 1U);   // / 2U
+        color.val = 255U - (hue2 >> 2U);  // / 4U
       }
-      drawPixelXY(x, y,  getPixColorXY(x + 1,  y));
+
+      drawPixelXY(MAX_X, y, color);
+      drawPixelXY(x, y, getPixColorXY(x + 1U, y));
     }
   }
-  if (modes[currentMode].Scale < 56) {
+
+  if (scale_val < 56U) {
     return;
   }
-  if (modes[currentMode].Scale < 61) {
-    hue += 1;
-  } else
-  if (modes[currentMode].Scale < 66) {
-    hue += 2;
-  } else
-  if (modes[currentMode].Scale < 71) {
-    hue += 3;
-  } else
-    if (modes[currentMode].Scale < 76) {
-      hue += 4;
+
+  if (scale_val < 61U) {
+    hue += 1U;
+  } else if (scale_val < 66U) {
+    hue += 2U;
+  } else if (scale_val < 71U) {
+    hue += 3U;
+  } else if (scale_val < 76U) {
+    hue += 4U;
   } else {
-      hue += 3;
+    hue += 3U;
   }
 }
 #endif
@@ -9737,7 +9742,7 @@ static void Swirl() {
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      // scale | speed
+      //                           scale | speed
       setModeSettings(50U + random8(190U), 250U);
     }
     #endif
@@ -9811,7 +9816,7 @@ static void Tornado() {
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      // scale | speed
+      //                           scale | speed
       setModeSettings(random8(100U, 255U), random8(20U, 100U));
     }
 #endif
@@ -10064,7 +10069,7 @@ static void WebTools() {
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      // scale | speed
+       //                        scale | speed
        setModeSettings(random(10U, 90U), random(10U, 255U));
     }
 #endif
@@ -10152,7 +10157,7 @@ static void colorsWine() {
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      // scale | speed
+      //                           scale | speed
       setModeSettings(20U + random8(200U), 200U);
     }
 #endif
@@ -11044,7 +11049,7 @@ static void  FireSparks() {
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      // scale | speed
+      //                       scale | speed
       setModeSettings(random(0U, 99U), random(20U, 100U));
     }
 #endif
@@ -11218,7 +11223,7 @@ static void Dandelions() {
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      // scale | speed
+      //                         scale | speed
       setModeSettings(random8(1U, 100U), random8(10U, 255U));
     }
 #endif
