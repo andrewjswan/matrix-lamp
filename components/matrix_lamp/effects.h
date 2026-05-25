@@ -4909,7 +4909,7 @@ static void shadowsRoutine() {
   const uint8_t effectBrightness = modes[currentMode].Scale * 2.55f;
 
   uint16_t hue16 = sHue16;
-  
+
   sLastMillis  = ms;
   sPseudotime += deltams * msmultiplier;
   sHue16 += deltams * beatsin88(400, 5, 9);
@@ -7821,7 +7821,7 @@ static void Colored_Python() {
         setModeSettings(random8(100U), random8(1, 255U));
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-    
+
     step = 0;
     colorChangeTime = millis();
 
@@ -7830,7 +7830,7 @@ static void Colored_Python() {
 
   const uint16_t t = millis() / (128U - (modes[currentMode].Speed / 2U));
   const uint8_t palette_number = modes[currentMode].Scale / 10U;
-  
+
   if (palette_number < 9) {
     step = palette_number;
   } else {
@@ -7964,11 +7964,11 @@ static void DropInWater() {
     for (uint8_t i = 0U; i < DROP_COUNT; i++) {
       trackingObjectPosX[i] = random8(WIDTH);
       trackingObjectPosY[i] = random8(HEIGHT);
-      
+
       // Для знаковых диапазонов, заходящих в минус, используем стандартный random
       trackingObjectShift[i] = random(-1, MaxRad);
     }
-    
+
     loadingFlag = false;
   }
 
@@ -7978,7 +7978,7 @@ static void DropInWater() {
   currentPalette[8] = CHSV(hue, 255U - Sat, 210U);
   currentPalette[7] = CHSV(hue, Sat - 60U, 255U);
   fillAll(ColorFromPalette(currentPalette, 1U));
-  
+
   for (int8_t i = (int8_t)(DROP_COUNT - 1U); i >= 0; i--) {
     const float current_rad = trackingObjectShift[i];
 
@@ -7996,11 +7996,11 @@ static void DropInWater() {
       trackingObjectShift[i]++;
     }
   }
-  
+
   if (modes[currentMode].Scale == 100U) {
     hue++;
   }
-  
+
   blur2d(WIDTH, HEIGHT, 64U);
 }
 #endif
@@ -11148,7 +11148,7 @@ static void Serpentine() {
   const uint8_t step1 = map8(modes[currentMode].Speed, 10U, 60U);
   const uint16_t ms = millis();
   const uint8_t fade = 180 - std::abs(128 - step);
-  
+
   fadeToBlackBy(leds, NUM_LEDS, fade);
 
   // -----------------
