@@ -11146,7 +11146,7 @@ class Spark {
       uint32_t peak = 0;
       speedy = (float)random8(5U, 31U) * 0.1f;
       y = random8(QUARTER_Y, CENTER_Y);
-      
+
       color = leds[XY(x, y)];
       for (uint8_t i = 0U; i < WIDTH; i++) {
         const uint32_t temp = RGBweight(XY(i, (uint8_t)y));
@@ -11156,7 +11156,7 @@ class Spark {
         }
       }
 
-      color = leds[XY((uint8_t)x, (uint8_t)y)];      
+      color = leds[XY((uint8_t)x, (uint8_t)y)];
     }
 
     void draw() {
@@ -11165,7 +11165,7 @@ class Spark {
       // Чтобы получить (256 / (HEIGHT * 3/4)),
       // переворачиваем дробь: (256 * 4) / (HEIGHT * 3)
       // 256 * 4 = 1024
-      
+
       constexpr uint16_t fade_amount = 1024U / (HEIGHT * 3U);
       color.fadeLightBy(fade_amount);
       drawPixelXYF(x, y, color);
@@ -11179,7 +11179,7 @@ static Spark sparks[sparksCount];
 static void  FireSparks() {
   constexpr uint8_t spacer = QUARTER_Y;
   constexpr uint8_t scale = 50U;
-  
+
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
@@ -11190,14 +11190,14 @@ static void  FireSparks() {
 
     FPSdelay = DYNAMIC;
     lastUpdateTime = 0U;
-    
+
     for (uint8_t i = 0U; i < sparksCount; i++) {
       sparks[i].reset();
-    }    
+    }
 
     loadingFlag = false;
   }
-  
+
   const bool withSparks = (modes[currentMode].Scale >= 50U);
   const uint8_t current_speed = modes[currentMode].Speed;
   lastUpdateTime += current_speed;
@@ -11225,16 +11225,16 @@ static void  FireSparks() {
 
     for (uint8_t x = 0U; x < WIDTH; x++) {
       const int16_t Bri = fastled_helper::perlin8(x * scale, yComp, 0) - yFade;
-      const uint8_t Col = (uint8_t)Bri; 
+      const uint8_t Col = (uint8_t)Bri;
       uint8_t finalBri = 0U;
 
       if (Bri > 0) {
-        finalBri = 255U - (uint8_t)(Bri / 5U); 
+        finalBri = 255U - (uint8_t)(Bri / 5U);
       }
 
       nblend(leds[XY(x, y)], ColorFromPalette(HeatColors_p, Col, finalBri), current_speed);
     }
-  }  
+  }
 }
 #endif
 
