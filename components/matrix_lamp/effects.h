@@ -12847,7 +12847,7 @@ static void RainbowSpot() {
 
   // Calculate the radius based on the sound value --
   // Заменили деление на 127.0f быстрым умножением на инвариант (1.0f / 127.0f ≈ 0.007874f)
-  const float radius = std::abs(128U - (int16_t)step) * 0.007874f * (float)max(CENTER_X_MINOR, CENTER_Y_MINOR);
+  const float radius = std::abs(128 - (int16_t)step) * 0.007874f * (float)max(CENTER_X_MINOR, CENTER_Y_MINOR);
   const float radiusSq = radius * radius;
 
   const uint8_t scale_val = modes[currentMode].Scale;
