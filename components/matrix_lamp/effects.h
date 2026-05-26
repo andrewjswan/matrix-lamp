@@ -11263,7 +11263,6 @@ class Circle {
     int16_t centerX;
     int16_t centerY;
     uint8_t hue;
-    // uint8_t bpm = 10;
 
     void move() {
       centerX = random8(WIDTH);
@@ -11272,12 +11271,12 @@ class Circle {
 
     void scroll() {
       centerX--;
-      if (centerX < 1) {
+      if (centerX < 1U) {
         centerX = MAX_X;
       }
       centerY++;
-      if (centerY > HEIGHT) {
-        centerY = 0;
+      if (centerY > (int16_t)HEIGHT) {
+        centerY = 0U;
       }
     }
 
@@ -11286,15 +11285,12 @@ class Circle {
       centerX = random8(WIDTH);
       centerY = random8(HEIGHT);
       hue = random8();
-      // offset = random(0, 60000 / bpm);
-      offset = random16(6000);
+      offset = random16(6000U);
     }
 
-    float radius() {
-      // float radius = beatsin16((float)modes[currentMode].Speed / 2.5f, 0, 500, offset) / 100.0f;
-      // return radius;
-      uint16_t bpm = ((uint16_t)modes[currentMode].Speed * 2) / 5;
-      return (float)beatsin16(bpm, 0, 500, offset) * 0.01f;
+    float radius() const {
+      const uint16_t bpm = ((uint16_t)modes[currentMode].Speed * 2U) / 5U;
+      return (float)beatsin16(bpm, 0U, 500U, offset) * 0.01f;
     }
 };
 
@@ -11303,19 +11299,20 @@ namespace Circles {
 constexpr uint8_t NUMBER_OF_CIRCLES = CENTER_X;
 static Circle circles[NUMBER_OF_CIRCLES] = {};
 
-static void drawCircle(Circle circle) {
-  int16_t centerX = circle.centerX;
-  int16_t centerY = circle.centerY;
-  int hue = circle.hue;
-  float radius = circle.radius();
+static void drawCircle(const Circle& circle, float radius) {
+  const int16_t centerX = circle.centerX;
+  const int16_t centerY = circle.centerY;
+  const uint8_t hue = circle.hue;
 
-  int16_t r_ceil = (int16_t)(radius + 0.999f); // ceil(radius)
-  int16_t startX = centerX - r_ceil;
-  int16_t endX = centerX + r_ceil;
-  int16_t startY = centerY - r_ceil;
-  int16_t endY = centerY + r_ceil;
+  const int16_t r_ceil = (int16_t)(radius + 0.999f); // ceil(radius)
+  const int16_t startX = centerX - r_ceil;
+  const int16_t endX = centerX + r_ceil;
+  const int16_t startY = centerY - r_ceil;
+  const int16_t endY = centerY + r_ceil;
 
-  float radiusSq = radius * radius;
+  const float radiusSq = radius * radius;
+  
+  const float inv_radius = 1.0f / radius;
 
   for (int16_t x = startX; x <= endX; x++) {
     int16_t dx = x - centerX;
@@ -11334,17 +11331,19 @@ static void drawCircle(Circle circle) {
         continue;
 
       uint16_t brightness;
-      if (radius < 1.0f) {  // last pixel
-        deltaValue = 20;
-        brightness = 180;
+      uint8_t current_sat;
+
+      if (radius < 1.0f) {  // Маленькая точка (центр одуванчика)
+        current_sat = 20U;
+        brightness = 180U;
       } else {
-        deltaValue = 200;
-        float distance = SQRT_VARIANT((float)(dxSq + dySq));
-        float fraction = (radius - distance) / radius;
+        current_sat = 200U;
+        const float distance = SQRT_VARIANT((float)(dxSq + dySq));
+        const float fraction = (radius - distance) * inv_radius;
         brightness = (uint16_t)(255.0f * fraction);
       }
 
-      leds[index] += CHSV(hue, deltaValue, brightness);
+      leds[index] += CHSV(hue, current_sat, brightness);
     }
   }
 }
@@ -11352,17 +11351,19 @@ static void drawCircle(Circle circle) {
 // -----------------------------
 static void draw(bool setup) {
   fadeToBlackBy(leds, NUM_LEDS, 100U);
-  // fillAll(CRGB::Black);
-  for (int i = 0; i < NUMBER_OF_CIRCLES; i++) {
+
+  for (uint8_t i = 0U; i < NUMBER_OF_CIRCLES; i++) {
     if (setup) {
       circles[i].reset();
-    } else {
-      if (circles[i].radius() < 0.5f) {
-        circles[i].scroll();
-      }
     }
-    drawCircle(circles[i]);
-  }
+    
+    const float current_radius = circles[i].radius();
+    if (!setup && (current_radius < 0.5f)) {
+      circles[i].scroll();
+    }
+    
+    drawCircle(circles[i], current_radius);
+  }  
 }
 }; // namespace Circles
 
@@ -11375,12 +11376,12 @@ static void Dandelions() {
       setModeSettings(random8(1U, 100U), random8(10U, 255U));
     }
 #endif
-    loadingFlag = false;
 
     ledsClear(); // esphome: FastLED.clear();
 
     Circles::draw(true);
-    deltaValue = 155 + modes[currentMode].Scale;
+
+    loadingFlag = false;
   }
 
   // FPSdelay = SOFT_DELAY;
