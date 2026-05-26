@@ -12716,13 +12716,6 @@ static void LightFilter() {
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    divider = floor(modes[currentMode].Scale / 25);
-    direct = true;
-    dX = 1;
-    pcnt = 0;
-    frameCount = 0;
-    hue2 == 32;
-
     deltaHue = modes[currentMode].Scale / 25U; // divider
     hue = 1U;                                  // direct = true
     hue2 = 1U;                                 // dX = 1
