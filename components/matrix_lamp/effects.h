@@ -12729,7 +12729,7 @@ static void LightFilter() {
     pcnt = 0U;
     deltaHue2 = 0U;                            // deltaValue = 0
     step = 0U;                                 // Наш 8-битный frameCount
- 
+
     clearNoiseArr();
 
     ledsClear(); // esphome: FastLED.clear();
