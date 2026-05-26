@@ -10667,7 +10667,7 @@ static void ballRoutine() {
 static void drawStar(float xlocl, float ylocl, float biggy, float little, int16_t points, float dangle, uint8_t koler) { // random multipoint star
   const float radius2 = 255.0f / (float)points;
   constexpr float inv128 = 1.0f / 128.0f;
-  
+
    for (uint8_t i = 0U; i < points; i++) {
     const float i_rad2 = i * radius2;
     const float i_rad2_dangle = i_rad2 - dangle;
@@ -10710,7 +10710,7 @@ static void EffectStars() {
   // static uint8_t spd => переносим в глобальный пул в регистр ff_x
   // static uint8_t stars_count => переносим в глобальный пул в регистр ff_y
   // static uint8_t blur => переносим в глобальный пул в регистр ff_z
-  
+
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
@@ -10721,15 +10721,15 @@ static void EffectStars() {
 
     trackingObjectPosX[0U] = CENTER_X_F;                                           // Стартуем строго с центра матрицы
     trackingObjectPosY[0U] = CENTER_Y_F;
-    
+
     trackingObjectPosX[1U] = (float)(sin8(random8(25U, 220U)) - 128.0f) * inv128;  // angle of movement for the center of animation gives a float value between -1 and 1
     trackingObjectPosY[1U] = (float)(sin8(random8(25U, 220U)) - 128.0f) * inv128;  // angle of movement for the center of animation in the y direction gives a float value between -1 and 1
-    
+
     ff_x = modes[currentMode].Speed;                                               // spd
     ff_z = modes[currentMode].Scale >> 1U;                                         // blur
     ff_y = CENTER_X;                                                               // stars_count
     if (ff_y > STARS_NUM) ff_y = STARS_NUM;
-    
+
     trackingObjectPosX[2U] = (float)(ff_x / 5U + 3U);                              // counter
 
     for (uint8_t num = 0U; num < ff_y; num++) {
@@ -10742,13 +10742,13 @@ static void EffectStars() {
   }
 
   fadeToBlackBy(leds, NUM_LEDS, 165);
-  
+
   float& driftx = trackingObjectPosX[0U];
   float& drifty = trackingObjectPosY[0U];
   float& cangle = trackingObjectPosX[1U];
   float& sangle = trackingObjectPosY[1U];
   float& counter = trackingObjectPosX[2U];
-  
+
   const float speedFactor = ((float)ff_x * 0.0026315f + 0.05f);                 // ((float)spd / 380.0f + 0.05f)
   counter += speedFactor;                                                       // определяет то, с какой скоростью будет приближаться звезда
 
@@ -10766,7 +10766,7 @@ static void EffectStars() {
     sangle = 0.0f - std::abs(sangle);
   if (drifty < (float)(spirocenterY / 2U))                                      // if y gets too small reverse
     sangle = std::abs(sangle);
-  
+
   if (int_counter % CENTER_DRIFT_SPEED == 0U) {                                 // move the y center every so often
     drifty += (sangle * speedFactor);
   }
@@ -10775,7 +10775,7 @@ static void EffectStars() {
     const float current_delay = trackingObjectShift[num];
     if (counter >= current_delay) {
       const float star_age = counter - current_delay;
-      
+
       if (star_age <= (float)(WIDTH + 5U)) {
         drawStar(driftx, drifty, star_age * 2.0f, star_age, (uint8_t)trackingObjectSpeedX[num], STAR_BLENDER + trackingObjectHue[num], (uint8_t)trackingObjectHue[num]);
         trackingObjectHue[num] += speedFactor;                                  // в зависимости от знака - направление вращения
@@ -10784,7 +10784,7 @@ static void EffectStars() {
       }
     }
   }
-  
+
   blur2d(WIDTH, HEIGHT, ff_z);
 }
 #endif
