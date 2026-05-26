@@ -12160,6 +12160,7 @@ static void Fountain() {
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
+      //                    scale | speed
       setModeSettings(random8(100), random8(2, 254U));
     }
     #endif
@@ -12253,6 +12254,7 @@ static void NightCity() {
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
+      //          scale | speed
       setModeSettings(50, random8(2, 254U));
     }
     #endif
@@ -12374,49 +12376,55 @@ static void RainRoutine()
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      setModeSettings(random8(10U) ? 2U + random8(99U) : 1U , 185U + random8(52U));
+      //                                             scale | speed
+      setModeSettings(random8(10U) ? 2U + random8(99U) : 1U, 185U + random8(52U));
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-    loadingFlag = false;
+
+    const uint8_t scale_val = modes[currentMode].Scale;
+    // ПРЕДРАСЧЕТ ПОДРЕЖИМА ОСАДКОВ
+    if (scale_val == 1U) {
+      deltaValue = 0U; // Радужный дождь
+    } else if (scale_val == 100U) {
+      deltaValue = 1U; // Снег
+    } else {
+      deltaValue = 2U; // Цветной дождь
+    }
+
+    // ПОЛНЫЙ ПРЕДРАСЧЕТ БАЗОВОГО ОТТЕНКА
+    deltaHue = (uint8_t)(scale_val * 2.4f);
+
     ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
 
-  for (uint8_t x = 0U; x < WIDTH; x++)
-  {
-    // заполняем случайно верхнюю строку
-    if (getPixColorXY(x, MAX_Y) == 0U)
-    {
-      if (random8(0, 50) == 0U)
-      {
-        if (modes[currentMode].Scale == 1)
-        {
-          drawPixelXY(x, MAX_Y, CHSV(random(0, 9) * 28, 255U, 255U));                               // Радужный дождь
+  // Обсчет и генерация капель на самой верхней строке матрицы
+  for (uint8_t x = 0U; x < WIDTH; x++) {
+    if (getPixColorXY(x, MAX_Y) == 0U) {
+      if (random8(50U) == 0U) {
+        if (deltaValue == 0U) {
+          // Радужный дождь
+          drawPixelXY(x, MAX_Y, CHSV((uint8_t)(random8(9U) * 28U), 255U, 255U));
+        } else if (deltaValue == 1U) {
+          // Снег
+          drawPixelXY(x, MAX_Y, (uint32_t)(0xE0FFFF - 0x101010 * random8(4U)));
+        } else {
+          // Цветной дождь
+          drawPixelXY(x, MAX_Y, CHSV((uint8_t)(deltaHue + random8(16U)), 255U, 255U));
         }
-        else
-        {
-          if (modes[currentMode].Scale == 100)
-          {
-            drawPixelXY(x, MAX_Y, 0xE0FFFF - 0x101010 * random(0, 4));                              // Снег
-          }
-          else
-          {
-            drawPixelXY(x, MAX_Y, CHSV(modes[currentMode].Scale * 2.4f + random(0, 16), 255, 255));  // Цветной дождь
-          }
-        }
+
       }
-    }
-    else
-    {
-      leds[XY(x, MAX_Y)] -= CHSV(0, 0, random(96, 128));
+    } else {
+      // Постепенное угасание капель, задержавшихся на верхней строчке
+      leds[XY(x, MAX_Y)] -= CHSV(0U, 0U, random8(96U, 128U));
     }
   }
 
   // сдвигаем всё вниз
-  for (uint8_t x = 0U; x < WIDTH; x++)
-  {
-    for (uint8_t y = 0U; y < MAX_Y; y++)
-    {
-      drawPixelXY(x, y, getPixColorXY(x, y + 1U));
+  for (uint8_t x = 0U; x < WIDTH; x++) {
+    for (uint8_t y = 0U; y < MAX_Y; y++) {
+      drawPixelXY(x, y, getPixColorXY(x, (uint8_t)(y + 1U)));
     }
   }
 }
