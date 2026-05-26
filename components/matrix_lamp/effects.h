@@ -13038,7 +13038,7 @@ static void munchRoutine() {
 
     hue = 0U;              // generation = 0
     hue2 = 0U;             // flip = 0
-    
+
     emitterX = 0.0f;       // count = 0
     emitterY = 1.0f;       // dir = 1
 
@@ -13090,7 +13090,7 @@ static void munchRoutine() {
 
   if ((int8_t)emitterX <= 0 || (int8_t)emitterX >= (int8_t)pcnt) {
     emitterY = -emitterY; // dir = -dir
-    
+
     if ((int8_t)emitterX <= 0) {
       pcnt = deltaValue; // mic[0] = mic[1]
       // Прямая инверсия фазы фрактала в регистре hue2 (flip)
