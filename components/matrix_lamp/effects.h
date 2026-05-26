@@ -12040,40 +12040,40 @@ static void Avrora() {
 //             Цветок Лотоса
 //---------------------------------------
 static void drawLotusFlowerFragment(uint8_t posX, uint8_t line) {
-  constexpr uint8_t h = (HEIGHT > 24) ? (uint16_t)(HEIGHT * 9) / 10 : HEIGHT;
+  constexpr uint8_t h = (HEIGHT > 24U) ? (uint8_t)((uint16_t)(HEIGHT * 9U) / 10U) : HEIGHT;
   constexpr uint8_t lowBri = 112U;
 
-  uint8_t flover_color = 128 + std::abs(128 - hue);                             // 128 -- 255
-  uint8_t gleam = 255 - std::abs(128 - hue2);                                   // 255 -- 128
+  const uint8_t flover_color = 128U + std::abs(128 - (int16_t)hue);             // 128 -- 255
+  const uint8_t gleam = 255U - std::abs(128 - (int16_t)hue2);                   // 255 -- 128
 
   // Вместо f_size считаем сразу смещение по высоте в целых числах:
   // f_size был (128 - abs(128 - deltaValue)) / 150.0f                          // 1.0 -- 0.0
   // Значит h * f_size = (h * (128 - abs(128 - deltaValue))) / 150
-  uint8_t h_f_size = ((uint16_t)h * (128 - std::abs(128 - (int16_t)deltaValue))) / 150;
+  const uint8_t h_f_size = (uint8_t)(((uint16_t)h * (128 - std::abs(128 - (int16_t)deltaValue))) / 150U);
 
   // clear: h * 1.1 это h + h/10
-  DrawLine(posX, 0, posX, h + (h / 10), CRGB::Black);
+  DrawLine(posX, 0U, posX, (uint8_t)(h + (h / 10U)), 0x000000);
 
   switch (line) {
-    case 0:
-      gradientVertical(posX, 0, posX + 1, (h * 22) / 100, 96, 96, 32, 255, 255U);                        // 0.22        green leaf c
-      gradientVertical(posX, (h * 9) / 10, posX + 1, h + (h / 10), 64, 48, 64, 205, gleam);              // 0.9 и 1.1   pestle
-      gradientVertical(posX, 8, posX + 1, (h * 6) / 10, flover_color, flover_color, 128, lowBri, 255U);  // 0.6         ---
+    case 0U:
+      gradientVertical(posX, 0U, (uint8_t)(posX + 1U), (uint8_t)((h * 22U) / 100U), 96U, 96U, 32U, 255U, 255U);                             // 0.22        green leaf c
+      gradientVertical(posX, (uint8_t)((h * 9U) / 10U), (uint8_t)(posX + 1U), (uint8_t)(h + (h / 10U)), 64U, 48U, 64U, 205U, gleam);        // 0.9 и 1.1   pestle
+      gradientVertical(posX, 8U, (uint8_t)(posX + 1U), (uint8_t)((h * 6U) / 10U), flover_color, flover_color, 128U, lowBri, 255U);          // 0.6         ---
       break;
-    case 2:
-    case 6:
-      gradientVertical(posX, h / 5, posX + 1, h - 4, flover_color, flover_color, lowBri, 255, gleam);    // 0.2         -->
-      gradientVertical(posX, h / 20, posX + 1, (h * 15) / 100, 96, 96, 32, 255, 255U);                   // 0.05 и 0.15 green leaf
+    case 2U:
+    case 6U:
+      gradientVertical(posX, (uint8_t)(h / 5U), (uint8_t)(posX + 1U), (uint8_t)(h - 4U), flover_color, flover_color, lowBri, 255U, gleam);  // 0.2         -->
+      gradientVertical(posX, (uint8_t)(h / 20U), (uint8_t)(posX + 1U), (uint8_t)((h * 15U) / 100U), 96U, 96U, 32U, 255U, 255U);             // 0.05 и 0.15 green leaf
       break;
-    case 3:
-    case 5:
-      gradientVertical(posX, h / 2, posX + 1, h - 2, flover_color, flover_color, lowBri, 255, 255U);     // 0.5         ---->
+    case 3U:
+    case 5U:
+      gradientVertical(posX, (uint8_t)(h / 2U), (uint8_t)(posX + 1U), (uint8_t)(h - 2U), flover_color, flover_color, lowBri, 255U, 255U);   // 0.5         ---->
       break;
-    case 4:
-      gradientVertical(posX, 1 + h_f_size, posX + 1, h, flover_color, flover_color, lowBri, 255, gleam);  //           ------>
+    case 4U:
+      gradientVertical(posX, (uint8_t)(1U + h_f_size), (uint8_t)(posX + 1U), h, flover_color, flover_color, lowBri, 255U, gleam);           //             ------>
       break;
     default:
-      gradientVertical(posX, h / 20, posX + 1, h / 5, 80, 96, 160, 64, 255U);                             // 0.05 и 0.2 green leaf m
+      gradientVertical(posX, (uint8_t)(h / 20U), (uint8_t)(posX + 1U), (uint8_t)(h / 5U), 80U, 96U, 160U, 64U, 255U);                       // 0.05 и 0.2 green leaf m
       break;
   }
 }
@@ -12081,8 +12081,6 @@ static void drawLotusFlowerFragment(uint8_t posX, uint8_t line) {
 //---------------------------------------
 static void LotusFlower() {
   constexpr uint8_t STEP_OBJ = 8;
-
-  static uint8_t deltaSpeed = 0;
 
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
@@ -12092,48 +12090,58 @@ static void LotusFlower() {
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     step = 0U;
     hue2 = 128U;
-    deltaValue = 0;
-    hue = 224;
-    FPSdelay = SpeedFactor(160);
+    deltaValue = 0U;
+    hue = 224U;
+    FPSdelay = SpeedFactor(160U);
 
     ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
 
-  if (modes[currentMode].Speed > 128U) {
-    if (modes[currentMode].Scale > 50) {
-      deltaSpeed = 80U + (128U - std::abs((int)(128U - deltaValue))) / 1.25f;
+  const uint8_t current_speed = modes[currentMode].Speed;
+  const uint8_t current_scale = modes[currentMode].Scale;
+
+  if (current_speed > 128U) {
+    if (current_scale > 50U) {
+      const uint8_t deltaSpeed = 80U + (uint8_t)((128U - std::abs(128 - (int16_t)deltaValue)) * 0.8f);
       FPSdelay = SpeedFactor(deltaSpeed);
-      if (step % 256 == 0U) hue += 32;           /* color morph */
+
+      if (step == 0U) {  /* color morph */
+        hue += 32U;
+      }
     } else {
-      FPSdelay = SpeedFactor(160);
+      FPSdelay = SpeedFactor(160U);
       hue = 28U;
     }
-    deltaValue++;     /* size morph  */
+    deltaValue++;        /* size morph */
+
     /* <==== scroll ===== */
-    drawLotusFlowerFragment(MAX_X, (step % STEP_OBJ));
-    for (uint8_t y = 0U ; y < HEIGHT; y++) {
-      for (uint8_t x = 0U ; x < WIDTH; x++) {
-        drawPixelXY(x - 1, y,  getPixColorXY(x,  y));
+    drawLotusFlowerFragment(MAX_X, (uint8_t)(step % STEP_OBJ));
+    for (uint8_t y = 0U; y < HEIGHT; y++) {
+      for (uint8_t x = 0U; x < WIDTH; x++) {
+        drawPixelXY((int16_t)(x - 1U), y, getPixColorXY(x, y));
       }
     }
   } else {
     /* <==== morph ===== */
-    for (uint8_t x = 0U ; x < WIDTH; x++) {
-      drawLotusFlowerFragment(x, (x % STEP_OBJ));
-      if (x % 2U) {
-        hue2++;         /* gleam morph */
+    for (uint8_t x = 0U; x < WIDTH; x++) {
+      drawLotusFlowerFragment(x, (uint8_t)(x % STEP_OBJ));
+      if ((x & 0x01U) != 0U) {
+        hue2++;          /* gleam morph */
       }
     }
-    deltaValue++;       /* size morph  */
-    if (modes[currentMode].Scale > 50) {
-      hue += 8; /* color morph */
+    deltaValue++;        /* size morph  */
+
+    if (current_scale > 50U) {
+      hue += 8U;         /* color morph */
     } else {
       hue = 28U;
     }
   }
+
   step++;
 }
 #endif
