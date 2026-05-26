@@ -11037,13 +11037,13 @@ static void TixyLand() {
     deltaHue = 0U;
     pcnt = map(modes[currentMode].Speed, 5U, 250U, 1U, 25U);
     FPSdelay = 1U;
-    
+
     deltaHue2 = (modes[currentMode].Scale * 255U) / 100U;
     if (modes[currentMode].Scale < 5U) {
       deltaHue2 = 0U;
     }
-    
-    hue = 255U; 
+
+    hue = 255U;
     hue2 = 0U;
 
     loadingFlag = false;
@@ -11057,7 +11057,7 @@ static void TixyLand() {
       pcnt++;
     }
   }
-  
+
   const uint8_t current_hue = hue;
   const uint8_t current_hue2 = hue2 + deltaHue2;
   const bool is_white_mode = (current_hue == 255U);
@@ -11068,7 +11068,7 @@ static void TixyLand() {
     for (uint8_t y = 0U; y < HEIGHT; y++) {
       const float fy = (float)y;
       const float i = (fy * (float)WIDTH) + fx;
-      
+
       const float frame = clamp(code(t, i, fx, fy), -1.0f, 1.0f) * 255.0f;
 
       if (frame > 0.0f) {
