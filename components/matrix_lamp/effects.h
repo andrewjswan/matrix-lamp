@@ -11402,8 +11402,9 @@ static void Dandelions() {
 // =====================================
 static void Serpentine() {
   constexpr uint8_t PADDING = QUARTER_Y;
-  constexpr uint8_t BR_INTERWAL = 64 / HEIGHT;
+  constexpr uint8_t BR_INTERWAL = 64U / HEIGHT;
   constexpr uint8_t DELTA = QUARTER_X;
+  constexpr float freq = 3000.0f;
 
   // ---------------------
   if (loadingFlag) {
@@ -11412,47 +11413,56 @@ static void Serpentine() {
       setModeSettings(random8(4, 50), random8(4, 254U));
     }
 #endif
-    loadingFlag = false;
-    deltaValue = 0;
-    hue = 0;
+
+    deltaValue = 0U;
+    hue = 0U;
+
     ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
   // ---------------------
 
-  constexpr float freq = 3000.0f;
-  constexpr float mn = 255.0f / 13.8f;
-
   const uint8_t step1 = map8(modes[currentMode].Speed, 10U, 60U);
   const uint16_t ms = millis();
-  const uint8_t fade = 180 - std::abs(128 - step);
+  const uint8_t fade = 180U - std::abs(128 - step);
 
   fadeToBlackBy(leds, NUM_LEDS, fade);
 
+  constexpr float inv_max_y = 1.0f / MAX_Y;
+  const uint16_t ms_div29 = ms / 29U;
+
   // -----------------
   for (uint16_t y = 0U; y < HEIGHT; y++) {
-    uint32_t yy = y * 256;
-    uint32_t x1 = beatsin16(step1, WIDTH, MAX_Y * 256, WIDTH, y * freq + 32768) / 2;
+    const uint32_t yy = (uint32_t)(y << 8U);                                                                           // y * 256
+    const uint32_t x1 = beatsin16(step1, WIDTH, (uint16_t)(MAX_Y << 8U), WIDTH, (uint16_t)(y * freq + 32768U)) >> 1U;  // / 2
+
+    const uint8_t bri = 255U - (uint8_t)((HEIGHT - y) * BR_INTERWAL);
+    const uint8_t base_hue = ms_div29 + (uint8_t)((y << 8U) * inv_max_y);
 
     // change color --------
-    CRGB col1 = CHSV(ms / 29 + y * 256 / MAX_Y + 128, 255, 255 - (HEIGHT - y) * BR_INTERWAL);
-    CRGB col2 = CHSV(ms / 29 + y * 256 / MAX_Y,       255, 255 - (HEIGHT - y) * BR_INTERWAL);
-    // CRGB col3 = CHSV(ms / 29 + y * 256 / MAX_Y + step, 255, 255 - (HEIGHT - y) * BR_INTERWAL - fade);
+    CRGB col1 = CHSV((uint8_t)(base_hue + 128U), 255U, bri);
+    CRGB col2 = CHSV(base_hue, 255U, bri);
 
-    wu_pixel((uint32_t)(x1 + hue * DELTA),                                 (uint32_t)(yy - PADDING * (255 - hue)), &col1);
-    wu_pixel((uint32_t)std::abs((int)(MAX_X * 256 - (x1 + hue * DELTA))), (uint32_t)(yy - PADDING * hue),         &col2);
+    const uint32_t x_offset = x1 + (hue * DELTA);
+    wu_pixel(x_offset, (uint32_t)(yy - PADDING * (255U - hue)), &col1);
+
+    const int32_t inv_x = (int32_t)(MAX_X << 8U) - (int32_t)x_offset;
+    wu_pixel((uint32_t)std::abs(inv_x), (uint32_t)(yy - PADDING * hue), &col2);
   }
 
   step++;
-  if (step % 64) {
-    if (deltaValue == 0) {
+
+  if ((step % 64U) == 0U) {
+    if (deltaValue == 0U) {
       hue++;
-      if (hue >= 255) {
-        deltaValue = 1;
+      if (hue >= 255U) {
+        deltaValue = 1U;
       }
     } else {
       hue--;
-      if (hue < 1) {
-        deltaValue = 0;
+      if (hue < 1U) {
+        deltaValue = 0U;
       }
     }
   }
@@ -11465,27 +11475,25 @@ static void Serpentine() {
 //             © SlingMaster
 //        Цифрова Турбулентність
 // =====================================
-static void drawRandomCol(uint8_t x, uint8_t y, uint8_t offset, uint32_t count) {
-  constexpr uint8_t STEP = 32;
+static void drawRandomCol(uint8_t x, uint8_t y, uint8_t offset, uint8_t count) {
+  constexpr uint8_t STEP = 32U;
   constexpr uint8_t D = OCTANT_Y;
 
-  uint8_t color = floor(y / D) * STEP + offset;
+  const uint8_t color = (y / D) * STEP + offset;  // floor(y / D) * STEP + offset;
 
   if (count == 0U) {
-    drawPixelXY(x, y, CHSV(color, 255, random8(8U) == 0U ? (step % 2U ? 0 : 255) : 0));
+    const uint8_t bri = (random8(8U) == 0U) ? ((step & 0x01U) ? 0U : 255U) : 0U;
+    drawPixelXY(x, y, CHSV(color, 255U, bri));
   } else {
-    drawPixelXY(x, y, CHSV(color, 255, (bitRead(count, y) == 1U) ? (step % 5U ? 0 : 255) : 0));
+    const uint8_t bri = (bitRead(count, y) == 1U) ? ((step % 5U) ? 0U : 255U) : 0U;
+    drawPixelXY(x, y, CHSV(color, 255U, bri));
   }
 }
 
 //---------------------------------------
 static void Turbulence() {
-  constexpr uint8_t STEP_COLOR = 255 / HEIGHT;
   constexpr uint8_t STEP_OBJ = 8U;
   constexpr uint8_t DEPTH = 2U;
-
-  static uint32_t count; // 16777216; = 65536
-  uint32_t curColor;
 
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
@@ -11494,72 +11502,69 @@ static void Turbulence() {
       setModeSettings(random8(100U), random8(1, 255U));
     }
 #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-    loadingFlag = false;
     step = 0U;
-    deltaValue = 0;
-    hue = 0;
+    deltaValue = 0U;
+    hue = 0U;
+
+    pcnt = 0U;
+
     if (modes[currentMode].Speed < 20U) {
-      FPSdelay = SpeedFactor(30);
+      FPSdelay = SpeedFactor(30U);
     }
+
     ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
 
   deltaValue++;     /* size morph  */
 
   /* <==== scroll =====> */
-  for (uint8_t y = HEIGHT; y > 0; y--) {
-    drawRandomCol(0, y - 1, hue, count);
-    drawRandomCol(MAX_X, y - 1, hue + 128U, count);
+  for (uint8_t y = HEIGHT; y > 0U; y--) {
+    const uint8_t current_y = y - 1U;
+
+    drawRandomCol(0U, current_y, hue, pcnt);
+    drawRandomCol(MAX_X, current_y, (uint8_t)(hue + 128U), pcnt);
 
     // left -----
-    for (uint8_t x = CENTER_X_MAJOR - 1; x > 0; x--) {
-      if (x > CENTER_X_MAJOR) {
-        if (random8(2) == 0U) { /* scroll up */
-          CRGB newColor = getPixColorXY(x, y - 1);
-        }
-      }
-
+    for (uint8_t x = (uint8_t)(CENTER_X_MAJOR - 1U); x > 0U; x--) {
       /* ---> */
-      curColor = getPixColorXY(x - 1, y - 1);
-      if (x < CENTER_X_MAJOR - DEPTH / 2) {
-        drawPixelXY(x, y - 1, curColor);
+      const uint32_t curColor = getPixColorXY((uint8_t)(x - 1U), current_y);
+      if (x < (uint8_t)(CENTER_X_MAJOR - DEPTH / 2U)) {
+        drawPixelXY(x, current_y, curColor);
       } else {
-        if (curColor != 0U) drawPixelXY(x, y - 1, curColor);
+        if (curColor != 0U) drawPixelXY(x, current_y, curColor);
       }
     }
 
     // right -----
-    for (uint8_t x = CENTER_X_MAJOR + 1; x < WIDTH; x++) {
-      if (x < CENTER_X_MAJOR + DEPTH) {
-        if (random8(2) == 0U)  {  /* scroll up */
-          CRGB newColor = getPixColorXY(x, y - 1);
-        }
-      }
+    for (uint8_t x = (uint8_t)(CENTER_X_MAJOR + 1U); x < WIDTH; x++) {
       /* <---  */
-      curColor = getPixColorXY(x, y - 1);
-      if (x > CENTER_X_MAJOR + DEPTH / 2) {
-        drawPixelXY(x - 1, y - 1, curColor);
+      const uint32_t curColor = getPixColorXY(x, current_y);
+      if (x > (uint8_t)(CENTER_X_MAJOR + DEPTH / 2U)) {
+        drawPixelXY((uint8_t)(x - 1U), current_y, curColor);
       } else {
-        if (curColor != 0U) drawPixelXY(x - 1, y - 1, curColor);
+        if (curColor != 0U) drawPixelXY((uint8_t)(x - 1U), current_y, curColor);
       }
     }
 
     /* scroll center up ---- */
-    for (uint8_t x = CENTER_X_MAJOR - DEPTH; x < CENTER_X_MAJOR + DEPTH; x++) {
-      drawPixelXY(x, y,  makeDarker(getPixColorXY(x, y - 1), 128 / y));
-      if (y == 1) {
-        drawPixelXY(x, 0, CRGB::Black);
+    for (uint8_t x = (uint8_t)(CENTER_X_MAJOR - DEPTH); x < (uint8_t)(CENTER_X_MAJOR + DEPTH); x++) {
+      drawPixelXY(x, y, makeDarker(getPixColorXY(x, current_y), (uint8_t)(128U / y)));
+      if (y == 1U) {
+        drawPixelXY(x, 0U, 0x000000);
       }
     }
     /* --------------------- */
   }
 
-  if (modes[currentMode].Scale > 50) {
-    count++;
-    if (count % 256 == 0U) hue += 16U;
-  } else {
-    count = 0;
+  if (modes[currentMode].Scale > 50U) {
+    pcnt++;
+    if (pcnt == 0U) {
+      hue += 16U;
+    }
   }
+
   step++;
 }
 #endif
