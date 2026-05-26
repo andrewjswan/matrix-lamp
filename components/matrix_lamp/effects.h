@@ -12021,8 +12021,8 @@ static void Avrora() {
 
     // Оптимизация: заменяем деление на 5 умножением на 0.2f
     const int16_t calc_br = 255 - (int16_t)((y * HEIGHT) * 0.2f);
-    const uint8_t br = (calc_br < 0) ? 0U : ((calc_br > 200) ? 200U : (uint8_t)calc_max);
-
+    const uint8_t br = (calc_br < 0) ? 0U : ((calc_br > 200) ? 200U : (uint8_t)calc_br);
+    
     CRGB color2 = CHSV((uint8_t)(cur_color - 32U), (uint8_t)(255U - y * QUARTER_Y), br);
 
     const uint32_t x_offset = x1 + hue;
