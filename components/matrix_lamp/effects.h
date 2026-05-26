@@ -12597,7 +12597,7 @@ static void drawDot(float x, float y, uint8_t a) {
   for (uint8_t i = 0U; i < 4U; i++) {
     const int16_t xn = (int16_t)x + (i & 0x01U);
     const int16_t yn = (int16_t)y + ((i >> 1U) & 0x01U);
-    
+
     buff[xn][yn] = qadd8(buff[xn][yn], (uint8_t)((a * wu[i]) >> 8U));
   }
 }
