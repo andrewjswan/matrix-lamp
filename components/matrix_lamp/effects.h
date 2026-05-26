@@ -12162,33 +12162,33 @@ static void Fountain() {
     const uint8_t idx = constrain((uint8_t)(modes[currentMode].Scale / 20U), 0U, 4U);
     hue = gamma[idx];        // hue — базовый цвет
     hue2 = gamma[idx + 1U];  // hue2 — соседний цвет
-    
-    emitterY = 0.0f; 
-    pcnt = 0U;       
+
+    emitterY = 0.0f;
+    pcnt = 0U;
     step = 0U;
-    
+
     ledsClear(); // esphome: FastLED.clear();
 
     loadingFlag = false;
   }
 
   const float radius = std::abs(128 - (int16_t)step) * 0.007874f * (float)CENTER_Y_MINOR;  // / 127.0f
-  
+
   // Предрасчет шага базовой яркости
   const uint8_t br_div = 255U / ((uint8_t)emitterY + 1U);
 
   const uint8_t ceilRadius = (uint8_t)radius + (radius > (float)((uint8_t)radius) ? 1U : 0U);
   const uint8_t delta_val = (uint8_t)(((uint16_t)emitterY * 7U + (uint16_t)radius * 10U + 9U) / 10U);
-  
+
   const uint8_t right_target_hue = hue2 - ceilRadius;
-  
+
   for (uint8_t y = 0U; y < HEIGHT; y++) {
     const int16_t calc_br = br_div * y;
     const uint8_t br = (calc_br < 48) ? 48U : ((calc_br > 255) ? 255U : (uint8_t)calc_br);
 
     const int16_t boundaryLow = (int16_t)(emitterY - radius + 0.99f);
     const int16_t boundaryMid = (int16_t)(emitterY - (radius * 0.5f) + 0.99f);
-    
+
     const float fy_plus = (float)y + 0.5f;
     const float fy_minus = (float)y - 0.5f;
 
@@ -12237,7 +12237,7 @@ static void Fountain() {
     } else {
       pcnt = random8(2U, (uint8_t)(HEIGHT - PADDING - 1U));
     }
-  }  
+  }
 
   step++;
 }
