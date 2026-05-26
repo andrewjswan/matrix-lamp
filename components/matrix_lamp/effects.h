@@ -12256,7 +12256,7 @@ static void Fountain() {
 //              Ночной Город
 // =====================================
 static void NightCity() {
-  constexpr uint8_t PADDING = static_cast<uint8_t>(HEIGHT * 0.13f);
+  constexpr uint8_t PADDING = (uint8_t)(HEIGHT * 0.13f);
 
   // ---------------------
   if (loadingFlag) {
@@ -12266,92 +12266,104 @@ static void NightCity() {
     }
     #endif
 
-    loadingFlag = false;
-    hue = 64;
-    for (uint16_t i = 0U; i < WIDTH; i++) {
-      noise3d[0][i][0] = PADDING + 2;
-      noise3d[0][i][1] = PADDING + 3;
+    hue = 64U;
+    for (uint8_t i = 0U; i < WIDTH; i++) {
+      for (uint8_t j = 0U; j < HEIGHT; j++) {
+        noise3d[0U][i][j] = 0U;
+      }
+      noise3d[0U][i][0U] = PADDING + 2U; // Текущий этаж лифта
+      noise3d[0U][i][1U] = PADDING + 3U; // Целевой этаж лифта
     }
+
     ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
   // ---------------------
 
-  uint8_t xx = random8(WIDTH);
-  uint8_t yy = random8(HEIGHT);
-  uint8_t fade = 80; //60 - std::abs(128 - step) / 3;
+  const uint8_t xx = random8(WIDTH);
+  const uint8_t yy = random8(HEIGHT);
+  constexpr uint8_t fade = 80U;
+
   fadeToBlackBy(leds, NUM_LEDS, fade);
+
+  const uint8_t speed_val = modes[currentMode].Speed;
+  const uint8_t scale_val = modes[currentMode].Scale;
+  const bool flag_scale = (scale_val > 50U);
 
   // -----------------
   for (uint16_t y = 0U; y < HEIGHT; y++) {
-    for (uint16_t x = 0U; x < WIDTH; x++) {
-      if (y > PADDING) {
+    if (y > PADDING) {
+      const bool y_even = ((y & 0x01U) == 0U);  // % 2 == 0U
+
+      for (uint16_t x = 0U; x < WIDTH; x++) {
         if (x % 6U == 0U) {
           /* draw Elevator */
-          leds[XY(x, noise3d[0][x][1])] = CHSV(160, 255U, 255U);
+          leds[XY(x, noise3d[0U][x][1U])] = CHSV(160U, 255U, 255U);
         } else {
           /* draw light ------- */
-          // if ((x % 2U == 0U) & (y % 2U == 0U)) {
-          bool flag = (modes[currentMode].Scale > 50U) ? true : x % 2U == 0U;
-          if (flag & (y % 2U == 0U)) {
-            if ((x == xx) & (y == yy)) {
-              /* change light */
-              if (noise3d[0][x][y] == 0) {
-                noise3d[0][x][y] = random8(1, 5);
-                if (modes[currentMode].Speed > 80) {
-                  noise3d[0][random8(WIDTH)][random8(PADDING + 1, MAX_Y)] = 6;
-                }
-                if (modes[currentMode].Speed > 160) {
-                  noise3d[0][random8(WIDTH)][random8(PADDING + 1, MAX_Y)] = 6;
-                }
+          const bool flag = flag_scale ? true : ((x & 0x01U) == 0U);
 
+          if (flag && y_even) {
+            if ((x == xx) && (y == yy)) {
+              /* change light */
+              if (noise3d[0U][x][y] == 0U) {
+                noise3d[0U][x][y] = random8(1U, 5U);
+                if (speed_val > 80U) {
+                  noise3d[0U][random8(WIDTH)][random8((uint8_t)(PADDING + 1U), MAX_Y)] = 6U;
+                }
+                if (speed_val > 160U) {
+                  noise3d[0U][random8(WIDTH)][random8((uint8_t)(PADDING + 1U), MAX_Y)] = 6U;
+                }
               } else {
-                noise3d[0][x][y] = 0;
+                noise3d[0U][x][y] = 0U;
               }
             }
-            if (modes[currentMode].Speed > 250) {
-              noise3d[0][x][y] = 2;
+
+            if (speed_val > 250U) {
+              noise3d[0U][x][y] = 2U;
             }
+
             /* draw light ----- */
-            if (noise3d[0][x][y] > 0) {
-              if (noise3d[0][x][y] == 1U) {
+            const uint8_t window_state = noise3d[0U][x][y];
+            if (window_state > 0U) {
+              if (window_state == 1U) {
                 leds[XY(x, y)] = CHSV(32U, 200U, 255U);
               } else {
-                leds[XY(x, y)] =  CHSV(128U, 32U, 255U);
+                leds[XY(x, y)] = CHSV(128U, 32U, 255U);
               }
             }
           }
         }
-      } else {
-        /* draw the lower floors */
-        if (y == PADDING) {
-          leds[XY(x, y)] = CHSV(hue, 255U, 255U);
-        } else {
-          leds[XY(x, y)] = CHSV(96U, 128U, 80U + y * 32);
-        }
+      }
+    } else {
+      /* draw the lower floors */
+      const CRGB floor_color = (y == PADDING) ? CHSV(hue, 255U, 255U) : CHSV(96U, 128U, (uint8_t)(80U + y * 32U));
+      for (uint8_t x = 0U; x < WIDTH; x++) {
+        leds[XY(x, y)] = floor_color;
       }
     }
   }
 
   /* change elevators position */
-  if (step % 4U == 0U) {
-    for (uint16_t i = 0U; i < WIDTH; i++) {
-      if (i % 6U == 0U) {
-        /* 1 current floor */
-        if (noise3d[0][i][0] > noise3d[0][i][1]) noise3d[0][i][1]++;
-        if (noise3d[0][i][0] < noise3d[0][i][1]) noise3d[0][i][1]--;
-      }
+  /* 1 current floor */
+  if ((step & 0x03U) == 0U) { // step % 4U == 0U
+    for (uint8_t i = 0U; i < WIDTH; i += 6U) {
+      const uint8_t current_fl = noise3d[0U][i][1U];
+      const uint8_t target_fl = noise3d[0U][i][0U];
+      if (target_fl > current_fl) noise3d[0U][i][1U]++;
+      if (target_fl < current_fl) noise3d[0U][i][1U]--;
     }
   }
 
-  /* 0 set target floor ----- */
+  /* 0 target floor ----- */
   if (step % 128U == 0U) {
-    for (uint16_t i = 0U; i < WIDTH; i++) {
-      if (i % 6U == 0U) {
-        /* 0 target floor ----- */
-        uint8_t target_floor = random8(PADDING + 1, MAX_Y);
-        if (target_floor % 2U) target_floor++;
-        noise3d[0][i][0] = target_floor;
+    for (uint8_t i = 0U; i < WIDTH; i += 6U) {
+      uint8_t target_floor = random8((uint8_t)(PADDING + 1U), MAX_Y);
+      if ((target_floor & 0x01U) != 0U) {
+        target_floor++; // Округление до четного этажа
       }
+      noise3d[0U][i][0U] = target_floor;
     }
   }
 
