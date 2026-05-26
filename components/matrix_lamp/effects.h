@@ -13045,21 +13045,20 @@ static void RainbowRings() {
 //     adopted/updated by kostyamat
 //        updated by andrewjswan
 //          Эффект "Вышиванка"
+//          Munching Squares
 // =====================================
 
-static int8_t count = 0;
-static int8_t dir = 0;
-static uint8_t flip = 0;
-static uint8_t generation = 0;
-static uint8_t rnd = 4; // 1-8
-static uint8_t mic[2];
-static uint8_t minDimLocal = MAX_SIDE > 32 ? 32 : 16;
-
-// const uint8_t width_adj = (WIDTH < HEIGHT ? (HEIGHT - WIDTH) / 2 : 0);
-// const uint8_t height_adj = (HEIGHT < WIDTH ? (WIDTH - HEIGHT) / 2 : 0);
-// const uint8_t maxDim_steps = 256 / MAX_SIDE;
-
 static void munchRoutine() {
+  constexpr uint8_t min_dim = (MAX_SIDE > 32U) ? 32U : 16U;
+  constexpr uint8_t dim_sub = min_dim >> 1U;
+
+  // trackingObjectPosX[0U] => Знаковый счетчик count (приводим к int8_t)
+  // trackingObjectPosY[0U] => Знаковый шаг направления dir (приводим к int8_t)
+  // deltaHue2             => Фаза инверсии паттерна flip
+  // deltaHue              => Счетчик поколений фрактала generation
+  // trackingObjectShift[0U] => Ячейка mic[0]
+  // trackingObjectShift[1U] => Ячейка mic[1]
+
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
@@ -13068,43 +13067,72 @@ static void munchRoutine() {
     }
     #endif // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-
     setCurrentPalette();
 
-    generation = 0;
-    dir = 1;
-    count = 0;
-    flip = 0;
+    hue = 0U;              // generation = 0
+    hue2 = 0U;             // flip = 0
 
-    // ledsClear(); // esphome: FastLED.clear();
+    emitterX = 0.0f;       // count = 0
+    emitterY = 1.0f;       // dir = 1
+
+    // Инициализируем лимиты шагов фрактала
+    pcnt = min_dim;        // mic
+    deltaValue = min_dim;  // mic
+
+    loadingFlag = false;
   }
 
-  for (uint8_t x = 0U; x < minDimLocal; x++) {
-    for (uint8_t y = 0U; y < minDimLocal; y++) {
-      CRGB color = (x ^ y ^ flip) < count ? ColorFromPalette(*curPalette, ((x ^ y) << rnd) + generation, modes[currentMode].Brightness) : leds[XY(x, y)].subtractFromRGB(minDimLocal / 2);
-      if (x < WIDTH and y < HEIGHT) leds[XY(x, y)] = color;
-      if (x + minDimLocal < WIDTH and y < HEIGHT) leds[XY(x + minDimLocal, y)] = color;
-      if (y + minDimLocal < HEIGHT and x < WIDTH) leds[XY(x, y + minDimLocal)] = color;
-      if (x + minDimLocal < WIDTH and y + minDimLocal < HEIGHT) leds[XY(x + minDimLocal, y + minDimLocal)] = color;
+  const uint8_t current_bri = modes[currentMode].Brightness;
+
+  for (uint8_t x = 0U; x < min_dim; x++) {
+    const uint8_t x_min_dim = x + min_dim;
+    const bool x_in_width = (x < WIDTH);
+    const bool x_dim_in_width = (x_min_dim < WIDTH);
+
+    for (uint8_t y = 0U; y < min_dim; y++) {
+      const uint8_t x_xor_y = x ^ y;
+      const uint8_t y_min_dim = y + min_dim;
+      const bool y_in_height = (y < HEIGHT);
+      const bool y_dim_in_height = (y_min_dim < HEIGHT);
+
+      CRGB color;
+      if ((int8_t)(x_xor_y ^ hue2) < (int8_t)emitterX) {
+        color = ColorFromPalette(*curPalette, (uint8_t)((x_xor_y << 4U) + hue), current_bri);
+      } else {
+        color = leds[XY(x, y)].subtractFromRGB(dim_sub);
+      }
+
+      // Тиражирование посчитанного фрактального блока по 4 квадрантам матрицы
+      if (x_in_width && y_in_height) {
+        leds[XY(x, y)] = color;
+      }
+      if (x_dim_in_width && y_in_height) {
+        leds[XY(x_min_dim, y)] = color;
+      }
+      if (y_dim_in_height && x_in_width) {
+        leds[XY(x, y_min_dim)] = color;
+      }
+      if (x_dim_in_width && y_dim_in_height) {
+        leds[XY(x_min_dim, y_min_dim)] = color;
+      }
     }
   }
 
-  count += dir;
+  // Обсчет физики шага автомата состояний Munching Squares
+  emitterX += emitterY; // count += dir
 
-  if (count <= 0 || count >= mic[0]) {
-    dir = -dir;
-    if (count <= 0) {
-      mic[0] = mic[1];
-      if (flip == 0)
-        flip = mic[1] - 1;
-      else
-        flip = 0;
+  if ((int8_t)emitterX <= 0 || (int8_t)emitterX >= (int8_t)pcnt) {
+    emitterY = -emitterY; // dir = -dir
+
+    if ((int8_t)emitterX <= 0) {
+      pcnt = deltaValue; // mic[0] = mic[1]
+      // Прямая инверсия фазы фрактала в регистре hue2 (flip)
+      hue2 = (hue2 == 0U) ? (uint8_t)(deltaValue - 1U) : 0U;
     }
   }
 
-  generation++;
-  mic[1] = minDimLocal;
+  hue++;                // generation++
+  deltaValue = min_dim; // mic[1] = minDimLocal
 }
 #endif
 
