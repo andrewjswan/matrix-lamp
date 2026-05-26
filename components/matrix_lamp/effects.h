@@ -11977,59 +11977,73 @@ static void arrowsRoutine() {
 //                Аврора
 // =====================================
 static void Avrora() {
-  constexpr uint8_t PADDING   = QUARTER_Y;
-  constexpr float BR_INTERWAL = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT);
+  constexpr uint8_t PADDING = QUARTER_Y;
+  constexpr float freq = 3000.0f;
+  constexpr uint8_t fade = 30U;
 
   // ---------------------
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      setModeSettings(50, random8(2, 254U));
+      //           scale | speed
+      setModeSettings(50U, random8(2U, 254U));
     }
     #endif
-    loadingFlag = false;
-    deltaValue = 0;
-    hue = 0;
+
+    deltaValue = 0U;
+    hue = 0U;
 
     ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
   // ---------------------
-
-  constexpr float freq = 3000.0f;
-  constexpr float mn = 255.0f / 13.8f;
-  constexpr uint8_t fade = 30; // 60 - std::abs(128 - step) / 3;
 
   const uint8_t step1 = map8(modes[currentMode].Speed, 10U, 60U);
   const uint16_t ms = millis();
 
   fadeToBlackBy(leds, NUM_LEDS, fade);
-
+  
+  constexpr float inv_height = 1.0f / HEIGHT;
+  const uint16_t ms_div29 = ms / 29U;
+  
   // -----------------
   for (uint16_t y = 0U; y < HEIGHT; y++) {
-    uint32_t yy = y * 256;
-    uint32_t x1 = beatsin16(step1, WIDTH, MAX_Y * 256, WIDTH, y * freq + 32768) / 1.5f;
+    const uint32_t yy = (uint32_t)(y << 8U); // y * 256
+    
+    // Оптимизация: деление на 1.5f заменено умножением на 0.6666667f
+    const uint32_t x1 = (uint32_t)(beatsin16(step1, WIDTH, (uint16_t)(MAX_Y << 8U), WIDTH, (uint16_t)(y * freq + 32768U)) * 0.6666667f);
 
     /* change color -------- */
-    uint8_t cur_color = ms / 29 + y * 256 / HEIGHT;
-    CRGB color = CHSV(cur_color, 255, 255 - y * OCTANT_Y);
-    uint8_t br = constrain(255 - y * HEIGHT / 5, 0, 200);
-    CRGB color2 = CHSV(cur_color - 32, 255 - y * QUARTER_Y, br);
+    const uint8_t cur_color = ms_div29 + (uint8_t)((y << 8U) * inv_height);
+    
+    CRGB color = CHSV(cur_color, 255U, (uint8_t)(255U - y * OCTANT_Y));
+    
+    // Оптимизация: заменяем деление на 5 умножением на 0.2f
+    const int16_t calc_br = 255 - (int16_t)((y * HEIGHT) * 0.2f);
+    const uint8_t br = (calc_br < 0) ? 0U : ((calc_br > 200) ? 200U : (uint8_t)calc_max);
+    
+    CRGB color2 = CHSV((uint8_t)(cur_color - 32U), (uint8_t)(255U - y * QUARTER_Y), br);
 
-    wu_pixel(x1 + hue + PADDING * hue / 2, yy, &color);
-    wu_pixel(std::abs((int)(MAX_X * 256 - (x1 + hue))), yy - PADDING * hue, &color2);
+    const uint32_t x_offset = x1 + hue;
+    wu_pixel((uint32_t)(x_offset + ((PADDING * hue) >> 1U)), yy, &color); // Сдвиг >> 1U вместо / 2
+    
+    const int32_t inv_x = (int32_t)(MAX_X << 8U) - (int32_t)x_offset;
+    wu_pixel((uint32_t)std::abs(inv_x), (uint32_t)(yy - PADDING * hue), &color2);
   }
 
   step++;
-  if (step % 64) {
-    if (deltaValue == 1) {
+  
+  if ((step % 64U) == 0U) {
+    if (deltaValue == 1U) {
       hue++;
-      if (hue >= 255) {
-        deltaValue = 0;
+      if (hue >= 255U) {
+        deltaValue = 0U;
       }
     } else {
       hue--;
-      if (hue < 1) {
-        deltaValue = 1;
+      if (hue < 1U) {
+        deltaValue = 1U;
       }
     }
   }
