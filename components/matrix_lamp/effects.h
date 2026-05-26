@@ -12262,7 +12262,7 @@ static void NightCity() {
     }
 
     ledsClear(); // esphome: FastLED.clear();
-    
+
     loadingFlag = false;
   }
   // ---------------------
@@ -12270,18 +12270,18 @@ static void NightCity() {
   const uint8_t xx = random8(WIDTH);
   const uint8_t yy = random8(HEIGHT);
   constexpr uint8_t fade = 80U;
-  
+
   fadeToBlackBy(leds, NUM_LEDS, fade);
 
   const uint8_t speed_val = modes[currentMode].Speed;
   const uint8_t scale_val = modes[currentMode].Scale;
   const bool flag_scale = (scale_val > 50U);
-  
+
   // -----------------
   for (uint16_t y = 0U; y < HEIGHT; y++) {
     if (y > PADDING) {
       const bool y_even = ((y & 0x01U) == 0U);  // % 2 == 0U
-    
+
       for (uint16_t x = 0U; x < WIDTH; x++) {
         if (x % 6U == 0U) {
           /* draw Elevator */
@@ -12303,12 +12303,12 @@ static void NightCity() {
                 }
               } else {
                 noise3d[0U][x][y] = 0U;
-              }              
+              }
             }
-            
+
             if (speed_val > 250U) {
               noise3d[0U][x][y] = 2U;
-            }            
+            }
 
             /* draw light ----- */
             const uint8_t window_state = noise3d[0U][x][y];
@@ -12318,7 +12318,7 @@ static void NightCity() {
               } else {
                 leds[XY(x, y)] = CHSV(128U, 32U, 255U);
               }
-            }            
+            }
           }
         }
       }
