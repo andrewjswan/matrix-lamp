@@ -12148,7 +12148,7 @@ static void LotusFlower() {
 //                Фонтан
 // =====================================
 static void Fountain() {
-  static constexpr uint8_t gamma = {0U, 96U, 128U, 160U, 240U, 112U};
+  static constexpr uint8_t gamma[] = {0U, 96U, 128U, 160U, 240U, 112U};
   constexpr uint8_t PADDING = (uint8_t)(OCTANT_Y + 0.5f);
 
   if (loadingFlag) {
