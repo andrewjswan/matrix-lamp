@@ -11401,9 +11401,10 @@ static void Dandelions() {
 // =====================================
 static void Serpentine() {
   constexpr uint8_t PADDING = QUARTER_Y;
-  constexpr uint8_t BR_INTERWAL = 64 / HEIGHT;
+  constexpr uint8_t BR_INTERWAL = 64U / HEIGHT;
   constexpr uint8_t DELTA = QUARTER_X;
-
+  constexpr float freq = 3000.0f;
+  
   // ---------------------
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
@@ -11411,50 +11412,59 @@ static void Serpentine() {
       setModeSettings(random8(4, 50), random8(4, 254U));
     }
 #endif
-    loadingFlag = false;
-    deltaValue = 0;
-    hue = 0;
+
+    deltaValue = 0U;
+    hue = 0U;
+
     ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
   // ---------------------
 
-  constexpr float freq = 3000.0f;
-  constexpr float mn = 255.0f / 13.8f;
-
   const uint8_t step1 = map8(modes[currentMode].Speed, 10U, 60U);
   const uint16_t ms = millis();
-  const uint8_t fade = 180 - std::abs(128 - step);
-
+  const uint8_t fade = 180U - std::abs(128 - step);
+  
   fadeToBlackBy(leds, NUM_LEDS, fade);
 
+  constexpr float inv_max_y = 1.0f / MAX_Y;
+  const uint16_t ms_div29 = ms / 29U;
+  
   // -----------------
   for (uint16_t y = 0U; y < HEIGHT; y++) {
-    uint32_t yy = y * 256;
-    uint32_t x1 = beatsin16(step1, WIDTH, MAX_Y * 256, WIDTH, y * freq + 32768) / 2;
+    const uint32_t yy = (uint32_t)(y << 8U);                                                                           // y * 256
+    const uint32_t x1 = beatsin16(step1, WIDTH, (uint16_t)(MAX_Y << 8U), WIDTH, (uint16_t)(y * freq + 32768U)) >> 1U;  // / 2
+
+    const uint8_t bri = 255U - (uint8_t)((HEIGHT - y) * BR_INTERWAL);
+    const uint8_t base_hue = ms_div29 + (uint8_t)((y << 8U) * inv_max_y);
 
     // change color --------
-    CRGB col1 = CHSV(ms / 29 + y * 256 / MAX_Y + 128, 255, 255 - (HEIGHT - y) * BR_INTERWAL);
-    CRGB col2 = CHSV(ms / 29 + y * 256 / MAX_Y,       255, 255 - (HEIGHT - y) * BR_INTERWAL);
-    // CRGB col3 = CHSV(ms / 29 + y * 256 / MAX_Y + step, 255, 255 - (HEIGHT - y) * BR_INTERWAL - fade);
+    CRGB col1 = CHSV((uint8_t)(base_hue + 128U), 255U, bri);
+    CRGB col2 = CHSV(base_hue, 255U, bri);
 
-    wu_pixel((uint32_t)(x1 + hue * DELTA),                                 (uint32_t)(yy - PADDING * (255 - hue)), &col1);
-    wu_pixel((uint32_t)std::abs((int)(MAX_X * 256 - (x1 + hue * DELTA))), (uint32_t)(yy - PADDING * hue),         &col2);
+    const uint32_t x_offset = x1 + (hue * DELTA);
+    wu_pixel(x_offset, (uint32_t)(yy - PADDING * (255U - hue)), &col1);
+    
+    const int32_t inv_x = (int32_t)(MAX_X << 8U) - (int32_t)x_offset;
+    wu_pixel((uint32_t)std::abs(inv_x), (uint32_t)(yy - PADDING * hue), &col2);
   }
 
   step++;
-  if (step % 64) {
-    if (deltaValue == 0) {
+  
+  if ((step % 64U) == 0U) {
+    if (deltaValue == 0U) {
       hue++;
-      if (hue >= 255) {
-        deltaValue = 1;
+      if (hue >= 255U) {
+        deltaValue = 1U;
       }
     } else {
       hue--;
-      if (hue < 1) {
-        deltaValue = 0;
+      if (hue < 1U) {
+        deltaValue = 0U;
       }
     }
-  }
+  }  
 }
 #endif
 
