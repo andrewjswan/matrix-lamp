@@ -11220,7 +11220,7 @@ static void  FireSparks() {
   constexpr uint8_t fadeStep = 255U / HEIGHT;
 
   for (uint8_t y = 0U; y < HEIGHT; y++) {
-    const int16_t yComp = (int16_t)(y * scale) - t;
+    const int16_t yComp = (int16_t)(y * scale) - lastUpdateTime;
     const uint8_t yFade = (withSparks ? (uint8_t)(y + spacer) : y) * fadeStep;
 
     for (uint8_t x = 0U; x < WIDTH; x++) {
