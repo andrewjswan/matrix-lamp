@@ -12403,13 +12403,13 @@ static void RainRoutine()
       leds[XY(x, MAX_Y)] -= CHSV(0U, 0U, random8(96U, 128U));
     }
   }
-  
+
   // сдвигаем всё вниз
   for (uint8_t x = 0U; x < WIDTH; x++) {
     for (uint8_t y = 0U; y < MAX_Y; y++) {
       drawPixelXY(x, y, getPixColorXY(x, (uint8_t)(y + 1U)));
     }
-  }  
+  }
 }
 #endif
 
