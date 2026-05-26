@@ -11311,7 +11311,7 @@ static void drawCircle(const Circle& circle, float radius) {
   const int16_t endY = centerY + r_ceil;
 
   const float radiusSq = radius * radius;
-  
+
   const float inv_radius = 1.0f / radius;
 
   for (int16_t x = startX; x <= endX; x++) {
@@ -11356,14 +11356,14 @@ static void draw(bool setup) {
     if (setup) {
       circles[i].reset();
     }
-    
+
     const float current_radius = circles[i].radius();
     if (!setup && (current_radius < 0.5f)) {
       circles[i].scroll();
     }
-    
+
     drawCircle(circles[i], current_radius);
-  }  
+  }
 }
 }; // namespace Circles
 
