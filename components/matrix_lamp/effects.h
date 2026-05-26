@@ -57,7 +57,7 @@ static uint8_t custom_eff = 0U;
 
 // --------------------------------------------------------------------------------------
 
-#if defined(DEF_RAINBOW_RINGS) || defined(DEF_STARS_NIGHT) || defined(DEF_FIRESPARKS)
+#if defined(DEF_RAINBOW_RINGS) || defined(DEF_STARS_NIGHT) || defined(DEF_FIRESPARKS) || defined(DEF_TURBULENCE)
 static uint32_t lastUpdateTime;
 #endif
 #if defined(DEF_RAINBOW_RINGS) || defined(DEF_BUTTERFLY) || defined(DEF_COLORED_PYTHON)
@@ -11465,27 +11465,25 @@ static void Serpentine() {
 //             © SlingMaster
 //        Цифрова Турбулентність
 // =====================================
-static void drawRandomCol(uint8_t x, uint8_t y, uint8_t offset, uint32_t count) {
-  constexpr uint8_t STEP = 32;
+static void drawRandomCol(uint8_t x, uint8_t y, uint8_t offset, uint8_t count) {
+  constexpr uint8_t STEP = 32U;
   constexpr uint8_t D = OCTANT_Y;
 
-  uint8_t color = floor(y / D) * STEP + offset;
+  const uint8_t color = (y / D) * STEP + offset;  // floor(y / D) * STEP + offset;
 
   if (count == 0U) {
-    drawPixelXY(x, y, CHSV(color, 255, random8(8U) == 0U ? (step % 2U ? 0 : 255) : 0));
+    const uint8_t bri = (random8(8U) == 0U) ? ((step & 0x01U) ? 0U : 255U) : 0U; 
+    drawPixelXY(x, y, CHSV(color, 255U, bri));
   } else {
-    drawPixelXY(x, y, CHSV(color, 255, (bitRead(count, y) == 1U) ? (step % 5U ? 0 : 255) : 0));
+    const uint8_t bri = (bitRead(count, y) == 1U) ? ((step % 5U) ? 0U : 255U) : 0U;
+    drawPixelXY(x, y, CHSV(color, 255U, bri));
   }
 }
 
 //---------------------------------------
 static void Turbulence() {
-  constexpr uint8_t STEP_COLOR = 255 / HEIGHT;
   constexpr uint8_t STEP_OBJ = 8U;
   constexpr uint8_t DEPTH = 2U;
-
-  static uint32_t count; // 16777216; = 65536
-  uint32_t curColor;
 
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
@@ -11494,73 +11492,70 @@ static void Turbulence() {
       setModeSettings(random8(100U), random8(1, 255U));
     }
 #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-    loadingFlag = false;
     step = 0U;
-    deltaValue = 0;
-    hue = 0;
+    deltaValue = 0U;
+    hue = 0U;
+    
+    pcnt = 0U; 
+
     if (modes[currentMode].Speed < 20U) {
-      FPSdelay = SpeedFactor(30);
+      FPSdelay = SpeedFactor(30U);
     }
+
     ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
 
   deltaValue++;     /* size morph  */
 
   /* <==== scroll =====> */
-  for (uint8_t y = HEIGHT; y > 0; y--) {
-    drawRandomCol(0, y - 1, hue, count);
-    drawRandomCol(MAX_X, y - 1, hue + 128U, count);
+  for (uint8_t y = HEIGHT; y > 0U; y--) {
+    const uint8_t current_y = y - 1U;
+
+    drawRandomCol(0U, current_y, hue, pcnt);
+    drawRandomCol(MAX_X, current_y, (uint8_t)(hue + 128U), pcnt);
 
     // left -----
-    for (uint8_t x = CENTER_X_MAJOR - 1; x > 0; x--) {
-      if (x > CENTER_X_MAJOR) {
-        if (random8(2) == 0U) { /* scroll up */
-          CRGB newColor = getPixColorXY(x, y - 1);
-        }
-      }
-
+    for (uint8_t x = (uint8_t)(CENTER_X_MAJOR - 1U); x > 0U; x--) {
       /* ---> */
-      curColor = getPixColorXY(x - 1, y - 1);
-      if (x < CENTER_X_MAJOR - DEPTH / 2) {
-        drawPixelXY(x, y - 1, curColor);
+      const uint32_t curColor = getPixColorXY((uint8_t)(x - 1U), current_y);
+      if (x < (uint8_t)(CENTER_X_MAJOR - DEPTH / 2U)) {
+        drawPixelXY(x, current_y, curColor);
       } else {
-        if (curColor != 0U) drawPixelXY(x, y - 1, curColor);
+        if (curColor != 0U) drawPixelXY(x, current_y, curColor);
       }
     }
 
     // right -----
-    for (uint8_t x = CENTER_X_MAJOR + 1; x < WIDTH; x++) {
-      if (x < CENTER_X_MAJOR + DEPTH) {
-        if (random8(2) == 0U)  {  /* scroll up */
-          CRGB newColor = getPixColorXY(x, y - 1);
-        }
-      }
+    for (uint8_t x = (uint8_t)(CENTER_X_MAJOR + 1U); x < WIDTH; x++) {
       /* <---  */
-      curColor = getPixColorXY(x, y - 1);
-      if (x > CENTER_X_MAJOR + DEPTH / 2) {
-        drawPixelXY(x - 1, y - 1, curColor);
+      const uint32_t curColor = getPixColorXY(x, current_y);
+      if (x > (uint8_t)(CENTER_X_MAJOR + DEPTH / 2U)) {
+        drawPixelXY((uint8_t)(x - 1U), current_y, curColor);
       } else {
-        if (curColor != 0U) drawPixelXY(x - 1, y - 1, curColor);
+        if (curColor != 0U) drawPixelXY((uint8_t)(x - 1U), current_y, curColor);
       }
     }
 
     /* scroll center up ---- */
-    for (uint8_t x = CENTER_X_MAJOR - DEPTH; x < CENTER_X_MAJOR + DEPTH; x++) {
-      drawPixelXY(x, y,  makeDarker(getPixColorXY(x, y - 1), 128 / y));
-      if (y == 1) {
-        drawPixelXY(x, 0, CRGB::Black);
+    for (uint8_t x = (uint8_t)(CENTER_X_MAJOR - DEPTH); x < (uint8_t)(CENTER_X_MAJOR + DEPTH); x++) {
+      drawPixelXY(x, y, makeDarker(getPixColorXY(x, current_y), (uint8_t)(128U / y)));
+      if (y == 1U) {
+        drawPixelXY(x, 0U, 0x000000);
       }
-    }
+    }    
     /* --------------------- */
   }
 
-  if (modes[currentMode].Scale > 50) {
-    count++;
-    if (count % 256 == 0U) hue += 16U;
-  } else {
-    count = 0;
+  if (modes[currentMode].Scale > 50U) {
+    pcnt++;
+    if (pcnt == 0U) {
+      hue += 16U;
+    }    
   }
-  step++;
+
+  step++;  
 }
 #endif
 
