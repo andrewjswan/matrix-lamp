@@ -11593,224 +11593,250 @@ static uint8_t arrow_play_mode_count_orig[6];   // Сколько раз про�
 
 static void arrowSetup_mode1() {
   // Слева направо
-  if ((arrow_direction & 0x01) > 0) {
+  if ((arrow_direction & 0x01U) != 0U) {
     arrow_hue[0] = random8();
     arrow_x[0]   = 0;
     arrow_y[0]   = (int8_t)CENTER_Y;
-    stop_x[0]    = (int8_t)WIDTH + 7; // скрывается за экраном на 7 пикселей
-    stop_y[0]    = 0;                 // неприменимо
+    stop_x[0]    = (int8_t)(WIDTH + 7U);        // скрывается за экраном на 7 пикселей
+    stop_y[0]    = 0;                           // неприменимо
   }
   // снизу вверх
-  if ((arrow_direction & 0x02) > 0) {
+  if ((arrow_direction & 0x02U) != 0U) {
     arrow_hue[1] = random8();
     arrow_y[1]   = 0;
     arrow_x[1]   = (int8_t)CENTER_X;
-    stop_y[1]    = (int8_t)HEIGHT + 7; // скрывается за экраном на 7 пикселей
-    stop_x[1]    = 0;                  // неприменимо
+    stop_y[1]    = (int8_t)(HEIGHT + 7U);       // скрывается за экраном на 7 пикселей
+    stop_x[1]    = 0;                           // неприменимо
   }
   // справа налево
-  if ((arrow_direction & 0x04) > 0) {
+  if ((arrow_direction & 0x04U) != 0U) {
     arrow_hue[2] = random8();
     arrow_x[2]   = (int8_t)MAX_X;
     arrow_y[2]   = (int8_t)CENTER_Y;
-    stop_x[2]    = -7; // скрывается за экраном на 7 пикселей
-    stop_y[2]    = 0;  // неприменимо
+    stop_x[2]    = -7;                          // скрывается за экраном на 7 пикселей
+    stop_y[2]    = 0;                           // неприменимо
   }
   // сверху вниз
-  if ((arrow_direction & 0x08) > 0) {
+  if ((arrow_direction & 0x08U) != 0U) {
     arrow_hue[3] = random8();
     arrow_y[3]   = (int8_t)MAX_Y;
     arrow_x[3]   = (int8_t)CENTER_X;
-    stop_y[3]    = -7; // скрывается за экраном на 7 пикселей
-    stop_x[3]    = 0;  // неприменимо
+    stop_y[3]    = -7;                          // скрывается за экраном на 7 пикселей
+    stop_x[3]    = 0;                           // неприменимо
   }
 }
 
 static void arrowSetup_mode2() {
   // Слева направо до половины экрана
-  if ((arrow_direction & 0x01) > 0) {
+  if ((arrow_direction & 0x01U) != 0U) {
     arrow_hue[0] = random8();
     arrow_x[0]   = 0;
     arrow_y[0]   = (int8_t)CENTER_Y;
-    stop_x[0]    = (int8_t)CENTER_X - 1;  // до центра экрана
-    stop_y[0]    = 0;                     // неприменимо
+    stop_x[0]    = (int8_t)(CENTER_X - 1U);     // до центра экрана
+    stop_y[0]    = 0;                           // неприменимо
   }
   // снизу вверх до половины экрана
-  if ((arrow_direction & 0x02) > 0) {
+   if ((arrow_direction & 0x02U) != 0U) {
     arrow_hue[1] = random8();
     arrow_y[1]   = 0;
     arrow_x[1]   = (int8_t)CENTER_X;
-    stop_y[1]    = (int8_t)CENTER_Y - 1;  // до центра экрана
-    stop_x[1]    = 0;                     // неприменимо
+    stop_y[1]    = (int8_t)CENTER_Y - 1;        // до центра экрана
+    stop_x[1]    = 0;                           // неприменимо
   }
   // справа налево до половины экрана
-  if ((arrow_direction & 0x04) > 0) {
+  if ((arrow_direction & 0x04U) != 0U) {
     arrow_hue[2] = random8();
     arrow_x[2]   = (int8_t)MAX_X;
     arrow_y[2]   = (int8_t)CENTER_Y;
-    stop_x[2]    = (int8_t)CENTER_X;  // до центра экрана
-    stop_y[2]    = 0;                 // неприменимо
+    stop_x[2]    = (int8_t)CENTER_X;            // до центра экрана
+    stop_y[2]    = 0;                           // неприменимо
   }
   // сверху вниз до половины экрана
-  if ((arrow_direction & 0x08) > 0) {
+  if ((arrow_direction & 0x08U) != 0U) {
     arrow_hue[3] = random8();
     arrow_y[3]   = (int8_t)MAX_Y;
     arrow_x[3]   = (int8_t)CENTER_X;
-    stop_y[3]    = (int8_t)CENTER_Y;  // до центра экрана
-    stop_x[3]    = 0;                 // неприменимо
+    stop_y[3]    = (int8_t)CENTER_Y;            // до центра экрана
+    stop_x[3]    = 0;                           // неприменимо
   }
 }
 
 static void arrowSetup_mode4() {
   // Слева направо
-  if ((arrow_direction & 0x01) > 0) {
+  if ((arrow_direction & 0x01U) != 0U) {
     arrow_hue[0] = random8();
     arrow_x[0]   = 0;
-    arrow_y[0]   = (int8_t)THIRD_Y * 2;
-    stop_x[0]    = (int8_t)WIDTH + 7; // скрывается за экраном на 7 пикселей
-    stop_y[0]    = 0;                 // неприменимо
+    arrow_y[0]   = (int8_t)(THIRD_Y * 2U);
+    stop_x[0]    = (int8_t)(WIDTH + 7U);        // скрывается за экраном на 7 пикселей
+    stop_y[0]    = 0;                           // неприменимо
   }
   // снизу вверх
-  if ((arrow_direction & 0x02) > 0) {
+  if ((arrow_direction & 0x02U) != 0U) {
     arrow_hue[1] = random8();
     arrow_y[1]   = 0;
-    arrow_x[1]   = (int8_t)THIRD_X * 2;
-    stop_y[1]    = (int8_t)HEIGHT + 7; // скрывается за экраном на 7 пикселей
-    stop_x[1]    = 0;                  // неприменимо
+    arrow_x[1]   = (int8_t)(THIRD_X * 2U);
+    stop_y[1]    = (int8_t)(HEIGHT + 7U);       // скрывается за экраном на 7 пикселей
+    stop_x[1]    = 0;                           // неприменимо
   }
   // справа налево
-  if ((arrow_direction & 0x04) > 0) {
+  if ((arrow_direction & 0x04U) != 0U) {
     arrow_hue[2] = random8();
     arrow_x[2]   = (int8_t)MAX_X;
     arrow_y[2]   = (int8_t)THIRD_Y;
-    stop_x[2]    = -7; // скрывается за экраном на 7 пикселей
-    stop_y[2]    = 0;  // неприменимо
+    stop_x[2]    = -7;                          // скрывается за экраном на 7 пикселей
+    stop_y[2]    = 0;                           // неприменимо
   }
   // сверху вниз
-  if ((arrow_direction & 0x08) > 0) {
+  if ((arrow_direction & 0x08U) != 0U) {
     arrow_hue[3] = random8();
     arrow_y[3]   = (int8_t)MAX_Y;
     arrow_x[3]   = (int8_t)THIRD_X;
-    stop_y[3]    = -7; // скрывается за экраном на 7 пикселей
-    stop_x[3]    = 0;  // неприменимо
+    stop_y[3]    = -7;                           // скрывается за экраном на 7 пикселей
+    stop_x[3]    = 0;                            // неприменимо
   }
 }
 
 static void arrowSetupForMode(uint8_t mode, bool change) {
   switch (mode) {
-    case 1:
-      if (change) arrow_direction = 1;
-      arrowSetup_mode1(); // От края матрицы к краю, по центру гориз и верт
+    case 1U:
+      if (change) arrow_direction = 1U;
+      arrowSetup_mode1();                        // От края матрицы к краю, по центру гориз и верт
       break;
-    case 2:
-      if (change) arrow_direction = 5;
-      arrowSetup_mode2(); // По центру матрицы (гориз / верт) - ограничение -
-                          // центр матрицы
+    case 2U:
+      if (change) arrow_direction = 5U;
+      arrowSetup_mode2();                        // По центру матрицы (гориз / верт) - ограничение -
+                                                 // центр матрицы
       break;
-    case 3:
-      if (change) arrow_direction = 15;
-      arrowSetup_mode2(); // как и в режиме 2 - по центру матрицы (гориз / верт) -
-                          // ограничение - центр матрицы
+    case 3U:
+      if (change) arrow_direction = 15U;
+      arrowSetup_mode2();                        // как и в режиме 2 - по центру матрицы (гориз / верт) -
+                                                 // ограничение - центр матрицы
       break;
-    case 4:
-      if (change) arrow_direction = 5;
-      arrowSetup_mode4(); // От края матрицы к краю, верт / гориз
+    case 4U:
+      if (change) arrow_direction = 5U;
+      arrowSetup_mode4();                        // От края матрицы к краю, верт / гориз
       break;
-    case 5:
-      if (change) arrow_direction = 15;
-      arrowSetup_mode4(); // как и в режиме 4 от края матрицы к краю, на 1/3
+    case 5U:
+      if (change) arrow_direction = 15U;
+      arrowSetup_mode4();                        // как и в режиме 4 от края матрицы к краю, на 1/3
       break;
   }
 }
 
 static void arrowsRoutine() {
   if (loadingFlag) {
-    loadingFlag = false;
-
-    ledsClear(); // esphome: FastLED.clear();
-
     arrow_complete = false;
-    arrow_mode = (arrow_mode_orig == 0 || arrow_mode_orig > 5)
-                     ? random8(1, 5)
+    arrow_mode = (arrow_mode_orig == 0U || arrow_mode_orig > 5U)
+                     ? random8(1U, 5U)
                      : arrow_mode_orig;
 
-    arrow_play_mode_count_orig[0] = 0;
-    arrow_play_mode_count_orig[1] = 4; // 4 фазы - все стрелки показаны по кругу
-                                       // один раз - переходить к следующему ->
-    arrow_play_mode_count_orig[2] = 4; // 2 фазы - гориз к центру (1), затем верт к центру (2) - обе фазы
-                                       // повторить по 2 раза -> 4
-    arrow_play_mode_count_orig[3] = 4; // 1 фаза - все к центру (1) повторить по 4 раза -> 4
-    arrow_play_mode_count_orig[4] = 4; // 2 фазы - гориз к центру (1), затем верт к центру (2) - обе фазы
-                                       // повторить по 2 раза -> 4
-    arrow_play_mode_count_orig[5] = 4; // 1 фаза - все сразу (1) повторить по 4 раза -> 4
+    arrow_play_mode_count_orig[0U] = 0;
+    arrow_play_mode_count_orig[1U] = 4; // 4 фазы - все стрелки показаны по кругу
+                                        // один раз - переходить к следующему ->
+    arrow_play_mode_count_orig[2U] = 4; // 2 фазы - гориз к центру (1), затем верт к центру (2) - обе фазы
+                                        // повторить по 2 раза -> 4
+    arrow_play_mode_count_orig[3U] = 4; // 1 фаза - все к центру (1) повторить по 4 раза -> 4
+    arrow_play_mode_count_orig[4U] = 4; // 2 фазы - гориз к центру (1), затем верт к центру (2) - обе фазы
+                                        // повторить по 2 раза -> 4
+    arrow_play_mode_count_orig[5U] = 4; // 1 фаза - все сразу (1) повторить по 4 раза -> 4
 
-    for (uint8_t i = 0U; i < 6; i++) {
+    for (uint8_t i = 0U; i < 6U; i++) {
       arrow_play_mode_count[i] = arrow_play_mode_count_orig[i];
     }
     arrowSetupForMode(arrow_mode, true);
-  }
 
-  dimAll(160);
+    ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
+}
+
+  dimAll(160U);
   CHSV color;
 
+  constexpr CHSV black_color = CHSV(0U, 0U, 0U);
+
+  const uint8_t current_bri = modes[currentMode].Brightness;
+  const int8_t w_limit = (int8_t)WIDTH;
+  const int8_t h_limit = (int8_t)HEIGHT;
+
   // движение стрелки - cлева направо
-  if ((arrow_direction & 0x01) > 0) {
-    color = CHSV(arrow_hue[0], 255, modes[currentMode].Brightness);
-    for (int8_t x = 0U; x <= 4; x++) {
-      for (int8_t y = 0U; y <= x; y++) {
-        if (arrow_x[0] - x >= 0 && arrow_x[0] - x <= stop_x[0]) {
-          CHSV clr = (x < 4 || (x == 4 && y < 2)) ? color : CHSV(0, 0, 0);
-          drawPixelXY(arrow_x[0] - x, arrow_y[0] - y, clr);
-          drawPixelXY(arrow_x[0] - x, arrow_y[0] + y, clr);
+  if ((arrow_direction & 0x01U) != 0U) {
+    color = CHSV(arrow_hue[0U], 255U, current_bri);
+    const int8_t base_x = arrow_x[0U];
+    const int8_t base_y = arrow_y[0U];
+    const int8_t stop_val_x = stop_x[0U];
+
+    for (int8_t x = 0; x <= 4; x++) {
+      const int16_t target_x = base_x - x;
+      if (target_x >= 0 && target_x <= stop_val_x) {
+        for (int8_t y = 0; y <= x; y++) {
+          const CHSV clr = (x < 4 || (x == 4 && y < 2)) ? color : black_color;
+          drawPixelXY(target_x, base_y - y, clr);
+          drawPixelXY(target_x, base_y + y, clr);
         }
       }
     }
-    arrow_x[0]++;
+    arrow_x[0U]++;
   }
 
   // движение стрелки - cнизу вверх
-  if ((arrow_direction & 0x02) > 0) {
-    color = CHSV(arrow_hue[1], 255, modes[currentMode].Brightness);
-    for (int8_t y = 0U; y <= 4; y++) {
-      for (int8_t x = 0U; x <= y; x++) {
-        if (arrow_y[1] - y >= 0 && arrow_y[1] - y <= stop_y[1]) {
-          CHSV clr = (y < 4 || (y == 4 && x < 2)) ? color : CHSV(0, 0, 0);
-          drawPixelXY(arrow_x[1] - x, arrow_y[1] - y, clr);
-          drawPixelXY(arrow_x[1] + x, arrow_y[1] - y, clr);
+  if ((arrow_direction & 0x02U) != 0U) {
+    color = CHSV(arrow_hue[1U], 255U, current_bri);
+    const int8_t base_x = arrow_x[1U];
+    const int8_t base_y = arrow_y[1U];
+    const int8_t stop_val_y = stop_y[1U];
+
+    for (int8_t y = 0; y <= 4; y++) {
+      const int16_t target_y = base_y - y;
+      if (target_y >= 0 && target_y <= stop_val_y) {
+        for (int8_t x = 0; x <= y; x++) {
+          const CHSV clr = (y < 4 || (y == 4 && x < 2)) ? color : black_color;
+          drawPixelXY(base_x - x, target_y, clr);
+          drawPixelXY(base_x + x, target_y, clr);
         }
       }
     }
-    arrow_y[1]++;
+    arrow_y[1U]++;
   }
 
   // движение стрелки - cправа налево
-  if ((arrow_direction & 0x04) > 0) {
-    color = CHSV(arrow_hue[2], 255, modes[currentMode].Brightness);
-    for (int8_t x = 0U; x <= 4; x++) {
-      for (int8_t y = 0U; y <= x; y++) {
-        if (arrow_x[2] + x >= stop_x[2] && arrow_x[2] + x < (int8_t)WIDTH) {
-          CHSV clr = (x < 4 || (x == 4 && y < 2)) ? color : CHSV(0, 0, 0);
-          drawPixelXY(arrow_x[2] + x, arrow_y[2] - y, clr);
-          drawPixelXY(arrow_x[2] + x, arrow_y[2] + y, clr);
+  if ((arrow_direction & 0x04U) != 0U) {
+    color = CHSV(arrow_hue[2U], 255U, current_bri);
+    const int8_t base_x = arrow_x[2U];
+    const int8_t base_y = arrow_y[2U];
+    const int8_t stop_val_x = stop_x[2U];
+
+    for (int8_t x = 0; x <= 4; x++) {
+      const int16_t target_x = base_x + x;
+      if (target_x >= stop_val_x && target_x < w_limit) {
+        for (int8_t y = 0; y <= x; y++) {
+          const CHSV clr = (x < 4 || (x == 4 && y < 2)) ? color : black_color;
+          drawPixelXY(target_x, base_y - y, clr);
+          drawPixelXY(target_x, base_y + y, clr);
         }
       }
     }
-    arrow_x[2]--;
+    arrow_x[2U]--;
   }
 
   // движение стрелки - cверху вниз
-  if ((arrow_direction & 0x08) > 0) {
-    color = CHSV(arrow_hue[3], 255, modes[currentMode].Brightness);
-    for (int8_t y = 0U; y <= 4; y++) {
-      for (int8_t x = 0U; x <= y; x++) {
-        if (arrow_y[3] + y >= stop_y[3] && arrow_y[3] + y < (int8_t)HEIGHT) {
-          CHSV clr = (y < 4 || (y == 4 && x < 2)) ? color : CHSV(0, 0, 0);
-          drawPixelXY(arrow_x[3] - x, arrow_y[3] + y, clr);
-          drawPixelXY(arrow_x[3] + x, arrow_y[3] + y, clr);
+  if ((arrow_direction & 0x08U) != 0U) {
+    color = CHSV(arrow_hue[3U], 255U, current_bri);
+    const int8_t base_x = arrow_x[3U];
+    const int8_t base_y = arrow_y[3U];
+    const int8_t stop_val_y = stop_y[3U];
+
+    for (int8_t y = 0; y <= 4; y++) {
+      const int16_t target_y = base_y + y;
+      if (target_y >= stop_val_y && target_y < h_limit) {
+        for (int8_t x = 0; x <= y; x++) {
+          const CHSV clr = (y < 4 || (y == 4 && x < 2)) ? color : black_color;
+          drawPixelXY(base_x - x, target_y, clr);
+          drawPixelXY(base_x + x, target_y, clr);
         }
       }
     }
-    arrow_y[3]--;
+    arrow_y[3U]--;
   }
 
   // Проверка завершения движения стрелки, переход к следующей фазе или режиму
@@ -11824,34 +11850,26 @@ static void arrowsRoutine() {
     // начальные координаты
     arrow_complete = false;
     switch (arrow_direction) {
-    case 1:
-      arrow_complete = arrow_x[0] > stop_x[0];
-      break;
-    case 2:
-      arrow_complete = arrow_y[1] > stop_y[1];
-      break;
-    case 4:
-      arrow_complete = arrow_x[2] < stop_x[2];
-      break;
-    case 8:
-      arrow_complete = arrow_y[3] < stop_y[3];
-      break;
+      case 1U: arrow_complete = (arrow_x[0U] > stop_x[0U]); break;
+      case 2U: arrow_complete = (arrow_y[1U] > stop_y[1U]); break;
+      case 4U: arrow_complete = (arrow_x[2U] < stop_x[2U]); break;
+      case 8U: arrow_complete = (arrow_y[3U] < stop_y[3U]); break;
     }
 
     arrow_change_mode = false;
     if (arrow_complete) {
-      arrow_direction = (arrow_direction << 1) & 0x0F;
-      if (arrow_direction == 0)
-        arrow_direction = 1;
-      if (arrow_mode_orig == 0) {
-        arrow_play_mode_count[1]--;
-        if (arrow_play_mode_count[1] == 0) {
-          arrow_play_mode_count[1] = arrow_play_mode_count_orig[1];
-          arrow_mode = random8(1, 5);
+      arrow_direction = (arrow_direction << 1U) & 0x0FU;
+      if (arrow_direction == 0U) {
+        arrow_direction = 1U;
+      }
+      if (arrow_mode_orig == 0U) {
+        arrow_play_mode_count[1U]--;
+        if (arrow_play_mode_count[1U] == 0U) {
+          arrow_play_mode_count[1U] = arrow_play_mode_count_orig[1U];
+          arrow_mode = random8(1U, 5U);
           arrow_change_mode = true;
         }
       }
-
       arrowSetupForMode(arrow_mode, arrow_change_mode);
     }
     break;
@@ -11861,28 +11879,21 @@ static void arrowsRoutine() {
     // Затем одновременно вертикальные до половины экрана. Далее - повторять
     arrow_complete = false;
     switch (arrow_direction) {
-    case 5:
-      arrow_complete = arrow_x[0] > stop_x[0];
-      break; // Стрелка слева и справа встречаются в центре одновременно -
-             // проверять только стрелку слева
-    case 10:
-      arrow_complete = arrow_y[1] > stop_y[1];
-      break; // Стрелка снизу и сверху встречаются в центре одновременно -
-             // проверять только стрелку снизу
+      case 5U:  arrow_complete = (arrow_x[0U] > stop_x[0U]);  break; // Стрелка слева и справа встречаются в центре одновременно - проверять только стрелку слева
+      case 10U: arrow_complete = (arrow_y[1U] > stop_y[1U]);  break; // Стрелка снизу и сверху встречаются в центре одновременно - проверять только стрелку снизу
     }
 
     arrow_change_mode = false;
     if (arrow_complete) {
-      arrow_direction = arrow_direction == 5 ? 10 : 5;
-      if (arrow_mode_orig == 0) {
-        arrow_play_mode_count[2]--;
-        if (arrow_play_mode_count[2] == 0) {
-          arrow_play_mode_count[2] = arrow_play_mode_count_orig[2];
-          arrow_mode = random8(1, 5);
+      arrow_direction = (arrow_direction == 5U) ? 10U : 5U;
+      if (arrow_mode_orig == 0U) {
+        arrow_play_mode_count[2U]--;
+        if (arrow_play_mode_count[2U] == 0U) {
+          arrow_play_mode_count[2U] = arrow_play_mode_count_orig[2U];
+          arrow_mode = random8(1U, 5U);
           arrow_change_mode = true;
         }
       }
-
       arrowSetupForMode(arrow_mode, arrow_change_mode);
     }
     break;
@@ -11891,22 +11902,18 @@ static void arrowsRoutine() {
     // Одновременно со всех сторон к центру
     // Завершение кадра режима - когда все стрелки собрались в центре.
     // Проверять стрелки по самой длинной стороне
-    if (WIDTH >= HEIGHT)
-      arrow_complete = arrow_x[0] > stop_x[0];
-    else
-      arrow_complete = arrow_y[1] > stop_y[1];
+    arrow_complete = (WIDTH >= HEIGHT) ? (arrow_x[0U] > stop_x[0U]) : (arrow_y[1U] > stop_y[1U]);
 
     arrow_change_mode = false;
     if (arrow_complete) {
-      if (arrow_mode_orig == 0) {
-        arrow_play_mode_count[3]--;
-        if (arrow_play_mode_count[3] == 0) {
-          arrow_play_mode_count[3] = arrow_play_mode_count_orig[3];
-          arrow_mode = random8(1, 5);
+      if (arrow_mode_orig == 0U) {
+        arrow_play_mode_count[3U]--;
+        if (arrow_play_mode_count[3U] == 0U) {
+          arrow_play_mode_count[3U] = arrow_play_mode_count_orig[3U];
+          arrow_mode = random8(1U, 5U);
           arrow_change_mode = true;
         }
       }
-
       arrowSetupForMode(arrow_mode, arrow_change_mode);
     }
     break;
@@ -11917,29 +11924,23 @@ static void arrowsRoutine() {
     // смещением вертикальной оси на 1/3 ширины Завершение кадра режима - когда
     // все стрелки собрались в центре. Проверять стрелки по самой длинной
     // стороне
+    arrow_complete = false;
     switch (arrow_direction) {
-    case 5:
-      arrow_complete = arrow_x[0] > stop_x[0];
-      break; // Стрелка слева и справа движутся и достигают края одновременно -
-             // проверять только стрелку слева
-    case 10:
-      arrow_complete = arrow_y[1] > stop_y[1];
-      break; // Стрелка снизу и сверху движутся и достигают края одновременно -
-             // проверять только стрелку снизу
+      case 5U:  arrow_complete = (arrow_x[0U] > stop_x[0U]);  break; // Стрелка слева и справа движутся и достигают края одновременно - проверять только стрелку слева
+      case 10U: arrow_complete = (arrow_y[1U] > stop_y[1U]);  break; // Стрелка снизу и сверху движутся и достигают края одновременно - проверять только стрелку снизу
     }
 
     arrow_change_mode = false;
     if (arrow_complete) {
-      arrow_direction = arrow_direction == 5 ? 10 : 5;
-      if (arrow_mode_orig == 0) {
-        arrow_play_mode_count[4]--;
-        if (arrow_play_mode_count[4] == 0) {
-          arrow_play_mode_count[4] = arrow_play_mode_count_orig[4];
-          arrow_mode = random8(1, 5);
+      arrow_direction = (arrow_direction == 5U) ? 10U : 5U;
+      if (arrow_mode_orig == 0U) {
+        arrow_play_mode_count[4U]--;
+        if (arrow_play_mode_count[4U] == 0U) {
+          arrow_play_mode_count[4U] = arrow_play_mode_count_orig[4U];
+          arrow_mode = random8(1U, 5U);
           arrow_change_mode = true;
         }
       }
-
       arrowSetupForMode(arrow_mode, arrow_change_mode);
     }
     break;
@@ -11947,22 +11948,18 @@ static void arrowsRoutine() {
   case 5:
     // Одновременно со всех сторон от края до края со смещением горизонтальной
     // оси на 1/3 высоты, далее Проверять стрелки по самой длинной стороне
-    if (WIDTH >= HEIGHT)
-      arrow_complete = arrow_x[0] > stop_x[0];
-    else
-      arrow_complete = arrow_y[1] > stop_y[1];
+    arrow_complete = (WIDTH >= HEIGHT) ? (arrow_x[0U] > stop_x[0U]) : (arrow_y[1U] > stop_y[1U]);
 
     arrow_change_mode = false;
     if (arrow_complete) {
-      if (arrow_mode_orig == 0) {
-        arrow_play_mode_count[5]--;
-        if (arrow_play_mode_count[5] == 0) {
-          arrow_play_mode_count[5] = arrow_play_mode_count_orig[5];
-          arrow_mode = random8(1, 5);
+      if (arrow_mode_orig == 0U) {
+        arrow_play_mode_count[5U]--;
+        if (arrow_play_mode_count[5U] == 0U) {
+          arrow_play_mode_count[5U] = arrow_play_mode_count_orig[5U];
+          arrow_mode = random8(1U, 5U);
           arrow_change_mode = true;
         }
       }
-
       arrowSetupForMode(arrow_mode, arrow_change_mode);
     }
     break;
@@ -11977,59 +11974,73 @@ static void arrowsRoutine() {
 //                Аврора
 // =====================================
 static void Avrora() {
-  constexpr uint8_t PADDING   = QUARTER_Y;
-  constexpr float BR_INTERWAL = static_cast<float>(WIDTH) / static_cast<float>(HEIGHT);
+  constexpr uint8_t PADDING = QUARTER_Y;
+  constexpr float freq = 3000.0f;
+  constexpr uint8_t fade = 30U;
 
   // ---------------------
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      setModeSettings(50, random8(2, 254U));
+      //           scale | speed
+      setModeSettings(50U, random8(2U, 254U));
     }
     #endif
-    loadingFlag = false;
-    deltaValue = 0;
-    hue = 0;
+
+    deltaValue = 0U;
+    hue = 0U;
 
     ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
   // ---------------------
-
-  constexpr float freq = 3000.0f;
-  constexpr float mn = 255.0f / 13.8f;
-  constexpr uint8_t fade = 30; // 60 - std::abs(128 - step) / 3;
 
   const uint8_t step1 = map8(modes[currentMode].Speed, 10U, 60U);
   const uint16_t ms = millis();
 
   fadeToBlackBy(leds, NUM_LEDS, fade);
 
+  constexpr float inv_height = 1.0f / HEIGHT;
+  const uint16_t ms_div29 = ms / 29U;
+
   // -----------------
   for (uint16_t y = 0U; y < HEIGHT; y++) {
-    uint32_t yy = y * 256;
-    uint32_t x1 = beatsin16(step1, WIDTH, MAX_Y * 256, WIDTH, y * freq + 32768) / 1.5f;
+    const uint32_t yy = (uint32_t)(y << 8U); // y * 256
+
+    // Оптимизация: деление на 1.5f заменено умножением на 0.6666667f
+    const uint32_t x1 = (uint32_t)(beatsin16(step1, WIDTH, (uint16_t)(MAX_Y << 8U), WIDTH, (uint16_t)(y * freq + 32768U)) * 0.6666667f);
 
     /* change color -------- */
-    uint8_t cur_color = ms / 29 + y * 256 / HEIGHT;
-    CRGB color = CHSV(cur_color, 255, 255 - y * OCTANT_Y);
-    uint8_t br = constrain(255 - y * HEIGHT / 5, 0, 200);
-    CRGB color2 = CHSV(cur_color - 32, 255 - y * QUARTER_Y, br);
+    const uint8_t cur_color = ms_div29 + (uint8_t)((y << 8U) * inv_height);
 
-    wu_pixel(x1 + hue + PADDING * hue / 2, yy, &color);
-    wu_pixel(std::abs((int)(MAX_X * 256 - (x1 + hue))), yy - PADDING * hue, &color2);
+    CRGB color = CHSV(cur_color, 255U, (uint8_t)(255U - y * OCTANT_Y));
+
+    // Оптимизация: заменяем деление на 5 умножением на 0.2f
+    const int16_t calc_br = 255 - (int16_t)((y * HEIGHT) * 0.2f);
+    const uint8_t br = (calc_br < 0) ? 0U : ((calc_br > 200) ? 200U : (uint8_t)calc_br);
+
+    CRGB color2 = CHSV((uint8_t)(cur_color - 32U), (uint8_t)(255U - y * QUARTER_Y), br);
+
+    const uint32_t x_offset = x1 + hue;
+    wu_pixel((uint32_t)(x_offset + ((PADDING * hue) >> 1U)), yy, &color); // Сдвиг >> 1U вместо / 2
+
+    const int32_t inv_x = (int32_t)(MAX_X << 8U) - (int32_t)x_offset;
+    wu_pixel((uint32_t)std::abs(inv_x), (uint32_t)(yy - PADDING * hue), &color2);
   }
 
   step++;
-  if (step % 64) {
-    if (deltaValue == 1) {
+
+  if ((step % 64U) == 0U) {
+    if (deltaValue == 1U) {
       hue++;
-      if (hue >= 255) {
-        deltaValue = 0;
+      if (hue >= 255U) {
+        deltaValue = 0U;
       }
     } else {
       hue--;
-      if (hue < 1) {
-        deltaValue = 1;
+      if (hue < 1U) {
+        deltaValue = 1U;
       }
     }
   }
@@ -12043,40 +12054,40 @@ static void Avrora() {
 //             Цветок Лотоса
 //---------------------------------------
 static void drawLotusFlowerFragment(uint8_t posX, uint8_t line) {
-  constexpr uint8_t h = (HEIGHT > 24) ? (uint16_t)(HEIGHT * 9) / 10 : HEIGHT;
+  constexpr uint8_t h = (HEIGHT > 24U) ? (uint8_t)((uint16_t)(HEIGHT * 9U) / 10U) : HEIGHT;
   constexpr uint8_t lowBri = 112U;
 
-  uint8_t flover_color = 128 + std::abs(128 - hue);                             // 128 -- 255
-  uint8_t gleam = 255 - std::abs(128 - hue2);                                   // 255 -- 128
+  const uint8_t flover_color = 128U + std::abs(128 - (int16_t)hue);             // 128 -- 255
+  const uint8_t gleam = 255U - std::abs(128 - (int16_t)hue2);                   // 255 -- 128
 
   // Вместо f_size считаем сразу смещение по высоте в целых числах:
   // f_size был (128 - abs(128 - deltaValue)) / 150.0f                          // 1.0 -- 0.0
   // Значит h * f_size = (h * (128 - abs(128 - deltaValue))) / 150
-  uint8_t h_f_size = ((uint16_t)h * (128 - std::abs(128 - (int16_t)deltaValue))) / 150;
+  const uint8_t h_f_size = (uint8_t)(((uint16_t)h * (128 - std::abs(128 - (int16_t)deltaValue))) / 150U);
 
   // clear: h * 1.1 это h + h/10
-  DrawLine(posX, 0, posX, h + (h / 10), CRGB::Black);
+  DrawLine(posX, 0U, posX, (uint8_t)(h + (h / 10U)), 0x000000);
 
   switch (line) {
-    case 0:
-      gradientVertical(posX, 0, posX + 1, (h * 22) / 100, 96, 96, 32, 255, 255U);                        // 0.22        green leaf c
-      gradientVertical(posX, (h * 9) / 10, posX + 1, h + (h / 10), 64, 48, 64, 205, gleam);              // 0.9 и 1.1   pestle
-      gradientVertical(posX, 8, posX + 1, (h * 6) / 10, flover_color, flover_color, 128, lowBri, 255U);  // 0.6         ---
+    case 0U:
+      gradientVertical(posX, 0U, (uint8_t)(posX + 1U), (uint8_t)((h * 22U) / 100U), 96U, 96U, 32U, 255U, 255U);                             // 0.22        green leaf c
+      gradientVertical(posX, (uint8_t)((h * 9U) / 10U), (uint8_t)(posX + 1U), (uint8_t)(h + (h / 10U)), 64U, 48U, 64U, 205U, gleam);        // 0.9 и 1.1   pestle
+      gradientVertical(posX, 8U, (uint8_t)(posX + 1U), (uint8_t)((h * 6U) / 10U), flover_color, flover_color, 128U, lowBri, 255U);          // 0.6         ---
       break;
-    case 2:
-    case 6:
-      gradientVertical(posX, h / 5, posX + 1, h - 4, flover_color, flover_color, lowBri, 255, gleam);    // 0.2         -->
-      gradientVertical(posX, h / 20, posX + 1, (h * 15) / 100, 96, 96, 32, 255, 255U);                   // 0.05 и 0.15 green leaf
+    case 2U:
+    case 6U:
+      gradientVertical(posX, (uint8_t)(h / 5U), (uint8_t)(posX + 1U), (uint8_t)(h - 4U), flover_color, flover_color, lowBri, 255U, gleam);  // 0.2         -->
+      gradientVertical(posX, (uint8_t)(h / 20U), (uint8_t)(posX + 1U), (uint8_t)((h * 15U) / 100U), 96U, 96U, 32U, 255U, 255U);             // 0.05 и 0.15 green leaf
       break;
-    case 3:
-    case 5:
-      gradientVertical(posX, h / 2, posX + 1, h - 2, flover_color, flover_color, lowBri, 255, 255U);     // 0.5         ---->
+    case 3U:
+    case 5U:
+      gradientVertical(posX, (uint8_t)(h / 2U), (uint8_t)(posX + 1U), (uint8_t)(h - 2U), flover_color, flover_color, lowBri, 255U, 255U);   // 0.5         ---->
       break;
-    case 4:
-      gradientVertical(posX, 1 + h_f_size, posX + 1, h, flover_color, flover_color, lowBri, 255, gleam);  //           ------>
+    case 4U:
+      gradientVertical(posX, (uint8_t)(1U + h_f_size), (uint8_t)(posX + 1U), h, flover_color, flover_color, lowBri, 255U, gleam);           //             ------>
       break;
     default:
-      gradientVertical(posX, h / 20, posX + 1, h / 5, 80, 96, 160, 64, 255U);                             // 0.05 и 0.2 green leaf m
+      gradientVertical(posX, (uint8_t)(h / 20U), (uint8_t)(posX + 1U), (uint8_t)(h / 5U), 80U, 96U, 160U, 64U, 255U);                       // 0.05 и 0.2 green leaf m
       break;
   }
 }
@@ -12084,8 +12095,6 @@ static void drawLotusFlowerFragment(uint8_t posX, uint8_t line) {
 //---------------------------------------
 static void LotusFlower() {
   constexpr uint8_t STEP_OBJ = 8;
-
-  static uint8_t deltaSpeed = 0;
 
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
@@ -12095,48 +12104,58 @@ static void LotusFlower() {
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
     step = 0U;
     hue2 = 128U;
-    deltaValue = 0;
-    hue = 224;
-    FPSdelay = SpeedFactor(160);
+    deltaValue = 0U;
+    hue = 224U;
+    FPSdelay = SpeedFactor(160U);
 
     ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
 
-  if (modes[currentMode].Speed > 128U) {
-    if (modes[currentMode].Scale > 50) {
-      deltaSpeed = 80U + (128U - std::abs((int)(128U - deltaValue))) / 1.25f;
+  const uint8_t current_speed = modes[currentMode].Speed;
+  const uint8_t current_scale = modes[currentMode].Scale;
+
+  if (current_speed > 128U) {
+    if (current_scale > 50U) {
+      const uint8_t deltaSpeed = 80U + (uint8_t)((128U - std::abs(128 - (int16_t)deltaValue)) * 0.8f);
       FPSdelay = SpeedFactor(deltaSpeed);
-      if (step % 256 == 0U) hue += 32;           /* color morph */
+
+      if (step == 0U) {  /* color morph */
+        hue += 32U;
+      }
     } else {
-      FPSdelay = SpeedFactor(160);
+      FPSdelay = SpeedFactor(160U);
       hue = 28U;
     }
-    deltaValue++;     /* size morph  */
+    deltaValue++;        /* size morph */
+
     /* <==== scroll ===== */
-    drawLotusFlowerFragment(MAX_X, (step % STEP_OBJ));
-    for (uint8_t y = 0U ; y < HEIGHT; y++) {
-      for (uint8_t x = 0U ; x < WIDTH; x++) {
-        drawPixelXY(x - 1, y,  getPixColorXY(x,  y));
+    drawLotusFlowerFragment(MAX_X, (uint8_t)(step % STEP_OBJ));
+    for (uint8_t y = 0U; y < HEIGHT; y++) {
+      for (uint8_t x = 0U; x < WIDTH; x++) {
+        drawPixelXY((int16_t)(x - 1U), y, getPixColorXY(x, y));
       }
     }
   } else {
     /* <==== morph ===== */
-    for (uint8_t x = 0U ; x < WIDTH; x++) {
-      drawLotusFlowerFragment(x, (x % STEP_OBJ));
-      if (x % 2U) {
-        hue2++;         /* gleam morph */
+    for (uint8_t x = 0U; x < WIDTH; x++) {
+      drawLotusFlowerFragment(x, (uint8_t)(x % STEP_OBJ));
+      if ((x & 0x01U) != 0U) {
+        hue2++;          /* gleam morph */
       }
     }
-    deltaValue++;       /* size morph  */
-    if (modes[currentMode].Scale > 50) {
-      hue += 8; /* color morph */
+    deltaValue++;        /* size morph  */
+
+    if (current_scale > 50U) {
+      hue += 8U;         /* color morph */
     } else {
       hue = 28U;
     }
   }
+
   step++;
 }
 #endif
@@ -12256,6 +12275,7 @@ static void NightCity() {
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
+      //          scale | speed
       setModeSettings(50, random8(2, 254U));
     }
     #endif
@@ -12377,49 +12397,55 @@ static void RainRoutine()
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      setModeSettings(random8(10U) ? 2U + random8(99U) : 1U , 185U + random8(52U));
+      //                                             scale | speed
+      setModeSettings(random8(10U) ? 2U + random8(99U) : 1U, 185U + random8(52U));
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-    loadingFlag = false;
+
+    const uint8_t scale_val = modes[currentMode].Scale;
+    // ПРЕДРАСЧЕТ ПОДРЕЖИМА ОСАДКОВ
+    if (scale_val == 1U) {
+      deltaValue = 0U; // Радужный дождь
+    } else if (scale_val == 100U) {
+      deltaValue = 1U; // Снег
+    } else {
+      deltaValue = 2U; // Цветной дождь
+    }
+
+    // ПОЛНЫЙ ПРЕДРАСЧЕТ БАЗОВОГО ОТТЕНКА
+    deltaHue = (uint8_t)(scale_val * 2.4f);
+
     ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
 
-  for (uint8_t x = 0U; x < WIDTH; x++)
-  {
-    // заполняем случайно верхнюю строку
-    if (getPixColorXY(x, MAX_Y) == 0U)
-    {
-      if (random8(0, 50) == 0U)
-      {
-        if (modes[currentMode].Scale == 1)
-        {
-          drawPixelXY(x, MAX_Y, CHSV(random(0, 9) * 28, 255U, 255U));                               // Радужный дождь
+  // Обсчет и генерация капель на самой верхней строке матрицы
+  for (uint8_t x = 0U; x < WIDTH; x++) {
+    if (getPixColorXY(x, MAX_Y) == 0U) {
+      if (random8(50U) == 0U) {
+        if (deltaValue == 0U) {
+          // Радужный дождь
+          drawPixelXY(x, MAX_Y, CHSV((uint8_t)(random8(9U) * 28U), 255U, 255U));
+        } else if (deltaValue == 1U) {
+          // Снег
+          drawPixelXY(x, MAX_Y, (uint32_t)(0xE0FFFF - 0x101010 * random8(4U)));
+        } else {
+          // Цветной дождь
+          drawPixelXY(x, MAX_Y, CHSV((uint8_t)(deltaHue + random8(16U)), 255U, 255U));
         }
-        else
-        {
-          if (modes[currentMode].Scale == 100)
-          {
-            drawPixelXY(x, MAX_Y, 0xE0FFFF - 0x101010 * random(0, 4));                              // Снег
-          }
-          else
-          {
-            drawPixelXY(x, MAX_Y, CHSV(modes[currentMode].Scale * 2.4f + random(0, 16), 255, 255));  // Цветной дождь
-          }
-        }
+
       }
-    }
-    else
-    {
-      leds[XY(x, MAX_Y)] -= CHSV(0, 0, random(96, 128));
+    } else {
+      // Постепенное угасание капель, задержавшихся на верхней строчке
+      leds[XY(x, MAX_Y)] -= CHSV(0U, 0U, random8(96U, 128U));
     }
   }
 
   // сдвигаем всё вниз
-  for (uint8_t x = 0U; x < WIDTH; x++)
-  {
-    for (uint8_t y = 0U; y < MAX_Y; y++)
-    {
-      drawPixelXY(x, y, getPixColorXY(x, y + 1U));
+  for (uint8_t x = 0U; x < WIDTH; x++) {
+    for (uint8_t y = 0U; y < MAX_Y; y++) {
+      drawPixelXY(x, y, getPixColorXY(x, (uint8_t)(y + 1U)));
     }
   }
 }
