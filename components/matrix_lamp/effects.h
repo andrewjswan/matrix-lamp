@@ -57,7 +57,7 @@ static uint8_t custom_eff = 0U;
 
 // --------------------------------------------------------------------------------------
 
-#if defined(DEF_RAINBOW_RINGS) || defined(DEF_STARS_NIGHT) || defined(DEF_FIRESPARKS) || defined(DEF_TURBULENCE)
+#if defined(DEF_RAINBOW_RINGS) || defined(DEF_STARS_NIGHT) || defined(DEF_FIRESPARKS)
 static uint32_t lastUpdateTime;
 #endif
 #if defined(DEF_RAINBOW_RINGS) || defined(DEF_BUTTERFLY) || defined(DEF_COLORED_PYTHON)
