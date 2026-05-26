@@ -12424,72 +12424,98 @@ static void RainRoutine()
 //                Сканер
 // =====================================
 static void Scanner() {
-  static uint8_t i;
-  static bool v_scanner = HEIGHT >= WIDTH;
+  constexpr bool v_scanner = (HEIGHT >= WIDTH);
+
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      setModeSettings(random8(0, 100), random8(128, 255U));
+      //                         scale | speed
+      setModeSettings(random8(0U, 100U), random8(128U, 255U));
     }
-    deltaValue = 0;
+    deltaValue = 0U;
     #endif
-
-    loadingFlag = false;
+  
     hue = modes[currentMode].Scale * 2.55f;
     deltaHue = modes[currentMode].Scale;
-    i = 5;
+    hue2 = 5U;
+  
     ledsClear(); // esphome: FastLED.clear();
+  
+    loadingFlag = false;
   }
 
-  if (step % 2U == 0U) {
+  if ((step & 0x01U) == 0U) { // step % 2U
     if (deltaValue == 0U) {
-      i++;
+      hue2++;
     } else {
-      i--;
+      hue2--;
     }
     if (deltaHue == 0U) {
       hue++;
     }
   }
-  if (i > 250) {
-    i = 0;
-    deltaValue = 0;
-  }
-  fadeToBlackBy(leds, NUM_LEDS, v_scanner ? 50 : 30);
+  
+  if (hue2 > 250U) {
+    hue2 = 0U;
+    deltaValue = 0U;
+  }  
 
+  fadeToBlackBy(leds, NUM_LEDS, v_scanner ? 50U : 30U);
+  
   if (v_scanner) {
     /* vertical scanner */
     if (i >= MAX_Y) {
       deltaValue = 1;
     }
-
-    for (uint16_t x = 0U; x < WIDTH; x++) {
-      leds[XY(x, i)] = CHSV(hue, 255U, 180U);
-      if ((x == i / 2.0f) & (i % 2U == 0U)) {
-        if (deltaValue == 0U) {
-          drawPixelXYF(random(WIDTH) - (random8(2U) ? 1.5f : 1), i * 0.9f, CHSV(hue, 16U, 255U));
-        } else {
-          drawPixelXYF(random(WIDTH) - 1.5f, i * 1.1f, CHSV(hue, 16U, 255U));
+  
+    if (((hue2 & 0x01U) == 0U)) {
+      const uint8_t spark_trigger_x = hue2 >> 1U; // hue2 / 2.0f
+      
+      for (uint8_t x = 0U; x < WIDTH; x++) {
+        leds[XY(x, hue2)] = CHSV(hue, 255U, 180U);
+        
+        if (x == spark_trigger_x) {
+          if (deltaValue == 0U) {
+            const float rnd_offset = random8(2U) ? 1.5f : 1.0f;
+            drawPixelXYF((float)random8(WIDTH) - rnd_offset, (float)hue2 * 0.9f, CHSV(hue, 16U, 255U));
+          } else {
+            drawPixelXYF((float)random8(WIDTH) - 1.5f, (float)hue2 * 1.1f, CHSV(hue, 16U, 255U));
+          }
         }
       }
-    }
+    } else {
+      for (uint8_t x = 0U; x < WIDTH; x++) {
+        leds[XY(x, hue2)] = CHSV(hue, 255U, 180U);
+      }
+    }    
   } else {
     /* horizontal scanner */
     if (i >= MAX_X) {
-      deltaValue = 1;
+      deltaValue = 1U;
     }
-
-    for (uint16_t y = 0U; y < HEIGHT; y++) {
-      leds[XY(i, y)] = CHSV(hue, 255U, 180U);
-      if ((y == i / 2.0f) & (i % 2U == 0U)) {
-        if (deltaValue == 0U) {
-          drawPixelXYF(i * 0.9f, random(HEIGHT) - (random8(2U) ? 1.5f : 1), CHSV(hue, 16U, 255U));
-        } else {
-          drawPixelXYF(i * 1.1f, random(HEIGHT) - 1.5f, CHSV(hue, 16U, 255U));
+  
+    if (((hue2 & 0x01U) == 0U)) {
+      const uint8_t spark_trigger_y = hue2 >> 1U; // hue2 / 2.0f через быстрый сдвиг
+      
+      for (uint8_t y = 0U; y < HEIGHT; y++) {
+        leds[XY(hue2, y)] = CHSV(hue, 255U, 180U);
+        
+        if (y == spark_trigger_y) {
+          if (deltaValue == 0U) {
+            const float rnd_offset = random8(2U) ? 1.5f : 1.0f;
+            drawPixelXYF((float)hue2 * 0.9f, (float)random8(HEIGHT) - rnd_offset, CHSV(hue, 16U, 255U));
+          } else {
+            drawPixelXYF((float)hue2 * 1.1f, (float)random8(HEIGHT) - 1.5f, CHSV(hue, 16U, 255U));
+          }
         }
+      }
+    } else {
+      for (uint8_t y = 0U; y < HEIGHT; y++) {
+        leds[XY(hue2, y)] = CHSV(hue, 255U, 180U);
       }
     }
   }
+
   step++;
 }
 #endif
