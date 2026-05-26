@@ -12648,8 +12648,7 @@ static void Mirage() {
 // --------------------------------------
 
 static void HandFan() {
-  constexpr uint8_t V_STEP = 255 / (HEIGHT + 9U);
-  static uint8_t val_scale;
+  constexpr uint8_t V_STEP = 255U / (HEIGHT + 9U);
 
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
@@ -12659,24 +12658,28 @@ static void HandFan() {
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
+    hue = (uint8_t)(modes[currentMode].Scale * 2.55f);
+    deltaHue = map(modes[currentMode].Speed, 1U, 255U, 200U, 255U);
+
     loadingFlag = false;
-    hue = modes[currentMode].Scale * 2.55f;
-    val_scale = map(modes[currentMode].Speed, 1, 255, 200U, 255U);;
   }
 
-  for (int index = 0; index < NUM_LEDS; index++) {
-    leds[index].nscale8(val_scale);
-  }
+  nscale8_video(leds, NUM_LEDS, deltaHue);
 
-  for (int i = 0; i < HEIGHT; i++) {
-    int tmp = sin8(i + (millis() >> 4));
-    tmp = map8(tmp, 2, WIDTH - 2);
+  const bool scale_flag = (modes[currentMode].Scale > 95U);
 
-    leds[XY(WIDTH - tmp, i)]     = CHSV(hue, V_STEP * i + 32, 205U);
-    leds[XY(WIDTH - tmp - 1, i)] = CHSV(hue, 255U, 255 - V_STEP * i);
-    leds[XY(WIDTH - tmp + 1, i)] = CHSV(hue, 255U, 255 - V_STEP * i);
+  for (uint8_t i = 0U; i < HEIGHT; i++) {
+    const uint8_t sin_val = sin8((uint8_t)(i + (millis() >> 4U)));
+    const uint8_t tmp = map8(sin_val, 2U, (uint8_t)(WIDTH - 2U));
 
-    if ((i % 6 == 0) & (modes[currentMode].Scale > 95U)) {
+    const uint8_t center_x = WIDTH - tmp;
+    const uint8_t side_bri = (uint8_t)(255U - V_STEP * i);
+
+    leds[XY(center_x, i)]                 = CHSV(hue, (uint8_t)(V_STEP * i + 32U), 205U);
+    leds[XY((int16_t)(center_x - 1), i)]  = CHSV(hue, 255U, side_bri);
+    leds[XY((uint8_t)(center_x + 1U), i)] = CHSV(hue, 255U, side_bri);
+
+    if ((i % 6U == 0U) && scale_flag) {
       hue++;
     }
   }
