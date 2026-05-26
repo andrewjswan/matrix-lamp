@@ -11593,224 +11593,250 @@ static uint8_t arrow_play_mode_count_orig[6];   // Сколько раз про�
 
 static void arrowSetup_mode1() {
   // Слева направо
-  if ((arrow_direction & 0x01) > 0) {
+  if ((arrow_direction & 0x01U) != 0U) {
     arrow_hue[0] = random8();
     arrow_x[0]   = 0;
     arrow_y[0]   = (int8_t)CENTER_Y;
-    stop_x[0]    = (int8_t)WIDTH + 7; // скрывается за экраном на 7 пикселей
-    stop_y[0]    = 0;                 // неприменимо
+    stop_x[0]    = (int8_t)(WIDTH + 7U);        // скрывается за экраном на 7 пикселей
+    stop_y[0]    = 0;                           // неприменимо
   }
   // снизу вверх
-  if ((arrow_direction & 0x02) > 0) {
+  if ((arrow_direction & 0x02U) != 0U) {
     arrow_hue[1] = random8();
     arrow_y[1]   = 0;
     arrow_x[1]   = (int8_t)CENTER_X;
-    stop_y[1]    = (int8_t)HEIGHT + 7; // скрывается за экраном на 7 пикселей
-    stop_x[1]    = 0;                  // неприменимо
+    stop_y[1]    = (int8_t)(HEIGHT + 7U);       // скрывается за экраном на 7 пикселей
+    stop_x[1]    = 0;                           // неприменимо
   }
   // справа налево
-  if ((arrow_direction & 0x04) > 0) {
+  if ((arrow_direction & 0x04U) != 0U) {
     arrow_hue[2] = random8();
     arrow_x[2]   = (int8_t)MAX_X;
     arrow_y[2]   = (int8_t)CENTER_Y;
-    stop_x[2]    = -7; // скрывается за экраном на 7 пикселей
-    stop_y[2]    = 0;  // неприменимо
+    stop_x[2]    = -7;                          // скрывается за экраном на 7 пикселей
+    stop_y[2]    = 0;                           // неприменимо
   }
   // сверху вниз
-  if ((arrow_direction & 0x08) > 0) {
+  if ((arrow_direction & 0x08U) != 0U) {
     arrow_hue[3] = random8();
     arrow_y[3]   = (int8_t)MAX_Y;
     arrow_x[3]   = (int8_t)CENTER_X;
-    stop_y[3]    = -7; // скрывается за экраном на 7 пикселей
-    stop_x[3]    = 0;  // неприменимо
+    stop_y[3]    = -7;                          // скрывается за экраном на 7 пикселей
+    stop_x[3]    = 0;                           // неприменимо
   }
 }
 
 static void arrowSetup_mode2() {
   // Слева направо до половины экрана
-  if ((arrow_direction & 0x01) > 0) {
+  if ((arrow_direction & 0x01U) != 0U) {
     arrow_hue[0] = random8();
     arrow_x[0]   = 0;
     arrow_y[0]   = (int8_t)CENTER_Y;
-    stop_x[0]    = (int8_t)CENTER_X - 1;  // до центра экрана
-    stop_y[0]    = 0;                     // неприменимо
+    stop_x[0]    = (int8_t)(CENTER_X - 1U);     // до центра экрана
+    stop_y[0]    = 0;                           // неприменимо
   }
   // снизу вверх до половины экрана
-  if ((arrow_direction & 0x02) > 0) {
+   if ((arrow_direction & 0x02U) != 0U) {
     arrow_hue[1] = random8();
     arrow_y[1]   = 0;
     arrow_x[1]   = (int8_t)CENTER_X;
-    stop_y[1]    = (int8_t)CENTER_Y - 1;  // до центра экрана
-    stop_x[1]    = 0;                     // неприменимо
+    stop_y[1]    = (int8_t)CENTER_Y - 1;        // до центра экрана
+    stop_x[1]    = 0;                           // неприменимо
   }
   // справа налево до половины экрана
-  if ((arrow_direction & 0x04) > 0) {
+  if ((arrow_direction & 0x04U) != 0U) {
     arrow_hue[2] = random8();
     arrow_x[2]   = (int8_t)MAX_X;
     arrow_y[2]   = (int8_t)CENTER_Y;
-    stop_x[2]    = (int8_t)CENTER_X;  // до центра экрана
-    stop_y[2]    = 0;                 // неприменимо
+    stop_x[2]    = (int8_t)CENTER_X;            // до центра экрана
+    stop_y[2]    = 0;                           // неприменимо
   }
   // сверху вниз до половины экрана
-  if ((arrow_direction & 0x08) > 0) {
+  if ((arrow_direction & 0x08U) != 0U) {
     arrow_hue[3] = random8();
     arrow_y[3]   = (int8_t)MAX_Y;
     arrow_x[3]   = (int8_t)CENTER_X;
-    stop_y[3]    = (int8_t)CENTER_Y;  // до центра экрана
-    stop_x[3]    = 0;                 // неприменимо
+    stop_y[3]    = (int8_t)CENTER_Y;            // до центра экрана
+    stop_x[3]    = 0;                           // неприменимо
   }
 }
 
 static void arrowSetup_mode4() {
   // Слева направо
-  if ((arrow_direction & 0x01) > 0) {
+  if ((arrow_direction & 0x01U) != 0U) {
     arrow_hue[0] = random8();
     arrow_x[0]   = 0;
-    arrow_y[0]   = (int8_t)THIRD_Y * 2;
-    stop_x[0]    = (int8_t)WIDTH + 7; // скрывается за экраном на 7 пикселей
-    stop_y[0]    = 0;                 // неприменимо
+    arrow_y[0]   = (int8_t)(THIRD_Y * 2U);
+    stop_x[0]    = (int8_t)(WIDTH + 7U);        // скрывается за экраном на 7 пикселей
+    stop_y[0]    = 0;                           // неприменимо
   }
   // снизу вверх
-  if ((arrow_direction & 0x02) > 0) {
+  if ((arrow_direction & 0x02U) != 0U) {
     arrow_hue[1] = random8();
     arrow_y[1]   = 0;
-    arrow_x[1]   = (int8_t)THIRD_X * 2;
-    stop_y[1]    = (int8_t)HEIGHT + 7; // скрывается за экраном на 7 пикселей
-    stop_x[1]    = 0;                  // неприменимо
+    arrow_x[1]   = (int8_t)(THIRD_X * 2U);
+    stop_y[1]    = (int8_t)(HEIGHT + 7U);       // скрывается за экраном на 7 пикселей
+    stop_x[1]    = 0;                           // неприменимо
   }
   // справа налево
-  if ((arrow_direction & 0x04) > 0) {
+  if ((arrow_direction & 0x04U) != 0U) {
     arrow_hue[2] = random8();
     arrow_x[2]   = (int8_t)MAX_X;
     arrow_y[2]   = (int8_t)THIRD_Y;
-    stop_x[2]    = -7; // скрывается за экраном на 7 пикселей
-    stop_y[2]    = 0;  // неприменимо
+    stop_x[2]    = -7;                          // скрывается за экраном на 7 пикселей
+    stop_y[2]    = 0;                           // неприменимо
   }
   // сверху вниз
-  if ((arrow_direction & 0x08) > 0) {
+  if ((arrow_direction & 0x08U) != 0U) {
     arrow_hue[3] = random8();
     arrow_y[3]   = (int8_t)MAX_Y;
     arrow_x[3]   = (int8_t)THIRD_X;
-    stop_y[3]    = -7; // скрывается за экраном на 7 пикселей
-    stop_x[3]    = 0;  // неприменимо
+    stop_y[3]    = -7;                           // скрывается за экраном на 7 пикселей
+    stop_x[3]    = 0;                            // неприменимо
   }
 }
 
 static void arrowSetupForMode(uint8_t mode, bool change) {
   switch (mode) {
-    case 1:
-      if (change) arrow_direction = 1;
-      arrowSetup_mode1(); // От края матрицы к краю, по центру гориз и верт
+    case 1U:
+      if (change) arrow_direction = 1U;
+      arrowSetup_mode1();                        // От края матрицы к краю, по центру гориз и верт
       break;
-    case 2:
-      if (change) arrow_direction = 5;
-      arrowSetup_mode2(); // По центру матрицы (гориз / верт) - ограничение -
-                          // центр матрицы
+    case 2U:
+      if (change) arrow_direction = 5U;
+      arrowSetup_mode2();                        // По центру матрицы (гориз / верт) - ограничение -
+                                                 // центр матрицы
       break;
-    case 3:
-      if (change) arrow_direction = 15;
-      arrowSetup_mode2(); // как и в режиме 2 - по центру матрицы (гориз / верт) -
-                          // ограничение - центр матрицы
+    case 3U:
+      if (change) arrow_direction = 15U;
+      arrowSetup_mode2();                        // как и в режиме 2 - по центру матрицы (гориз / верт) -
+                                                 // ограничение - центр матрицы
       break;
-    case 4:
-      if (change) arrow_direction = 5;
-      arrowSetup_mode4(); // От края матрицы к краю, верт / гориз
+    case 4U:
+      if (change) arrow_direction = 5U;
+      arrowSetup_mode4();                        // От края матрицы к краю, верт / гориз
       break;
-    case 5:
-      if (change) arrow_direction = 15;
-      arrowSetup_mode4(); // как и в режиме 4 от края матрицы к краю, на 1/3
+    case 5U:
+      if (change) arrow_direction = 15U;
+      arrowSetup_mode4();                        // как и в режиме 4 от края матрицы к краю, на 1/3
       break;
   }
 }
 
 static void arrowsRoutine() {
   if (loadingFlag) {
-    loadingFlag = false;
-
-    ledsClear(); // esphome: FastLED.clear();
-
     arrow_complete = false;
-    arrow_mode = (arrow_mode_orig == 0 || arrow_mode_orig > 5)
-                     ? random8(1, 5)
+    arrow_mode = (arrow_mode_orig == 0U || arrow_mode_orig > 5U)
+                     ? random8(1U, 5U)
                      : arrow_mode_orig;
 
-    arrow_play_mode_count_orig[0] = 0;
-    arrow_play_mode_count_orig[1] = 4; // 4 фазы - все стрелки показаны по кругу
-                                       // один раз - переходить к следующему ->
-    arrow_play_mode_count_orig[2] = 4; // 2 фазы - гориз к центру (1), затем верт к центру (2) - обе фазы
-                                       // повторить по 2 раза -> 4
-    arrow_play_mode_count_orig[3] = 4; // 1 фаза - все к центру (1) повторить по 4 раза -> 4
-    arrow_play_mode_count_orig[4] = 4; // 2 фазы - гориз к центру (1), затем верт к центру (2) - обе фазы
-                                       // повторить по 2 раза -> 4
-    arrow_play_mode_count_orig[5] = 4; // 1 фаза - все сразу (1) повторить по 4 раза -> 4
+    arrow_play_mode_count_orig[0U] = 0;
+    arrow_play_mode_count_orig[1U] = 4; // 4 фазы - все стрелки показаны по кругу
+                                        // один раз - переходить к следующему ->
+    arrow_play_mode_count_orig[2U] = 4; // 2 фазы - гориз к центру (1), затем верт к центру (2) - обе фазы
+                                        // повторить по 2 раза -> 4
+    arrow_play_mode_count_orig[3U] = 4; // 1 фаза - все к центру (1) повторить по 4 раза -> 4
+    arrow_play_mode_count_orig[4U] = 4; // 2 фазы - гориз к центру (1), затем верт к центру (2) - обе фазы
+                                        // повторить по 2 раза -> 4
+    arrow_play_mode_count_orig[5U] = 4; // 1 фаза - все сразу (1) повторить по 4 раза -> 4
 
-    for (uint8_t i = 0U; i < 6; i++) {
+    for (uint8_t i = 0U; i < 6U; i++) {
       arrow_play_mode_count[i] = arrow_play_mode_count_orig[i];
     }
     arrowSetupForMode(arrow_mode, true);
-  }
 
-  dimAll(160);
+    ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
+}
+
+  dimAll(160U);
   CHSV color;
 
+  constexpr CHSV black_color = CHSV(0U, 0U, 0U);
+
+  const uint8_t current_bri = modes[currentMode].Brightness;
+  const int8_t w_limit = (int8_t)WIDTH;
+  const int8_t h_limit = (int8_t)HEIGHT;
+
   // движение стрелки - cлева направо
-  if ((arrow_direction & 0x01) > 0) {
-    color = CHSV(arrow_hue[0], 255, modes[currentMode].Brightness);
-    for (int8_t x = 0U; x <= 4; x++) {
-      for (int8_t y = 0U; y <= x; y++) {
-        if (arrow_x[0] - x >= 0 && arrow_x[0] - x <= stop_x[0]) {
-          CHSV clr = (x < 4 || (x == 4 && y < 2)) ? color : CHSV(0, 0, 0);
-          drawPixelXY(arrow_x[0] - x, arrow_y[0] - y, clr);
-          drawPixelXY(arrow_x[0] - x, arrow_y[0] + y, clr);
+  if ((arrow_direction & 0x01U) != 0U) {
+    color = CHSV(arrow_hue[0U], 255U, current_bri);
+    const int8_t base_x = arrow_x[0U];
+    const int8_t base_y = arrow_y[0U];
+    const int8_t stop_val_x = stop_x[0U];
+
+    for (int8_t x = 0; x <= 4; x++) {
+      const int16_t target_x = base_x - x;
+      if (target_x >= 0 && target_x <= stop_val_x) {
+        for (int8_t y = 0; y <= x; y++) {
+          const CHSV clr = (x < 4 || (x == 4 && y < 2)) ? color : black_color;
+          drawPixelXY(target_x, base_y - y, clr);
+          drawPixelXY(target_x, base_y + y, clr);
         }
       }
     }
-    arrow_x[0]++;
+    arrow_x[0U]++;
   }
 
   // движение стрелки - cнизу вверх
-  if ((arrow_direction & 0x02) > 0) {
-    color = CHSV(arrow_hue[1], 255, modes[currentMode].Brightness);
-    for (int8_t y = 0U; y <= 4; y++) {
-      for (int8_t x = 0U; x <= y; x++) {
-        if (arrow_y[1] - y >= 0 && arrow_y[1] - y <= stop_y[1]) {
-          CHSV clr = (y < 4 || (y == 4 && x < 2)) ? color : CHSV(0, 0, 0);
-          drawPixelXY(arrow_x[1] - x, arrow_y[1] - y, clr);
-          drawPixelXY(arrow_x[1] + x, arrow_y[1] - y, clr);
+  if ((arrow_direction & 0x02U) != 0U) {
+    color = CHSV(arrow_hue[1U], 255U, current_bri);
+    const int8_t base_x = arrow_x[1U];
+    const int8_t base_y = arrow_y[1U];
+    const int8_t stop_val_y = stop_y[1U];
+
+    for (int8_t y = 0; y <= 4; y++) {
+      const int16_t target_y = base_y - y;
+      if (target_y >= 0 && target_y <= stop_val_y) {
+        for (int8_t x = 0; x <= y; x++) {
+          const CHSV clr = (y < 4 || (y == 4 && x < 2)) ? color : black_color;
+          drawPixelXY(base_x - x, target_y, clr);
+          drawPixelXY(base_x + x, target_y, clr);
         }
       }
     }
-    arrow_y[1]++;
+    arrow_y[1U]++;
   }
 
   // движение стрелки - cправа налево
-  if ((arrow_direction & 0x04) > 0) {
-    color = CHSV(arrow_hue[2], 255, modes[currentMode].Brightness);
-    for (int8_t x = 0U; x <= 4; x++) {
-      for (int8_t y = 0U; y <= x; y++) {
-        if (arrow_x[2] + x >= stop_x[2] && arrow_x[2] + x < (int8_t)WIDTH) {
-          CHSV clr = (x < 4 || (x == 4 && y < 2)) ? color : CHSV(0, 0, 0);
-          drawPixelXY(arrow_x[2] + x, arrow_y[2] - y, clr);
-          drawPixelXY(arrow_x[2] + x, arrow_y[2] + y, clr);
+  if ((arrow_direction & 0x04U) != 0U) {
+    color = CHSV(arrow_hue[2U], 255U, current_bri);
+    const int8_t base_x = arrow_x[2U];
+    const int8_t base_y = arrow_y[2U];
+    const int8_t stop_val_x = stop_x[2U];
+
+    for (int8_t x = 0; x <= 4; x++) {
+      const int16_t target_x = base_x + x;
+      if (target_x >= stop_val_x && target_x < w_limit) {
+        for (int8_t y = 0; y <= x; y++) {
+          const CHSV clr = (x < 4 || (x == 4 && y < 2)) ? color : black_color;
+          drawPixelXY(target_x, base_y - y, clr);
+          drawPixelXY(target_x, base_y + y, clr);
         }
       }
     }
-    arrow_x[2]--;
+    arrow_x[2U]--;
   }
 
   // движение стрелки - cверху вниз
-  if ((arrow_direction & 0x08) > 0) {
-    color = CHSV(arrow_hue[3], 255, modes[currentMode].Brightness);
-    for (int8_t y = 0U; y <= 4; y++) {
-      for (int8_t x = 0U; x <= y; x++) {
-        if (arrow_y[3] + y >= stop_y[3] && arrow_y[3] + y < (int8_t)HEIGHT) {
-          CHSV clr = (y < 4 || (y == 4 && x < 2)) ? color : CHSV(0, 0, 0);
-          drawPixelXY(arrow_x[3] - x, arrow_y[3] + y, clr);
-          drawPixelXY(arrow_x[3] + x, arrow_y[3] + y, clr);
+  if ((arrow_direction & 0x08U) != 0U) {
+    color = CHSV(arrow_hue[3U], 255U, current_bri);
+    const int8_t base_x = arrow_x[3U];
+    const int8_t base_y = arrow_y[3U];
+    const int8_t stop_val_y = stop_y[3U];
+
+    for (int8_t y = 0; y <= 4; y++) {
+      const int16_t target_y = base_y + y;
+      if (target_y >= stop_val_y && target_y < h_limit) {
+        for (int8_t x = 0; x <= y; x++) {
+          const CHSV clr = (y < 4 || (y == 4 && x < 2)) ? color : black_color;
+          drawPixelXY(base_x - x, target_y, clr);
+          drawPixelXY(base_x + x, target_y, clr);
         }
       }
     }
-    arrow_y[3]--;
+    arrow_y[3U]--;
   }
 
   // Проверка завершения движения стрелки, переход к следующей фазе или режиму
@@ -11824,34 +11850,26 @@ static void arrowsRoutine() {
     // начальные координаты
     arrow_complete = false;
     switch (arrow_direction) {
-    case 1:
-      arrow_complete = arrow_x[0] > stop_x[0];
-      break;
-    case 2:
-      arrow_complete = arrow_y[1] > stop_y[1];
-      break;
-    case 4:
-      arrow_complete = arrow_x[2] < stop_x[2];
-      break;
-    case 8:
-      arrow_complete = arrow_y[3] < stop_y[3];
-      break;
+      case 1U: arrow_complete = (arrow_x[0U] > stop_x[0U]); break;
+      case 2U: arrow_complete = (arrow_y[1U] > stop_y[1U]); break;
+      case 4U: arrow_complete = (arrow_x[2U] < stop_x[2U]); break;
+      case 8U: arrow_complete = (arrow_y[3U] < stop_y[3U]); break;
     }
 
     arrow_change_mode = false;
     if (arrow_complete) {
-      arrow_direction = (arrow_direction << 1) & 0x0F;
-      if (arrow_direction == 0)
-        arrow_direction = 1;
-      if (arrow_mode_orig == 0) {
-        arrow_play_mode_count[1]--;
-        if (arrow_play_mode_count[1] == 0) {
-          arrow_play_mode_count[1] = arrow_play_mode_count_orig[1];
-          arrow_mode = random8(1, 5);
+      arrow_direction = (arrow_direction << 1U) & 0x0FU;
+      if (arrow_direction == 0U) {
+        arrow_direction = 1U;
+      }
+      if (arrow_mode_orig == 0U) {
+        arrow_play_mode_count[1U]--;
+        if (arrow_play_mode_count[1U] == 0U) {
+          arrow_play_mode_count[1U] = arrow_play_mode_count_orig[1U];
+          arrow_mode = random8(1U, 5U);
           arrow_change_mode = true;
         }
       }
-
       arrowSetupForMode(arrow_mode, arrow_change_mode);
     }
     break;
@@ -11861,28 +11879,21 @@ static void arrowsRoutine() {
     // Затем одновременно вертикальные до половины экрана. Далее - повторять
     arrow_complete = false;
     switch (arrow_direction) {
-    case 5:
-      arrow_complete = arrow_x[0] > stop_x[0];
-      break; // Стрелка слева и справа встречаются в центре одновременно -
-             // проверять только стрелку слева
-    case 10:
-      arrow_complete = arrow_y[1] > stop_y[1];
-      break; // Стрелка снизу и сверху встречаются в центре одновременно -
-             // проверять только стрелку снизу
+      case 5U:  arrow_complete = (arrow_x[0U] > stop_x[0U]);  break; // Стрелка слева и справа встречаются в центре одновременно - проверять только стрелку слева
+      case 10U: arrow_complete = (arrow_y[1U] > stop_y[1U]);  break; // Стрелка снизу и сверху встречаются в центре одновременно - проверять только стрелку снизу
     }
 
     arrow_change_mode = false;
     if (arrow_complete) {
-      arrow_direction = arrow_direction == 5 ? 10 : 5;
-      if (arrow_mode_orig == 0) {
-        arrow_play_mode_count[2]--;
-        if (arrow_play_mode_count[2] == 0) {
-          arrow_play_mode_count[2] = arrow_play_mode_count_orig[2];
-          arrow_mode = random8(1, 5);
+      arrow_direction = (arrow_direction == 5U) ? 10U : 5U;
+      if (arrow_mode_orig == 0U) {
+        arrow_play_mode_count[2U]--;
+        if (arrow_play_mode_count[2U] == 0U) {
+          arrow_play_mode_count[2U] = arrow_play_mode_count_orig[2U];
+          arrow_mode = random8(1U, 5U);
           arrow_change_mode = true;
         }
       }
-
       arrowSetupForMode(arrow_mode, arrow_change_mode);
     }
     break;
@@ -11891,22 +11902,18 @@ static void arrowsRoutine() {
     // Одновременно со всех сторон к центру
     // Завершение кадра режима - когда все стрелки собрались в центре.
     // Проверять стрелки по самой длинной стороне
-    if (WIDTH >= HEIGHT)
-      arrow_complete = arrow_x[0] > stop_x[0];
-    else
-      arrow_complete = arrow_y[1] > stop_y[1];
+    arrow_complete = (WIDTH >= HEIGHT) ? (arrow_x[0U] > stop_x[0U]) : (arrow_y[1U] > stop_y[1U]);
 
     arrow_change_mode = false;
     if (arrow_complete) {
-      if (arrow_mode_orig == 0) {
-        arrow_play_mode_count[3]--;
-        if (arrow_play_mode_count[3] == 0) {
-          arrow_play_mode_count[3] = arrow_play_mode_count_orig[3];
-          arrow_mode = random8(1, 5);
+      if (arrow_mode_orig == 0U) {
+        arrow_play_mode_count[3U]--;
+        if (arrow_play_mode_count[3U] == 0U) {
+          arrow_play_mode_count[3U] = arrow_play_mode_count_orig[3U];
+          arrow_mode = random8(1U, 5U);
           arrow_change_mode = true;
         }
       }
-
       arrowSetupForMode(arrow_mode, arrow_change_mode);
     }
     break;
@@ -11917,29 +11924,23 @@ static void arrowsRoutine() {
     // смещением вертикальной оси на 1/3 ширины Завершение кадра режима - когда
     // все стрелки собрались в центре. Проверять стрелки по самой длинной
     // стороне
+    arrow_complete = false;
     switch (arrow_direction) {
-    case 5:
-      arrow_complete = arrow_x[0] > stop_x[0];
-      break; // Стрелка слева и справа движутся и достигают края одновременно -
-             // проверять только стрелку слева
-    case 10:
-      arrow_complete = arrow_y[1] > stop_y[1];
-      break; // Стрелка снизу и сверху движутся и достигают края одновременно -
-             // проверять только стрелку снизу
+      case 5U:  arrow_complete = (arrow_x[0U] > stop_x[0U]);  break; // Стрелка слева и справа движутся и достигают края одновременно - проверять только стрелку слева
+      case 10U: arrow_complete = (arrow_y[1U] > stop_y[1U]);  break; // Стрелка снизу и сверху движутся и достигают края одновременно - проверять только стрелку снизу
     }
 
     arrow_change_mode = false;
     if (arrow_complete) {
-      arrow_direction = arrow_direction == 5 ? 10 : 5;
-      if (arrow_mode_orig == 0) {
-        arrow_play_mode_count[4]--;
-        if (arrow_play_mode_count[4] == 0) {
-          arrow_play_mode_count[4] = arrow_play_mode_count_orig[4];
-          arrow_mode = random8(1, 5);
+      arrow_direction = (arrow_direction == 5U) ? 10U : 5U;
+      if (arrow_mode_orig == 0U) {
+        arrow_play_mode_count[4U]--;
+        if (arrow_play_mode_count[4U] == 0U) {
+          arrow_play_mode_count[4U] = arrow_play_mode_count_orig[4U];
+          arrow_mode = random8(1U, 5U);
           arrow_change_mode = true;
         }
       }
-
       arrowSetupForMode(arrow_mode, arrow_change_mode);
     }
     break;
@@ -11947,22 +11948,18 @@ static void arrowsRoutine() {
   case 5:
     // Одновременно со всех сторон от края до края со смещением горизонтальной
     // оси на 1/3 высоты, далее Проверять стрелки по самой длинной стороне
-    if (WIDTH >= HEIGHT)
-      arrow_complete = arrow_x[0] > stop_x[0];
-    else
-      arrow_complete = arrow_y[1] > stop_y[1];
+    arrow_complete = (WIDTH >= HEIGHT) ? (arrow_x[0U] > stop_x[0U]) : (arrow_y[1U] > stop_y[1U]);
 
     arrow_change_mode = false;
     if (arrow_complete) {
-      if (arrow_mode_orig == 0) {
-        arrow_play_mode_count[5]--;
-        if (arrow_play_mode_count[5] == 0) {
-          arrow_play_mode_count[5] = arrow_play_mode_count_orig[5];
-          arrow_mode = random8(1, 5);
+      if (arrow_mode_orig == 0U) {
+        arrow_play_mode_count[5U]--;
+        if (arrow_play_mode_count[5U] == 0U) {
+          arrow_play_mode_count[5U] = arrow_play_mode_count_orig[5U];
+          arrow_mode = random8(1U, 5U);
           arrow_change_mode = true;
         }
       }
-
       arrowSetupForMode(arrow_mode, arrow_change_mode);
     }
     break;
