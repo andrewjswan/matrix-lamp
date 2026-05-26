@@ -13155,23 +13155,26 @@ static void IncrementalDriftRoutine() {
     }
     #endif // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    if ((modes[currentMode].Scale >= 0)         && (modes[currentMode].Scale < 20)) {
-      currentPalette = RainbowColors_p;
-    } else if ((modes[currentMode].Scale >= 20) && (modes[currentMode].Scale < 40)) {
-      currentPalette  =  PartyColors_p;
-    } else if ((modes[currentMode].Scale >= 40) && (modes[currentMode].Scale < 60)) {
-      currentPalette  =  CloudColors_p;
-    } else if ((modes[currentMode].Scale >= 60) && (modes[currentMode].Scale < 80)) {
-      currentPalette  =  LavaColors_p;
-    } else if ((modes[currentMode].Scale >= 80) && (modes[currentMode].Scale <= 100)) {
-      currentPalette = ForestColors_p;
+    const uint8_t scale_val = modes[currentMode].Scale;
+    if (scale_val < 20U) {
+      curPalette = &RainbowColors_p;
+    } else if (scale_val < 40U) {
+      curPalette = &PartyColors_p;
+    } else if (scale_val < 60U) {
+      curPalette = &CloudColors_p;
+    } else if (scale_val < 80U) {
+      curPalette = &LavaColors_p;
+    } else {
+      curPalette = &ForestColors_p;
     }
 
     loadingFlag = false;
   }
 
-  uint8_t dim = beatsin8(2, 170, 250);
+  const uint8_t dim = beatsin8(2U, 170U, 250U);
   dimAll(dim);
+
+  const bool mirror_flag = (modes[currentMode].Brightness > 128U);
 
   for (uint8_t i = 0U; i < WIDTH; i++)
   {
@@ -13179,21 +13182,26 @@ static void IncrementalDriftRoutine() {
     uint8_t x = 0;
     uint8_t y = 0;
 
+    // Симметричный расчет траекторий частиц относительно центра X
     if (i < CENTER_X) {
-      x = beatcos8((i - 1) * 2, i,  WIDTH - i - 1);
-      y = beatsin8((i - 1) * 2, i, HEIGHT - i - 1);
-      color = ColorFromPalette(currentPalette, i * 14);
+      const uint8_t freq = (uint8_t)((i - 1U) << 1U); // (i - 1) * 2
+      x = beatcos8(freq, i, (uint8_t)(WIDTH - i - 1U));
+      y = beatsin8(freq, i, (uint8_t)(HEIGHT - i - 1U));
+      color = ColorFromPalette(*curPalette, (uint8_t)(i * 14U));
     }
     else
     {
-      x = beatsin8((WIDTH  - i) * 2,  WIDTH - i - 1, i);
-      y = beatcos8((HEIGHT - i) * 2, HEIGHT - i - 1, i);
-      color = ColorFromPalette(currentPalette, (31 - i) * 14);
+      const uint8_t freq_w = (uint8_t)((WIDTH - i) << 1U);
+      const uint8_t freq_h = (uint8_t)((HEIGHT - i) << 1U);
+      x = beatsin8(freq_w, (uint8_t)(WIDTH - i - 1U), i);
+      y = beatcos8(freq_h, (uint8_t)(HEIGHT - i - 1U), i);
+      color = ColorFromPalette(*curPalette, (uint8_t)((MAX_X - i) * 14U));
     }
 
     drawPixelXY(x, y, color);
-    if (modes[currentMode].Brightness > 128) {
-      drawPixelXY(WIDTH - x, HEIGHT - y, color);
+
+    if (mirror_flag) {
+      drawPixelXY((uint8_t)(WIDTH - x), (uint8_t)(HEIGHT - y), color);
     }
   }
 }
