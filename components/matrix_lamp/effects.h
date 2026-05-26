@@ -57,7 +57,7 @@ static uint8_t custom_eff = 0U;
 
 // --------------------------------------------------------------------------------------
 
-#if defined(DEF_RAINBOW_RINGS) || defined(DEF_STARS_NIGHT)
+#if defined(DEF_RAINBOW_RINGS) || defined(DEF_STARS_NIGHT) || defined(DEF_FIRESPARKS)
 static uint32_t lastUpdateTime;
 #endif
 #if defined(DEF_RAINBOW_RINGS) || defined(DEF_BUTTERFLY) || defined(DEF_COLORED_PYTHON)
@@ -11122,7 +11122,7 @@ static void TixyLand() {
 //            Fire with Sparks
 //---------------------------------------
 static uint16_t RGBweight(uint16_t idx) {
-  return (leds[idx].r + leds[idx].g + leds[idx].b);
+  return (uint16_t)(leds[idx].r + leds[idx].g + leds[idx].b);
 }
 
 class Spark {
@@ -11130,11 +11130,10 @@ class Spark {
     CRGB color;
     uint8_t Bri;
     uint8_t Hue;
-    float x, y, speedy = (float)random(5, 30) / 10;
+    float x, y, speedy = (float)random8(5U, 31U) * 0.1f;
 
   public:
     void addXY(float nx, float ny) {
-      //drawPixelXYF(x, y, 0);
       x += nx;
       y += ny * speedy;
     }
@@ -11145,17 +11144,19 @@ class Spark {
 
     void reset() {
       uint32_t peak = 0;
-      speedy = (float)random(5, 30) / 10;
-      y = random(QUARTER_Y, CENTER_Y);
+      speedy = (float)random8(5U, 31U) * 0.1f;
+      y = random8(QUARTER_Y, CENTER_Y);
+      
+      color = leds[XY(x, y)];
       for (uint8_t i = 0U; i < WIDTH; i++) {
-        uint32_t temp = RGBweight(XY(i, y));
+        const uint32_t temp = RGBweight(XY(i, (uint8_t)y));
         if (temp > peak) {
           x = i;
           peak = temp;
         }
       }
 
-      color = leds[XY(x, y)];
+      color = leds[XY((uint8_t)x, (uint8_t)y)];      
     }
 
     void draw() {
@@ -11164,8 +11165,9 @@ class Spark {
       // Чтобы получить (256 / (HEIGHT * 3/4)),
       // переворачиваем дробь: (256 * 4) / (HEIGHT * 3)
       // 256 * 4 = 1024
-      color.fadeLightBy(1024 / (HEIGHT * 3));
-
+      
+      constexpr uint16_t fade_amount = 1024U / (HEIGHT * 3U);
+      color.fadeLightBy(fade_amount);
       drawPixelXYF(x, y, color);
     }
 };
@@ -11176,11 +11178,8 @@ static Spark sparks[sparksCount];
 //---------------------------------------
 static void  FireSparks() {
   constexpr uint8_t spacer = QUARTER_Y;
-
-  bool withSparks = false; // true/false
-  static uint32_t t;
-  uint8_t scale = 50;
-
+  constexpr uint8_t scale = 50U;
+  
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
@@ -11188,22 +11187,28 @@ static void  FireSparks() {
       setModeSettings(random(0U, 99U), random(20U, 100U));
     }
 #endif
-    loadingFlag = false;
 
     FPSdelay = DYNAMIC;
+    lastUpdateTime = 0U;
+    
     for (uint8_t i = 0U; i < sparksCount; i++) {
       sparks[i].reset();
-    }
+    }    
+
+    loadingFlag = false;
   }
+  
+  const bool withSparks = (modes[currentMode].Scale >= 50U);
+  const uint8_t current_speed = modes[currentMode].Speed;
+  lastUpdateTime += current_speed;
 
-  withSparks = modes[currentMode].Scale >= 50;
-  t += modes[currentMode].Speed;
-
+  // Обсчет и отрисовка физики искр
   if (withSparks) {
     for (uint8_t i = 0U; i < sparksCount; i++) {
-      sparks[i].addXY(random(-1, 2) * 0.5f, 0.75f);
+      const float nx_drift = (float)((int16_t)random8(3U) - 1) * 0.5f;
+      sparks[i].addXY(nx_drift, 0.75f);
 
-      if (sparks[i].getY() >= (float)HEIGHT && random8(50) == 0) {
+      if (sparks[i].getY() >= (float)HEIGHT && random8(50U) == 0U) {
         sparks[i].reset();
       } else {
         sparks[i].draw();
@@ -11212,24 +11217,24 @@ static void  FireSparks() {
   }
 
   // Предрассчитаем константу затухания по вертикали
-  const uint8_t fadeStep = 255 / HEIGHT;
+  constexpr uint8_t fadeStep = 255U / HEIGHT;
+
   for (uint8_t y = 0U; y < HEIGHT; y++) {
-    int16_t yComp = (y * scale) - t;
-    uint8_t yFade = (withSparks ? (y + spacer) : y) * fadeStep;
+    const int16_t yComp = (int16_t)(y * scale) - t;
+    const uint8_t yFade = (withSparks ? (uint8_t)(y + spacer) : y) * fadeStep;
 
     for (uint8_t x = 0U; x < WIDTH; x++) {
-      int16_t Bri = fastled_helper::perlin8(x * scale, yComp, 0) - yFade;
-
-      uint8_t Col = (uint8_t)Bri;
-      uint8_t finalBri = 0;
+      const int16_t Bri = fastled_helper::perlin8(x * scale, yComp, 0) - yFade;
+      const uint8_t Col = (uint8_t)Bri; 
+      uint8_t finalBri = 0U;
 
       if (Bri > 0) {
-        finalBri = 255 - (uint8_t)(Bri / 5); // Заменяем Bri * 0.2 на Bri / 5 (целочисленное)
+        finalBri = 255U - (uint8_t)(Bri / 5U); 
       }
 
-      nblend(leds[XY(x, y)], ColorFromPalette(HeatColors_p, Col, finalBri), modes[currentMode].Speed);
+      nblend(leds[XY(x, y)], ColorFromPalette(HeatColors_p, Col, finalBri), current_speed);
     }
-  }
+  }  
 }
 #endif
 
