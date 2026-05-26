@@ -12826,8 +12826,7 @@ static void LightFilter() {
 //            Веселкова Пляма
 // =====================================
 static void RainbowSpot() {
-  constexpr uint8_t STEP = 255 / CENTER_X_MINOR;
-  float distance;
+  constexpr uint8_t STEP = 255U / CENTER_X_MINOR;
 
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
@@ -12836,63 +12835,79 @@ static void RainbowSpot() {
     }
     #endif
 
-    loadingFlag = false;
     deltaValue = modes[currentMode].Scale;
-    hue = 96;
-    emitterY = 0;
+    hue = 96U;
+    emitterY = 0.0f;
+    pcnt = 0U;
 
     ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
 
   // Calculate the radius based on the sound value --
-  float radius = std::abs(128 - step) / 127.0f * max(CENTER_X_MINOR, CENTER_Y_MINOR);
+  // Заменили деление на 127.0f быстрым умножением на инвариант (1.0f / 127.0f ≈ 0.007874f)
+  const float radius = std::abs(128U - (int16_t)step) * 0.007874f * (float)max(CENTER_X_MINOR, CENTER_Y_MINOR);
+  const float radiusSq = radius * radius;
+
+  const uint8_t scale_val = modes[currentMode].Scale;
+  const bool scale_gt50 = (scale_val > 50U);
+  const bool scale_gt75 = (scale_val > 75U);
+
+  const float center_x_offset = (float)CENTER_X_MINOR + 1.0f;
+  const float center_y_offset = (float)CENTER_Y_MINOR + emitterY;
+  const float y_anim_offset = (float)y - (float)(CENTER_Y_MINOR >> 1U) + emitterY; // CENTER_Y_MINOR / 2
 
   // Loop through all matrix points -----------------
   for (uint8_t x = 0U; x < WIDTH; x++) {
+    const float dx = (float)x - center_x_offset;
+    const float dxSq = dx * dx;
+
     for (uint8_t y = 0U; y < HEIGHT; y++) {
+      const float dy = (float)y - center_y_offset;
+      const float dySq = dy * dy;
+
       // Calculate the distance from the center to the current point
-      distance = sqrt(pow(x - CENTER_X_MINOR - 1, 2) + pow(y - CENTER_Y_MINOR - emitterY, 2));
-      hue = step + distance * radius;
+      const float distance = SQRT_VARIANT(dxSq + dySq);
+
+      const uint8_t current_hue = step + (uint8_t)(distance * radius);
 
       // Check if the point is inside the radius ----
-      deltaHue = 200 - STEP * distance * 0.25f;
+      const uint8_t current_delta = (uint8_t)(200U - (STEP * distance * 0.25f));
+      const uint8_t inv_dist = (uint8_t)(255U - distance);
 
       if (distance < radius) {
-        if (modes[currentMode].Scale > 50) {
-          if (x % 2 & y % 2) {
-            drawPixelXYF(x, y - CENTER_Y_MINOR / 2 + emitterY, CHSV(hue, 255, 64));
+        if (scale_gt50) {
+          if ((x & 0x01U) && (y & 0x01U)) {
+            drawPixelXYF((float)x, y_anim_offset, CHSV(current_hue, 255U, 64U));
           } else {
-            leds[XY(x, y)] = CHSV(hue + 32, 255 - distance, deltaHue);
+            leds[XY(x, y)] = CHSV((uint8_t)(current_hue + 32U), inv_dist, current_delta);
           }
         } else {
-          leds[XY(x, y)] = CHSV(hue, 255 - distance, 255);
+          leds[XY(x, y)] = CHSV(current_hue, inv_dist, 255U);
         }
-
       } else {
-        if (modes[currentMode].Scale > 75) {
-          leds[XY(x, y)] = CHSV(hue + 96, 255, deltaHue);
-        } else {
-          leds[XY(x, y)] = CHSV(hue, 255, deltaHue);
-        }
+        const uint8_t final_hue = scale_gt75 ? (uint8_t)(current_hue + 96U) : current_hue;
+        leds[XY(x, y)] = CHSV(final_hue, 255U, current_delta);
       }
     }
   }
 
-  if (modes[currentMode].Scale > 50) {
-    if (emitterY > pcnt) {
+  if (scale_gt50) {
+    if (emitterY > (float)pcnt) {
       emitterY -= 0.25f;
     } else {
-      if (emitterY < pcnt) {
+      if (emitterY < (float)pcnt) {
         emitterY += 0.25f;
       } else {
         pcnt = random8(CENTER_Y_MINOR);
       }
     }
   } else {
-    emitterY = 0;
+    emitterY = 0.0f;
   }
 
-  blurScreen(48);
+  blurScreen(48U);
   step++;
 }
 #endif
