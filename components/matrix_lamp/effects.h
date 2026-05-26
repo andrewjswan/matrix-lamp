@@ -12078,7 +12078,7 @@ static void drawLotusFlowerFragment(uint8_t posX, uint8_t line) {
     default:
       gradientVertical(posX, (uint8_t)(h / 20U), (uint8_t)(posX + 1U), (uint8_t)(h / 5U), 80U, 96U, 160U, 64U, 255U);                       // 0.05 и 0.2 green leaf m
       break;
-  }  
+  }
 }
 
 //---------------------------------------
@@ -12103,10 +12103,10 @@ static void LotusFlower() {
 
     loadingFlag = false;
   }
-  
+
   const uint8_t current_speed = modes[currentMode].Speed;
   const uint8_t current_scale = modes[currentMode].Scale;
-  
+
   if (current_speed > 128U) {
     if (current_scale > 50U) {
       const uint8_t deltaSpeed = 80U + (uint8_t)((128U - std::abs(128 - (int16_t)deltaValue)) * 0.8f);
@@ -12127,7 +12127,7 @@ static void LotusFlower() {
       for (uint8_t x = 0U; x < WIDTH; x++) {
         drawPixelXY((int16_t)(x - 1U), y, getPixColorXY(x, y));
       }
-    }    
+    }
   } else {
     /* <==== morph ===== */
     for (uint8_t x = 0U; x < WIDTH; x++) {
@@ -12135,9 +12135,9 @@ static void LotusFlower() {
       if ((x & 0x01U) != 0U) {
         hue2++;          /* gleam morph */
       }
-    }    
+    }
     deltaValue++;        /* size morph  */
-    
+
     if (current_scale > 50U) {
       hue += 8U;         /* color morph */
     } else {
