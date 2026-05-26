@@ -12434,13 +12434,13 @@ static void Scanner() {
     }
     deltaValue = 0U;
     #endif
-  
+
     hue = modes[currentMode].Scale * 2.55f;
     deltaHue = modes[currentMode].Scale;
     hue2 = 5U;
-  
+
     ledsClear(); // esphome: FastLED.clear();
-  
+
     loadingFlag = false;
   }
 
@@ -12454,26 +12454,26 @@ static void Scanner() {
       hue++;
     }
   }
-  
+
   if (hue2 > 250U) {
     hue2 = 0U;
     deltaValue = 0U;
-  }  
+  }
 
   fadeToBlackBy(leds, NUM_LEDS, v_scanner ? 50U : 30U);
-  
+
   if (v_scanner) {
     /* vertical scanner */
     if (i >= MAX_Y) {
       deltaValue = 1;
     }
-  
+
     if (((hue2 & 0x01U) == 0U)) {
       const uint8_t spark_trigger_x = hue2 >> 1U; // hue2 / 2.0f
-      
+
       for (uint8_t x = 0U; x < WIDTH; x++) {
         leds[XY(x, hue2)] = CHSV(hue, 255U, 180U);
-        
+
         if (x == spark_trigger_x) {
           if (deltaValue == 0U) {
             const float rnd_offset = random8(2U) ? 1.5f : 1.0f;
@@ -12487,19 +12487,19 @@ static void Scanner() {
       for (uint8_t x = 0U; x < WIDTH; x++) {
         leds[XY(x, hue2)] = CHSV(hue, 255U, 180U);
       }
-    }    
+    }
   } else {
     /* horizontal scanner */
     if (i >= MAX_X) {
       deltaValue = 1U;
     }
-  
+
     if (((hue2 & 0x01U) == 0U)) {
       const uint8_t spark_trigger_y = hue2 >> 1U; // hue2 / 2.0f через быстрый сдвиг
-      
+
       for (uint8_t y = 0U; y < HEIGHT; y++) {
         leds[XY(hue2, y)] = CHSV(hue, 255U, 180U);
-        
+
         if (y == spark_trigger_y) {
           if (deltaValue == 0U) {
             const float rnd_offset = random8(2U) ? 1.5f : 1.0f;
