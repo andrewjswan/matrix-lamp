@@ -12561,46 +12561,51 @@ static void Scanner() {
 //               © Stepko
 //                Міраж
 // =====================================
-static uint8_t buff[WIDTH + 2][HEIGHT + 2];
+static uint8_t buff[WIDTH + 2U][HEIGHT + 2U];
+
 // -------------------------------------
 static void blur() {
   uint16_t sum;
-  for (uint8_t x = 1U; x < WIDTH + 1; x++) {
-    for (uint8_t y = 1U; y < HEIGHT + 1; y++) {
+  for (uint8_t y = 1U; y < (uint8_t)(HEIGHT + 1U); y++) {
+    for (uint8_t x = 1U; x < (uint8_t)(WIDTH + 1U); x++) {
       sum = buff[x][y];
-      sum += buff[x + 1][y];
-      sum += buff[x][y - 1];
-      sum += buff[x][y + 1];
-      sum += buff[x - 1][y];
-      sum /= 5;
-      buff[x][y] = sum;
+      sum += buff[x + 1U][y];
+      sum += buff[x][y - 1U];
+      sum += buff[x][y + 1U];
+      sum += buff[x - 1U][y];
+      sum /= 5U;
+      buff[x][y] = (uint8_t)sum;
     }
   }
 }
 
 // -------------------------------------
 static void drawDot(float x, float y, uint8_t a) {
-  uint8_t xx = (x - (int) x) * 255, yy = (y - (int) y) * 255, ix = 255 - xx, iy = 255 - yy;
-  uint8_t wu[4] = {
-    WU_WEIGHT(ix, iy),
-    WU_WEIGHT(xx, iy),
-    WU_WEIGHT(ix, yy),
-    WU_WEIGHT(xx, yy)
+  const uint8_t xx = (uint8_t)((x - (float)((int16_t)x)) * 255.0f);
+  const uint8_t yy = (uint8_t)((y - (float)((int16_t)y)) * 255.0f);
+  const uint8_t ix = 255U - xx;
+  const uint8_t iy = 255U - yy;
+
+  const uint8_t wu[4] = {
+    (uint8_t)WU_WEIGHT(ix, iy),
+    (uint8_t)WU_WEIGHT(xx, iy),
+    (uint8_t)WU_WEIGHT(ix, yy),
+    (uint8_t)WU_WEIGHT(xx, yy)
   };
 
   // multiply the intensities by the colour, and saturating-add them to the pixels
-  for (uint8_t i = 0U; i < 4; i++) {
-    int16_t xn = x + (i & 1), yn = y + ((i >> 1) & 1);
-    uint8_t clr = buff[xn][yn];
-    clr = constrain(qadd8(clr, (a * wu[i]) >> 8), 0 , 255);
-    buff[xn][yn] = clr;
+  for (uint8_t i = 0U; i < 4U; i++) {
+    const int16_t xn = (int16_t)x + (i & 0x01U);
+    const int16_t yn = (int16_t)y + ((i >> 1U) & 0x01U);
+
+    buff[xn][yn] = qadd8(buff[xn][yn], (uint8_t)((a * wu[i]) >> 8U));
   }
 }
 
 // -------------------------------------
 static void Mirage() {
-  constexpr uint8_t divider = 4;
-  constexpr uint8_t val = 255;
+  constexpr uint8_t divider = 4U;
+  constexpr uint8_t val = 255U;
 
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
@@ -12610,29 +12615,41 @@ static void Mirage() {
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
+    hue = 70U;
+
     loadingFlag = false;
-    hue = 70;
   }
 
   blur();
-  float x1 = (float)beatsin88(15 * modes[currentMode].Speed, divider, WIDTH * divider) / divider;
-  float y1 = (float)beatsin88(20 * modes[currentMode].Speed, divider, HEIGHT * divider) / divider;
-  float x2 = (float)beatsin88(16 * modes[currentMode].Speed, divider, MAX_X * divider) / divider;
-  float y2 = (float)beatsin88(14 * modes[currentMode].Speed, divider, HEIGHT * divider) / divider;
-  float x3 = (float)beatsin88(12 * modes[currentMode].Speed, divider, MAX_X * divider) / divider;
-  float y3 = (float)beatsin88(16 * modes[currentMode].Speed, divider, HEIGHT * divider) / divider;
 
-  drawDot(x1 , y1, val);
-  drawDot(x1 + 1, y1, val);
-  drawDot(x2 , y2, val);
-  drawDot(x2 + 1, y2, val);
-  drawDot(x3 , y3, val);
-  drawDot(x3 + 1, y3, val);
+  const uint16_t speed_val = modes[currentMode].Speed;
+  const uint16_t spd15 = 15U * speed_val;
+  const uint16_t spd20 = 20U * speed_val;
+  const uint16_t spd16 = 16U * speed_val;
+  const uint16_t spd14 = 14U * speed_val;
+  const uint16_t spd12 = 12U * speed_val;
+
+  const float x1 = (float)beatsin88(spd15, divider, (uint16_t)(WIDTH * divider)) / (float)divider;
+  const float y1 = (float)beatsin88(spd20, divider, (uint16_t)(HEIGHT * divider)) / (float)divider;
+  const float x2 = (float)beatsin88(spd16, divider, (uint16_t)(MAX_X * divider)) / (float)divider;
+  const float y2 = (float)beatsin88(spd14, divider, (uint16_t)(HEIGHT * divider)) / (float)divider;
+  const float x3 = (float)beatsin88(spd12, divider, (uint16_t)(MAX_X * divider)) / (float)divider;
+  const float y3 = (float)beatsin88(spd16, divider, (uint16_t)(HEIGHT * divider)) / (float)divider;
+
+  drawDot(x1, y1, val);
+  drawDot(x1 + 1.0f, y1, val);
+  drawDot(x2, y2, val);
+  drawDot(x2 + 1.0f, y2, val);
+  drawDot(x3, y3, val);
+  drawDot(x3 + 1.0f, y3, val);
 
   hue++;
-  for (uint8_t x = 1U; x < WIDTH + 1; x++) {
-    for (uint8_t y = 1U; y < HEIGHT + 1; y++) {
-      leds[XY(x - 1, y - 1)] = CHSV(hue , buff[x][y], 255);
+
+  for (uint8_t y = 1U; y < (uint8_t)(HEIGHT + 1U); y++) {
+    const uint8_t target_y = y - 1U;
+
+    for (uint8_t x = 1U; x < (uint8_t)(WIDTH + 1U); x++) {
+      leds[XY((uint8_t)(x - 1U), target_y)] = CHSV(hue, buff[x][y], 255U);
     }
   }
 }
