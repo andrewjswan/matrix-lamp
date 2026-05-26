@@ -11472,7 +11472,7 @@ static void drawRandomCol(uint8_t x, uint8_t y, uint8_t offset, uint8_t count) {
   const uint8_t color = (y / D) * STEP + offset;  // floor(y / D) * STEP + offset;
 
   if (count == 0U) {
-    const uint8_t bri = (random8(8U) == 0U) ? ((step & 0x01U) ? 0U : 255U) : 0U; 
+    const uint8_t bri = (random8(8U) == 0U) ? ((step & 0x01U) ? 0U : 255U) : 0U;
     drawPixelXY(x, y, CHSV(color, 255U, bri));
   } else {
     const uint8_t bri = (bitRead(count, y) == 1U) ? ((step % 5U) ? 0U : 255U) : 0U;
@@ -11495,8 +11495,8 @@ static void Turbulence() {
     step = 0U;
     deltaValue = 0U;
     hue = 0U;
-    
-    pcnt = 0U; 
+
+    pcnt = 0U;
 
     if (modes[currentMode].Speed < 20U) {
       FPSdelay = SpeedFactor(30U);
@@ -11544,7 +11544,7 @@ static void Turbulence() {
       if (y == 1U) {
         drawPixelXY(x, 0U, 0x000000);
       }
-    }    
+    }
     /* --------------------- */
   }
 
@@ -11552,10 +11552,10 @@ static void Turbulence() {
     pcnt++;
     if (pcnt == 0U) {
       hue += 16U;
-    }    
+    }
   }
 
-  step++;  
+  step++;
 }
 #endif
 
