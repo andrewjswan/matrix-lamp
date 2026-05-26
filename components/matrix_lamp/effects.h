@@ -11404,7 +11404,7 @@ static void Serpentine() {
   constexpr uint8_t BR_INTERWAL = 64U / HEIGHT;
   constexpr uint8_t DELTA = QUARTER_X;
   constexpr float freq = 3000.0f;
-  
+
   // ---------------------
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
@@ -11425,12 +11425,12 @@ static void Serpentine() {
   const uint8_t step1 = map8(modes[currentMode].Speed, 10U, 60U);
   const uint16_t ms = millis();
   const uint8_t fade = 180U - std::abs(128 - step);
-  
+
   fadeToBlackBy(leds, NUM_LEDS, fade);
 
   constexpr float inv_max_y = 1.0f / MAX_Y;
   const uint16_t ms_div29 = ms / 29U;
-  
+
   // -----------------
   for (uint16_t y = 0U; y < HEIGHT; y++) {
     const uint32_t yy = (uint32_t)(y << 8U);                                                                           // y * 256
@@ -11445,13 +11445,13 @@ static void Serpentine() {
 
     const uint32_t x_offset = x1 + (hue * DELTA);
     wu_pixel(x_offset, (uint32_t)(yy - PADDING * (255U - hue)), &col1);
-    
+
     const int32_t inv_x = (int32_t)(MAX_X << 8U) - (int32_t)x_offset;
     wu_pixel((uint32_t)std::abs(inv_x), (uint32_t)(yy - PADDING * hue), &col2);
   }
 
   step++;
-  
+
   if ((step % 64U) == 0U) {
     if (deltaValue == 0U) {
       hue++;
@@ -11464,7 +11464,7 @@ static void Serpentine() {
         deltaValue = 0U;
       }
     }
-  }  
+  }
 }
 #endif
 
