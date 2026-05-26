@@ -66,6 +66,19 @@ static uint32_t colorChangeTime;
 
 // --------------------------------------------------------------------------------------
 
+#if defined(DEF_CHRISTMAS_TREE) || defined(DEF_LIGHTFILTER)
+static void clearNoiseArr() {
+  for (uint8_t x = 0U; x < WIDTH; x++) {
+    for (uint8_t y = 0U; y < HEIGHT; y++) {
+      noise3d[0][x][y] = 0;
+      noise3d[1][x][y] = 0;
+    }
+  }
+}
+#endif
+
+// --------------------------------------------------------------------------------------
+
 #ifdef DEF_SPARKLES
 // ------------- конфетти --------------
 #define FADE_OUT_SPEED (70U)                                             // скорость затухания
@@ -7494,16 +7507,6 @@ static void lumenjerRoutine() {
 //           EFF_CHRISTMAS_TREE
 //            Новогодняя Елка
 //---------------------------------------
-static void clearNoiseArr() {
-  for (uint8_t x = 0U; x < WIDTH; x++) {
-    for (uint8_t y = 0U; y < HEIGHT; y++) {
-      noise3d[0][x][y] = 0;
-      noise3d[1][x][y] = 0;
-    }
-  }
-}
-
-//---------------------------------------
 static void VirtualSnow(uint8_t snow_type) {
   static int16_t deltaPos;
 
@@ -12692,11 +12695,18 @@ static void HandFan() {
 static void LightFilter() {
   constexpr uint8_t END = MAX_X;
 
-  static int64_t frameCount =  0;
-  static uint8_t dX;
-  static bool direct;
-  static uint8_t divider;
-  static uint8_t deltaValue = 0;
+  // static int64_t frameCount =  0;
+  // static uint8_t dX;
+  // static bool direct;
+  // static uint8_t divider;
+  // static uint8_t deltaValue = 0;
+
+  // step                 => Используется напрямую как 8-битный frameCount!
+  // hue2                 => Координата dX разделительной линии
+  // deltaHue             => Значение divider масштаба
+  // deltaHue2            => Текущий режим цветового фильтра (deltaValue)
+  // hue                  => Направление движения линии direct (1U - вперед, 0U - назад)
+  // pcnt                 => Внутренний таймер изменения направления
 
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
@@ -12705,7 +12715,6 @@ static void LightFilter() {
       setModeSettings(random8(100U), random8(40, 160U));
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-    loadingFlag = false;
 
     divider = floor(modes[currentMode].Scale / 25);
     direct = true;
@@ -12713,106 +12722,92 @@ static void LightFilter() {
     pcnt = 0;
     frameCount = 0;
     hue2 == 32;
+
+    deltaHue = modes[currentMode].Scale / 25U; // divider
+    hue = 1U;                                  // direct = true
+    hue2 = 1U;                                 // dX = 1
+    pcnt = 0U;
+    deltaHue2 = 0U;                            // deltaValue = 0
+    step = 0U;                                 // Наш 8-битный frameCount
+ 
     clearNoiseArr();
+
     ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
 
-  // EVERY_N_MILLISECONDS(1000 / 30) {
-  frameCount++;
   pcnt++;
-  // }
 
-  uint8_t t1 = cos8((42 * frameCount) / 30);
-  uint8_t t2 = cos8((35 * frameCount) / 30);
-  uint8_t t3 = cos8((38 * frameCount) / 30);
-  uint8_t r = 0;
-  uint8_t g = 0;
-  uint8_t b = 0;
+  const uint8_t t1 = cos8((uint16_t)((42U * step) * 0.0333333f));
+  const uint8_t t2 = cos8((uint16_t)((35U * step) * 0.0333333f));
+  const uint8_t t3 = cos8((uint16_t)((38U * step) * 0.0333333f));
 
+  uint8_t dX = hue2;
+  uint8_t divider = deltaHue;
+  uint8_t current_filter = deltaHue2;
+
+  bool direct = (hue == 1U);
   if (direct) {
-    if (dX < END) {
-      dX++;
-    }
+    if (dX < END) dX++;
   } else {
-    if (dX > 0) {
-      dX--;
-    }
+    if (dX > 0U) dX--;
   }
-  if (pcnt > 128) {
-    pcnt = 0;
+
+  if (pcnt > 128U) {
+    pcnt = 0U;
     direct = !direct;
-    if (divider > 2) {
-      if (dX == 0) {
-        deltaValue++;
-        if (deltaValue > 2) {
-          deltaValue = 0;
+    if (divider > 2U) {
+      if (dX == 0U) {
+        current_filter++;
+        if (current_filter > 2U) {
+          current_filter = 0U;
         }
       }
     } else {
-      deltaValue = divider;
+      current_filter = divider;
     }
-
   }
+
+  hue2 = dX;
+  deltaHue2 = current_filter;
+  hue = direct ? 1U : 0U;
+
+  const uint8_t val = dX << 3U;      // dX * 8
+  const uint8_t val_div2 = dX << 2U; // val / 2 эквивалентно dX * 4
+  const uint8_t line_gold_x = END - dX;
+
+  const uint8_t t1_div2 = t1 >> 1U;
+  const uint8_t t3_div2 = t3 >> 2U;
 
   for (uint16_t y = 0U; y < HEIGHT; y++) {
     for (uint16_t x = 0U; x < WIDTH; x++) {
-      if (x != END - dX) {
-        r = cos8((y << 3) + (t1 >> 1) + cos8(t2 + (x << 3)));
-        g = cos8((y << 3) + t1 + cos8((t3 >> 2) + (x << 3)));
-        b = cos8((y << 3) + t2 + cos8(t1 + x + (g >> 2)));
+      if (x != line_gold_x) {
+        // Базовая плазма
+        uint8_t r = cos8((y << 3) + (t1 >> 1) + cos8(t2 + (x << 3)));
+        uint8_t g = cos8((y << 3) + t1 + cos8((t3 >> 2) + (x << 3)));
+        uint8_t b = cos8((y << 3) + t2 + cos8(t1 + x + (g >> 2)));
 
+        switch (current_filter) {
+          case 0U:
+            r = (r > val) ? (uint8_t)(r - val) : 0U;
+            g = (g > val_div2) ? (uint8_t)(g - val_div2) : 0U;
+            break;
+          case 1U:
+            g = (g > val) ? (uint8_t)(g - val) : 0U;
+            b = (b > val_div2) ? (uint8_t)(b - val_div2) : 0U;
+            break;
+          case 2U:
+            b = (b > val) ? (uint8_t)(b - val) : 0U;
+            r = (r > val_div2) ? (uint8_t)(r - val_div2) : 0U;
+            break;
+        }
+
+        leds[XY(x, y)] = CRGB(exp_gamma[r], exp_gamma[g], exp_gamma[b]);
       } else {
-        // line gold -------
-        r = 255U;
-        g = 255U;
-        b = 255U;
+        // Золотая разделительная линия
+        leds[XY(x, y)] = CRGB(255U, 255U, 255U);
       }
-
-      uint8_t val = dX * 8;
-      switch (deltaValue) {
-        case 0:
-          if (r > val) {
-            r = r - val;
-          } else {
-            r = 0;
-          }
-          if (g > val) {
-            g = g - val / 2;
-          } else {
-            g = 0;
-          }
-          break;
-        case 1:
-          if (g > val) {
-            g = g - val;
-          } else {
-            g = 0;
-          }
-          if (b > val) {
-            b = b - val / 2;
-          } else {
-            b = 0;
-          }
-          break;
-        case 2:
-          if (b > val) {
-            b = b - val;
-          } else {
-            b = 0;
-          }
-          if (r > val) {
-            r = r - val / 2;
-          } else {
-            r = 0;
-          }
-          break;
-      }
-
-      r = exp_gamma[r];
-      g = exp_gamma[g];
-      b = exp_gamma[b];
-
-      leds[XY(x, y)] = CRGB(r, g, b);
     }
   }
   hue++;
