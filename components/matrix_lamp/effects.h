@@ -10807,6 +10807,7 @@ static void EffectStars() {
 #ifndef M_PI_2
   #define M_PI_2 (1.57079632679489661923f)
 #endif
+
 static const PROGMEM float LUT[102] = {
   0,           0.0099996664, 0.019997334, 0.029991005, 0.039978687,
   0.049958397, 0.059928156,  0.069885999, 0.079829983, 0.089758173,
@@ -10996,7 +10997,7 @@ static float code(float t, float i, float x, float y) {
       hue = 255U; hue2 = 160U;
       {
         float denom = std::fmod(y * y, 5.9f) + 1.0f;
-        int32_t val = static_cast<int32_t>(x + t * 50.0f / denom);
+        int32_t val = (int32_t)(x + t * 50.0f / denom);
         return !(val & 15) / denom;
       }
       break;
@@ -11062,26 +11063,6 @@ static float code(float t, float i, float x, float y) {
 }
 
 // --------------------------------------
-static void processFrame(float t, float x, float y) {
-  float i = (y * (float)WIDTH) + x;
-  float frame = constrain(code(t, i, x, y), -1, 1) * 255.0f;
-  if (frame > 0.0f) {
-    uint8_t u8f = static_cast<uint8_t>(frame);
-    if (hue == 255U) {
-      drawPixelXY(x, y, CRGB(u8f, u8f, u8f));
-    } else {
-      drawPixelXY(x, y, CHSV(hue, u8f, u8f));
-    }
-  } else if (frame < 0.0f) {
-    uint8_t u8fn = static_cast<uint8_t>(-frame);
-    if (modes[currentMode].Scale < 5) deltaHue2 = 0;
-    drawPixelXY(x, y, CHSV(hue2 + deltaHue2, u8fn, u8fn));
-  } else {
-    drawPixelXY(x, y, CRGB::Black);
-  }
-}
-
-// --------------------------------------
 static void TixyLand() {
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
@@ -11090,24 +11071,56 @@ static void TixyLand() {
       setModeSettings(random8(100U), random8(255U));
     }
 #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+
+    deltaHue = 0U;
+    pcnt = map(modes[currentMode].Speed, 5U, 250U, 1U, 25U);
+    FPSdelay = 1U;
+
+    deltaHue2 = (modes[currentMode].Scale * 255U) / 100U;
+    if (modes[currentMode].Scale < 5U) {
+      deltaHue2 = 0U;
+    }
+
+    hue = 255U;
+    hue2 = 0U;
+
     loadingFlag = false;
-    deltaHue = 0;
-    pcnt = map(modes[currentMode].Speed, 5, 250, 1U, 25U);
-    FPSdelay = 1;
-    deltaHue2 = ((uint16_t)modes[currentMode].Scale * 255) / 100;
-    hue = 255U; hue2 = 0U;
   }
 
-  const float t = static_cast<float>(millis()) * 0.001f;
+  constexpr float inv1000 = 1.0f / 1000.0f;
+  const float t = (float)millis() * inv1000;
+
   EVERY_N_SECONDS(20) {
-    if ((modes[currentMode].Speed < 5) || (modes[currentMode].Speed > 250)) {
+    if ((modes[currentMode].Speed < 5U) || (modes[currentMode].Speed > 250U)) {
       pcnt++;
     }
   }
 
+  const uint8_t current_hue = hue;
+  const uint8_t current_hue2 = hue2 + deltaHue2;
+  const bool is_white_mode = (current_hue == 255U);
+
   for (uint8_t x = 0U; x < WIDTH; x++) {
+    const float fx = (float)x;
+
     for (uint8_t y = 0U; y < HEIGHT; y++) {
-      processFrame(t, static_cast<float>(x), static_cast<float>(y));
+      const float fy = (float)y;
+      const float i = (fy * (float)WIDTH) + fx;
+
+      const float frame = clamp(code(t, i, fx, fy), -1.0f, 1.0f) * 255.0f;
+
+      if (frame > 0.0f) {
+        const uint8_t u8f = (uint8_t)frame;
+        if (is_white_mode) {
+          drawPixelXY(x, y, CRGB(u8f, u8f, u8f));
+        } else {
+          drawPixelXY(x, y, CHSV(current_hue, u8f, u8f));
+        }
+      } else if (frame < 0.0f) {
+        drawPixelXY(x, y, CHSV(current_hue2, (uint8_t)(-frame), (uint8_t)(-frame)));
+      } else {
+        drawPixelXY(x, y, 0x000000);
+      }
     }
   }
 }
