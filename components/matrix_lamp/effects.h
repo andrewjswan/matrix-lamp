@@ -12856,7 +12856,6 @@ static void RainbowSpot() {
 
   const float center_x_offset = (float)CENTER_X_MINOR + 1.0f;
   const float center_y_offset = (float)CENTER_Y_MINOR + emitterY;
-  const float y_anim_offset = (float)y - (float)(CENTER_Y_MINOR >> 1U) + emitterY; // CENTER_Y_MINOR / 2
 
   // Loop through all matrix points -----------------
   for (uint8_t x = 0U; x < WIDTH; x++) {
@@ -12867,6 +12866,8 @@ static void RainbowSpot() {
       const float dy = (float)y - center_y_offset;
       const float dySq = dy * dy;
 
+      const float y_anim_offset = (float)y - (float)(CENTER_Y_MINOR >> 1U) + emitterY; // CENTER_Y_MINOR / 2
+      
       // Calculate the distance from the center to the current point
       const float distance = SQRT_VARIANT(dxSq + dySq);
 
