@@ -12003,37 +12003,37 @@ static void Avrora() {
   const uint16_t ms = millis();
 
   fadeToBlackBy(leds, NUM_LEDS, fade);
-  
+
   constexpr float inv_height = 1.0f / HEIGHT;
   const uint16_t ms_div29 = ms / 29U;
-  
+
   // -----------------
   for (uint16_t y = 0U; y < HEIGHT; y++) {
     const uint32_t yy = (uint32_t)(y << 8U); // y * 256
-    
+
     // Оптимизация: деление на 1.5f заменено умножением на 0.6666667f
     const uint32_t x1 = (uint32_t)(beatsin16(step1, WIDTH, (uint16_t)(MAX_Y << 8U), WIDTH, (uint16_t)(y * freq + 32768U)) * 0.6666667f);
 
     /* change color -------- */
     const uint8_t cur_color = ms_div29 + (uint8_t)((y << 8U) * inv_height);
-    
+
     CRGB color = CHSV(cur_color, 255U, (uint8_t)(255U - y * OCTANT_Y));
-    
+
     // Оптимизация: заменяем деление на 5 умножением на 0.2f
     const int16_t calc_br = 255 - (int16_t)((y * HEIGHT) * 0.2f);
     const uint8_t br = (calc_br < 0) ? 0U : ((calc_br > 200) ? 200U : (uint8_t)calc_max);
-    
+
     CRGB color2 = CHSV((uint8_t)(cur_color - 32U), (uint8_t)(255U - y * QUARTER_Y), br);
 
     const uint32_t x_offset = x1 + hue;
     wu_pixel((uint32_t)(x_offset + ((PADDING * hue) >> 1U)), yy, &color); // Сдвиг >> 1U вместо / 2
-    
+
     const int32_t inv_x = (int32_t)(MAX_X << 8U) - (int32_t)x_offset;
     wu_pixel((uint32_t)std::abs(inv_x), (uint32_t)(yy - PADDING * hue), &color2);
   }
 
   step++;
-  
+
   if ((step % 64U) == 0U) {
     if (deltaValue == 1U) {
       hue++;
