@@ -12464,8 +12464,8 @@ static void Scanner() {
 
   if (v_scanner) {
     /* vertical scanner */
-    if (i >= MAX_Y) {
-      deltaValue = 1;
+    if (hue2 >= MAX_Y) {
+      deltaValue = 1U;
     }
 
     if (((hue2 & 0x01U) == 0U)) {
@@ -12490,7 +12490,7 @@ static void Scanner() {
     }
   } else {
     /* horizontal scanner */
-    if (i >= MAX_X) {
+    if (hue2 >= MAX_X) {
       deltaValue = 1U;
     }
 
