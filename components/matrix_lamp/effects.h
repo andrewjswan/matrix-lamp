@@ -10491,10 +10491,10 @@ static void Bamboo() {
     loadingFlag = false;
   }
 
-  float index = trackingObjectPosX[0];
-  float deltaX = trackingObjectPosY[0];
+  float& index = trackingObjectPosX[0];
+  float& deltaX = trackingObjectPosY[0];
+
   bool direct = (trackingObjectState[0] == 1U);
-  const uint8_t colLine = hue;
 
   const bool wind_enabled = (modes[currentMode].Scale < 50U);
 
@@ -10514,10 +10514,10 @@ static void Bamboo() {
     // Горизонтальный рендеринг бамбука
     for (uint8_t x = 0U; x < (uint8_t)(WIDTH + SX); x++) {
       if (y == posLine) {
-        drawPixelXYF(x, y - 1U, CHSV(colLine, 255U, 128U));
-        drawPixelXYF(x, y, CHSV(colLine, 255U, 96U));
+        drawPixelXYF(x, y - 1U, CHSV(hue, 255U, 128U));
+        drawPixelXYF(x, y, CHSV(hue, 255U, 96U));
         if (HEIGHT > 16U) {
-          drawPixelXYF(x, y - 2U, CHSV(colLine, 10U, 64U));
+          drawPixelXYF(x, y - 2U, CHSV(hue, 10U, 64U));
         }
       }
 
@@ -10529,17 +10529,17 @@ static void Bamboo() {
 
           if (i < 3U) {
             uint8_t posY1 = y - i + 1U - DELTA + index;
-            drawPixelXYF(x_wind - 3.0f, posY1, CHSV(nextColor(posY1, 96U, colLine), 255U, v_fade));
+            drawPixelXYF(x_wind - 3.0f, posY1, CHSV(nextColor(posY1, 96U, hue), 255U, v_fade));
 
             uint8_t posY2 = y - i + index;
-            drawPixelXYF(x_wind, posY2, CHSV(nextColor(posY2, 96U, colLine), 255U, (uint8_t)(255U - VG_STEP * i)));
+            drawPixelXYF(x_wind, posY2, CHSV(nextColor(posY2, 96U, hue), 255U, (uint8_t)(255U - VG_STEP * i)));
           }
 
           uint8_t posY3 = y - i - DELTA + index;
-          drawPixelXYF(x_wind - 4.0f, posY3, CHSV(nextColor(posY3, 180U, colLine), 180U, v_fade));
+          drawPixelXYF(x_wind - 4.0f, posY3, CHSV(nextColor(posY3, 180U, hue), 180U, v_fade));
 
           uint8_t posY4 = y - i + 1U + index;
-          drawPixelXYF(x_wind - 1.0f, posY4, CHSV(nextColor(posY4, ((i == 1U) ? 96U : 80U), colLine), 255U, v_fade));
+          drawPixelXYF(x_wind - 1.0f, posY4, CHSV(nextColor(posY4, ((i == 1U) ? 96U : 80U), hue), 255U, v_fade));
         }
       }
     }
@@ -10553,8 +10553,6 @@ static void Bamboo() {
   }
   index += STP;
 
-  trackingObjectPosX[0] = index;
-  trackingObjectPosY[0] = deltaX;
   trackingObjectState[0] = direct ? 1U : 0U;
 }
 #endif
@@ -10667,30 +10665,51 @@ static void ballRoutine() {
 //                Звезды
 // =====================================
 static void drawStar(float xlocl, float ylocl, float biggy, float little, int16_t points, float dangle, uint8_t koler) { // random multipoint star
-  float radius2 = 255.0f / points;
-  for (int i = 0; i < points; i++) {
-    DrawLine(xlocl + ((little * (sin8(i * radius2 + radius2 / 2 - dangle) - 128.0f)) / 128), ylocl + ((little * (cos8(i * radius2 + radius2 / 2 - dangle) - 128.0f)) / 128), xlocl + ((biggy * (sin8(i * radius2 - dangle) - 128.0f)) / 128), ylocl + ((biggy * (cos8(i * radius2 - dangle) - 128.0f)) / 128), ColorFromPalette(*curPalette, koler));
-    DrawLine(xlocl + ((little * (sin8(i * radius2 - radius2 / 2 - dangle) - 128.0f)) / 128), ylocl + ((little * (cos8(i * radius2 - radius2 / 2 - dangle) - 128.0f)) / 128), xlocl + ((biggy * (sin8(i * radius2 - dangle) - 128.0f)) / 128), ylocl + ((biggy * (cos8(i * radius2 - dangle) - 128.0f)) / 128), ColorFromPalette(*curPalette, koler));
+  const float radius2 = 255.0f / (float)points;
+  constexpr float inv128 = 1.0f / 128.0f;
 
+   for (uint8_t i = 0U; i < points; i++) {
+    const float i_rad2 = i * radius2;
+    const float i_rad2_dangle = i_rad2 - dangle;
+    const float half_rad2 = radius2 * 0.5f;
+
+    const float sin_big = (sin8(i_rad2_dangle) - 128.0f) * inv128;
+    const float cos_big = (cos8(i_rad2_dangle) - 128.0f) * inv128;
+    const float x_big = xlocl + (biggy * sin_big);
+    const float y_big = ylocl + (biggy * cos_big);
+
+    const float phase_plus = i_rad2 + half_rad2 - dangle;
+    const float x_lit1 = xlocl + (little * (sin8(phase_plus) - 128.0f) * inv128);
+    const float y_lit1 = ylocl + (little * (cos8(phase_plus) - 128.0f) * inv128);
+
+    const float phase_minus = i_rad2 - half_rad2 - dangle;
+    const float x_lit2 = xlocl + (little * (sin8(phase_minus) - 128.0f) * inv128);
+    const float y_lit2 = ylocl + (little * (cos8(phase_minus) - 128.0f) * inv128);
+
+    const CRGB star_color = ColorFromPalette(*curPalette, koler);
+
+    DrawLine(x_lit1, y_lit1, x_big, y_big, star_color);
+    DrawLine(x_lit2, y_lit2, x_big, y_big, star_color);
   }
 }
 
 // --------------------------------------
 static void EffectStars() {
-#define STARS_NUM (8U)
-#define STAR_BLENDER (128U)
-#define CENTER_DRIFT_SPEED (6U)
-  static uint8_t spd;
-  static uint8_t points[STARS_NUM];
-  static float color[STARS_NUM] ;
-  static int delay_arr[STARS_NUM];
-  static float counter;
-  static float driftx;
-  static float drifty;
-  static float cangle;
-  static float sangle;
-  static uint8_t stars_count;
-  static uint8_t blur;
+  constexpr uint8_t STARS_NUM = 8U;
+  constexpr uint8_t STAR_BLENDER = 128U;
+  constexpr uint8_t CENTER_DRIFT_SPEED = 6U;
+
+  constexpr float inv128 = 1.0f / 128.0f;
+
+  // trackingObjectPosX[0] => driftx,  trackingObjectPosY[0] => drifty
+  // trackingObjectPosX[1] => cangle,  trackingObjectPosY[1] => sangle
+  // trackingObjectPosX[2] => counter
+  // Массив кодов цвета => trackingObjectHue
+  // Массив задержек    => trackingObjectShift
+  // Массив лучей звезд => trackingObjectSpeedX
+  // static uint8_t spd => переносим в глобальный пул в регистр ff_x
+  // static uint8_t stars_count => переносим в глобальный пул в регистр ff_y
+  // static uint8_t blur => переносим в глобальный пул в регистр ff_z
 
   if (loadingFlag) {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
@@ -10699,55 +10718,74 @@ static void EffectStars() {
       setModeSettings(random8(100U), random8(80U, 255U));
     }
 #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-    loadingFlag = false;
 
-    // стартуем с центра
-    driftx = CENTER_X_F;
-    drifty = CENTER_Y_F;
+    trackingObjectPosX[0U] = CENTER_X_F;                                           // Стартуем строго с центра матрицы
+    trackingObjectPosY[0U] = CENTER_Y_F;
 
-    cangle = (float)(sin8(random8(25, 220)) - 128.0f) / 128.0f;                 // angle of movement for the center of animation gives a float value between -1 and 1
-    sangle = (float)(sin8(random8(25, 220)) - 128.0f) / 128.0f;                 // angle of movement for the center of animation in the y direction gives a float value between -1 and 1
-    spd = modes[currentMode].Speed;
-    blur = modes[currentMode].Scale / 2;
-    counter = (float)(spd / 5 + 3U);
-    stars_count = CENTER_X;
-    if (stars_count > STARS_NUM) stars_count = STARS_NUM;
-    for (uint8_t num = 0; num < stars_count; num++) {
-      points[num] = map(modes[currentMode].Scale, 1, 255, 3U, 7U);              // количество углов в звезде
-      delay_arr[num] = spd / 5 + (num << 2) + 2U;                               // задержка следующего пуска звезды
-      color[num] = random8();
+    trackingObjectPosX[1U] = (float)(sin8(random8(25U, 220U)) - 128.0f) * inv128;  // angle of movement for the center of animation gives a float value between -1 and 1
+    trackingObjectPosY[1U] = (float)(sin8(random8(25U, 220U)) - 128.0f) * inv128;  // angle of movement for the center of animation in the y direction gives a float value between -1 and 1
+
+    ff_x = modes[currentMode].Speed;                                               // spd
+    ff_z = modes[currentMode].Scale >> 1U;                                         // blur
+    ff_y = CENTER_X;                                                               // stars_count
+    if (ff_y > STARS_NUM) ff_y = STARS_NUM;
+
+    trackingObjectPosX[2U] = (float)(ff_x / 5U + 3U);                              // counter
+
+    for (uint8_t num = 0U; num < ff_y; num++) {
+      trackingObjectSpeedX[num] = map(modes[currentMode].Scale, 1U, 255U, 3U, 7U); // количество углов в звезде
+      trackingObjectShift[num] = ff_x / 5U + (num << 2U) + 2U;                     // задержка следующего пуска звезды
+      trackingObjectHue[num] = random8();
     }
+
+    loadingFlag = false;
   }
 
   fadeToBlackBy(leds, NUM_LEDS, 165);
-  float speedFactor = ((float)spd / 380.0f + 0.05f);
+
+  float& driftx = trackingObjectPosX[0U];
+  float& drifty = trackingObjectPosY[0U];
+  float& cangle = trackingObjectPosX[1U];
+  float& sangle = trackingObjectPosY[1U];
+  float& counter = trackingObjectPosX[2U];
+
+  const float speedFactor = ((float)ff_x * 0.0026315f + 0.05f);                 // ((float)spd / 380.0f + 0.05f)
   counter += speedFactor;                                                       // определяет то, с какой скоростью будет приближаться звезда
 
-  if (driftx > (WIDTH - spirocenterX / 2U))                                     // change directin of drift if you get near the right 1/4 of the screen
-    cangle = 0 - std::abs(cangle);
-  if (driftx < spirocenterX / 2U)                                               // change directin of drift if you get near the right 1/4 of the screen
+  if (driftx > (float)(WIDTH - spirocenterX / 2U))                              // change directin of drift if you get near the right 1/4 of the screen
+    cangle = 0.0f - std::abs(cangle);
+  if (driftx < (float)(spirocenterX / 2U))                                      // change directin of drift if you get near the right 1/4 of the screen
     cangle = std::abs(cangle);
-  if ((uint16_t)counter % CENTER_DRIFT_SPEED == 0)                              // move the x center every so often
-    driftx = driftx + (cangle * speedFactor);
-  if (drifty > (HEIGHT - spirocenterY / 2U))                                    // if y gets too big, reverse
-    sangle = 0 - std::abs(sangle);
-  if (drifty < spirocenterY / 2U)                                               // if y gets too small reverse
+
+  const uint16_t int_counter = (uint16_t)counter;
+  if (int_counter % CENTER_DRIFT_SPEED == 0U) {                                 // move the x center every so often
+    driftx += (cangle * speedFactor);
+  }
+
+  if (drifty > (float)(HEIGHT - spirocenterY / 2U))                             // if y gets too big, reverse
+    sangle = 0.0f - std::abs(sangle);
+  if (drifty < (float)(spirocenterY / 2U))                                      // if y gets too small reverse
     sangle = std::abs(sangle);
 
-  if ((uint16_t)counter % CENTER_DRIFT_SPEED == 0)                              // move the y center every so often
-    drifty = drifty + (sangle * speedFactor);
+  if (int_counter % CENTER_DRIFT_SPEED == 0U) {                                 // move the y center every so often
+    drifty += (sangle * speedFactor);
+  }
 
-  for (uint8_t num = 0; num < stars_count; num++) {
-    if (counter >= delay_arr[num]) {
-      if (counter - delay_arr[num] <= WIDTH + 5) {
-        drawStar(driftx, drifty, 2 * (counter - delay_arr[num]), (counter - delay_arr[num]), points[num], STAR_BLENDER + color[num], color[num]);
-        color[num] += speedFactor;                                              // в зависимости от знака - направление вращения
+  for (uint8_t num = 0U; num < ff_y; num++) {
+    const float current_delay = trackingObjectShift[num];
+    if (counter >= current_delay) {
+      const float star_age = counter - current_delay;
+
+      if (star_age <= (float)(WIDTH + 5U)) {
+        drawStar(driftx, drifty, star_age * 2.0f, star_age, (uint8_t)trackingObjectSpeedX[num], STAR_BLENDER + trackingObjectHue[num], (uint8_t)trackingObjectHue[num]);
+        trackingObjectHue[num] += speedFactor;                                  // в зависимости от знака - направление вращения
       } else {
-        delay_arr[num] = counter + (stars_count << 1) + 1U;                     // задержка следующего пуска звезды
+        trackingObjectShift[num] = counter + (ff_y << 1U) + 1U;                 // задержка следующего пуска звезды
       }
     }
   }
-  blur2d(WIDTH, HEIGHT, blur);
+
+  blur2d(WIDTH, HEIGHT, ff_z);
 }
 #endif
 
