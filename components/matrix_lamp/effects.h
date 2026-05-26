@@ -12148,89 +12148,97 @@ static void LotusFlower() {
 //                Фонтан
 // =====================================
 static void Fountain() {
-  static constexpr uint8_t gamma[6] = {0, 96, 128, 160, 240, 112};
-  const uint8_t PADDING = round(OCTANT_Y);
-  uint8_t br;
+  static constexpr uint8_t gamma = {0U, 96U, 128U, 160U, 240U, 112U};
+  constexpr uint8_t PADDING = (uint8_t)(OCTANT_Y + 0.5f);
 
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      setModeSettings(random8(100), random8(2, 254U));
+      //                     scale | speed
+      setModeSettings(random8(100U), random8(2U, 254U));
     }
     #endif
 
-    loadingFlag = false;
-    deltaValue = modes[currentMode].Scale / 20;
-    emitterY = 0;
-    step = 0;
-
+    const uint8_t idx = constrain((uint8_t)(modes[currentMode].Scale / 20U), 0U, 4U);
+    hue = gamma[idx];        // hue — базовый цвет
+    hue2 = gamma[idx + 1U];  // hue2 — соседний цвет
+    
+    emitterY = 0.0f; 
+    pcnt = 0U;       
+    step = 0U;
+    
     ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
 
-  float radius = std::abs(128 - step) / 127.0f * (float)CENTER_Y_MINOR;
+  const float radius = std::abs(128 - (int16_t)step) * 0.007874f * (float)CENTER_Y_MINOR;  // / 127.0f
+  
+  // Предрасчет шага базовой яркости
+  const uint8_t br_div = 255U / ((uint8_t)emitterY + 1U);
+
+  const uint8_t ceilRadius = (uint8_t)radius + (radius > (float)((uint8_t)radius) ? 1U : 0U);
+  const uint8_t delta_val = (uint8_t)(((uint16_t)emitterY * 7U + (uint16_t)radius * 10U + 9U) / 10U);
+  
+  const uint8_t right_target_hue = hue2 - ceilRadius;
+  
   for (uint8_t y = 0U; y < HEIGHT; y++) {
+    const int16_t calc_br = br_div * y;
+    const uint8_t br = (calc_br < 48) ? 48U : ((calc_br > 255) ? 255U : (uint8_t)calc_br);
+
+    const int16_t boundaryLow = (int16_t)(emitterY - radius + 0.99f);
+    const int16_t boundaryMid = (int16_t)(emitterY - (radius * 0.5f) + 0.99f);
+    
+    const float fy_plus = (float)y + 0.5f;
+    const float fy_minus = (float)y - 0.5f;
+
     for (uint8_t x = 0U; x < WIDTH; x++) {
-      if ((x & 0x01U) == 0U) {
-        br = constrain(255 / (emitterY + 1) * y, 48, 255);
-
-        if ((x % 4) == 0) {
-          hue = gamma[deltaValue];
-
-          // Предварительный расчет границ (ceil без использования float библиотек)
-          // ceil(emitterY - radius) -> (int16_t)(emitterY - radius + 0.99f)
-          int16_t boundaryLow = (int16_t)(emitterY - radius + 0.99f);
-
-          if (y == (boundaryLow + random8(1, 4))) {
-            if (!(step & 1)) { // if ((step & 0x01U) == 0U) {
-              drawPixelXYF(x, (float)y + 0.5f, CHSV(hue, 200, 255));
+      if ((x & 0x01U) == 0U) { // Четные столбцы (активные струи фонтана)
+        if ((x % 4U) == 0U) {
+          if (y == (uint8_t)(boundaryLow + random8(1U, 4U))) {
+            if ((step & 0x01U) == 0U) {
+              drawPixelXYF((float)x, fy_plus, CHSV(hue, 200U, 255U));
             } else {
-              drawPixelXY(x, y, CHSV(hue, 200, 255));
+              drawPixelXY(x, y, CHSV(hue, 200U, 255U));
             }
           } else {
-            int16_t boundaryMid = (int16_t)(emitterY - (radius * 0.5f) + 0.99f);
-            drawPixelXY(x, y, CHSV(hue, 255, (y > boundaryMid) ? 0 : br));
+            drawPixelXY(x, y, CHSV(hue, 255U, (y > boundaryMid) ? 0U : br));
           }
         } else {
-          hue = gamma[deltaValue + 1];
-
-          // Предварительный расчет констант в целых числах
-          uint8_t ceilRadius = (uint8_t)radius + (radius > (uint8_t)radius ? 1 : 0); // Простой ceil(radius)
-          uint8_t delta = (uint16_t(emitterY) * 7 + uint16_t(radius) * 10 + 9) / 10; // ceil(emitterY * 0.70 + radius)
-          uint8_t targetHue = hue - ceilRadius;
-
-          if (y == (delta + random8(3))) {
-            drawPixelXYF(x, (float)y - 0.5f, CHSV(targetHue, 160, 255));
+          if (y == (uint8_t)(delta_val + random8(3U))) {
+            drawPixelXYF((float)x, fy_minus, CHSV(right_target_hue, 160U, 255U));
           } else {
-            drawPixelXY(x, y, CHSV(targetHue, 255, (y > delta) ? 0 : br));
+            drawPixelXY(x, y, CHSV(right_target_hue, 255U, (y > delta_val) ? 0U : br));
           }
         }
-      } else {
-        // clear blur ----
-        if (pcnt > PADDING + 2) {
-          drawPixelXY(x, y, CRGB::Black);
+      } else { // Нечетные столбцы (зона размытия и гашения)
+        if (pcnt > (uint8_t)(PADDING + 2U)) {
+          drawPixelXY(x, y, 0x000000);
         }
       }
     }
   }
 
-  if ((emitterY <= PADDING * 2) | (emitterY > HEIGHT - PADDING - 1)) {
-    blurScreen(32);
+  // Обсчет физики плавного движения оригинального float эмиттера
+  if ((emitterY <= (float)(PADDING * 2U)) || (emitterY > (float)(HEIGHT - PADDING - 1U))) {
+    blurScreen(32U);
   }
 
-  if (emitterY > pcnt) {
+  if (emitterY > (float)pcnt) {
     emitterY -= 0.5f;
-    if (std::abs(pcnt - emitterY) < PADDING) {
-      if (emitterY > pcnt) {
+    if (std::abs((float)pcnt - emitterY) < (float)PADDING) {
+      if (emitterY > (float)pcnt) {
         emitterY -= 0.5f;
       }
     }
   } else {
-    if (emitterY < pcnt) {
-      emitterY += 3;
+    if (emitterY < (float)pcnt) {
+      emitterY += 3.0f;
     } else {
-      pcnt = random8(2, HEIGHT - PADDING - 1);
+      pcnt = random8(2U, (uint8_t)(HEIGHT - PADDING - 1U));
     }
-  }
+  }  
+
   step++;
 }
 #endif
