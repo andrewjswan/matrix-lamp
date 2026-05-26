@@ -12903,27 +12903,6 @@ static void RainbowSpot() {
 //             © SlingMaster
 //            Радужные кольца
 // =====================================
-static float codeEff(double t, double x, double y, float radius, uint8_t hueOffset, float fadeFactor = 1.0f) {
-  float distance = sqrt((x - CENTER_X_MAJOR) * (x - CENTER_X_MAJOR) + (y - CENTER_Y_MAJOR) * (y - CENTER_Y_MAJOR));
-  float wave = sin16((t * 2.0f - distance + radius) * 8192.0f) / 32767.0f;
-  wave = (wave + 1.0f) / 2.0f;
-  wave *= 0.7f;
-  return wave * fadeFactor;
-}
-
-static void drawFrame(double t, double x, double y, float radius, uint8_t hueOffset, float fadeFactor = 1.0f) {
-  float distance = sqrt((x - CENTER_X_MAJOR) * (x - CENTER_X_MAJOR) + (y - CENTER_Y_MAJOR) * (y - CENTER_Y_MAJOR));
-  if (std::abs(distance - radius) < 2.0f) {
-    float frame = codeEff(t, x, y, radius, hueOffset, fadeFactor);
-    if (frame > 0.01f) {
-      uint8_t brightness = (uint8_t)(frame * 255);
-      CRGB color = ColorFromPalette(*curPalette, hueOffset, brightness);
-      drawPixelXY(x, y, color);
-    } else {
-      drawPixelXY(x, y, CRGB::Black);
-    }
-  }
-}
 
 #define MAX_ACTIVE_RINGS (5U)
 
@@ -12933,6 +12912,11 @@ static void RainbowRings() {
   // static uint8_t ringHues[MAX_ACTIVE_RINGS]; -> trackingObjectHue[trackingOBJECT_MAX_COUNT];
   // static uint8_t baseHue = 0;                -> hue;
 
+  // trackingObjectPosX => Радиусы колец
+  // trackingObjectPosY => Коэффициенты затухания колец
+  // trackingObjectHue  => Оттенки колец
+  // hue                => Базовый оттенок палитры (baseHue)
+
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
@@ -12941,55 +12925,88 @@ static void RainbowRings() {
     }
     #endif // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-
     setCurrentPalette();
-    dimAll(0);
+
+    dimAll(0U);
 
     lastUpdateTime  = millis();
     colorChangeTime = millis();
 
     hue = map(modes[currentMode].Scale, 1U, 100U, 0U, 255U);
-    float spacing = max(CENTER_X_MAJOR, CENTER_Y_MAJOR) * 2.0f / MAX_ACTIVE_RINGS;
+
+    constexpr float spacing = (float)max(CENTER_X_MAJOR, CENTER_Y_MAJOR) * 2.0f / (float)MAX_ACTIVE_RINGS;
+    constexpr uint8_t hue_step = 256U / MAX_ACTIVE_RINGS;
+
     for (uint8_t i = 0U; i < MAX_ACTIVE_RINGS; i++) {
-      trackingObjectPosX[i] = i * spacing;
-      trackingObjectHue[i]  = hue + (i * (256 / MAX_ACTIVE_RINGS));
+      trackingObjectPosX[i] = (float)i * spacing;
+      trackingObjectHue[i]  = hue + (i * hue_step);
       trackingObjectPosY[i] = 1.0f;
     }
+
+    loadingFlag = false;
   }
 
-  float speedFactor = (float)modes[currentMode].Speed / 255.0f;
-  uint32_t colorInterval = 300 - (uint32_t)(speedFactor * 200);
-  if (millis() - colorChangeTime > colorInterval) {
-    hue += 2 + (uint8_t)(speedFactor * 5);
+  const float speedFactor = (float)modes[currentMode].Speed * inv255;
+  const uint32_t colorInterval = 300U - (uint32_t)(speedFactor * 200.0f);
+  const uint32_t currentTime = millis();
+
+  constexpr uint8_t hue_step = 256U / MAX_ACTIVE_RINGS;
+
+  if (currentTime - colorChangeTime > colorInterval) {
+    hue += 2U + (uint8_t)(speedFactor * 5.0f);
 
     for (uint8_t i = 0U; i < MAX_ACTIVE_RINGS; i++) {
-      trackingObjectHue[i] = hue + (i * (256 / MAX_ACTIVE_RINGS));
+      trackingObjectHue[i] = hue + (i * hue_step);
     }
-    colorChangeTime = millis();
+    colorChangeTime = currentTime;
   }
 
-  uint8_t dimValue = map(modes[currentMode].Scale, 1, 100, 240, 255);
+  const uint8_t dimValue = map(modes[currentMode].Scale, 1U, 100U, 240U, 255U);
   dimAll(dimValue);
 
-  float ringSpeed = 0.6f + speedFactor * 2.4f;
+  const float ringSpeed = 0.6f + speedFactor * 2.4f;
+  const float deltaTime = (float)(currentTime - lastUpdateTime) * 0.001f;  // / 1000.0f
 
-  uint32_t currentTime = millis();
-  float deltaTime = (currentTime - lastUpdateTime) / 1000.0f;
-
+  // Обсчет физики расширения колец
+  const float max_radius_limit = (float)max(CENTER_X_MAJOR, CENTER_Y_MAJOR) * 2.0f;
   for (uint8_t i = 0U; i < MAX_ACTIVE_RINGS; i++) {
     trackingObjectPosX[i] += ringSpeed * deltaTime;
-    if (trackingObjectPosX[i] >= max(CENTER_X_MAJOR, CENTER_Y_MAJOR) * 2.0f) {
+    if (trackingObjectPosX[i] >= max_radius_limit) {
       trackingObjectPosX[i] = 0.0f;
-      trackingObjectHue[i] = hue + (i * (256 / MAX_ACTIVE_RINGS));
+      trackingObjectHue[i] = hue + (i * hue_step);
       trackingObjectPosY[i] = 1.0f;
     }
   }
 
-  for (uint8_t i = 0U; i < MAX_ACTIVE_RINGS; i++) {
-    for (double x = 0; x < WIDTH; x++) {
-      for (double y = 0; y < HEIGHT; y++) {
-        drawFrame(millis() / 1000.0f, x, y, trackingObjectPosX[i], trackingObjectHue[i], trackingObjectPosY[i]);
+  // Инварианты времени для тригонометрии волн
+  const float t_seconds = (float)currentTime * 0.001f;
+  const float t_double = t_seconds * 2.0f;
+
+  for (uint8_t y = 0U; y < HEIGHT; y++) {
+    const float dy = (float)y - (float)CENTER_Y_MAJOR;
+    const float dySq = dy * dy;
+
+    for (uint8_t x = 0U; x < WIDTH; x++) {
+      const float dx = (float)x - (float)CENTER_X_MAJOR;
+      const float dxSq = dx * dx;
+
+      const float distance = SQRT_VARIANT(dxSq + dySq);
+
+      for (uint8_t i = 0U; i < MAX_ACTIVE_RINGS; i++) {
+        const float radius = trackingObjectPosX[i];
+
+        if (std::abs(distance - radius) < 2.0f) {
+          const float wave = (float)sin16((int32_t)((t_double - distance + radius) * 8192.0f)) * 0.000030518f; // 1.0f / 32767.0f ≈ 0.000030518f
+          const float fraction = ((wave + 1.0f) * 0.35f) * trackingObjectPosY[i]; // 0.7f / 2.0f = 0.35f
+
+          if (fraction > 0.01f) {
+            const uint8_t brightness = (uint8_t)(fraction * 255.0f);
+            drawPixelXY(x, y, ColorFromPalette(*curPalette, (uint8_t)trackingObjectHue[i], brightness));
+          } else {
+            drawPixelXY(x, y, 0x000000);
+          }
+
+        }
       }
     }
   }
