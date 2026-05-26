@@ -13162,9 +13162,9 @@ static void IncrementalDriftRoutine() {
 // =====================================
 
 // Фиксированные параметры, можно менять или привязать к слайдерам
-constexpr uint8_t COAL_ZONE_HEIGHT = 1U;        // Высота зоны углей (строк снизу)               
-constexpr uint8_t SPARK_BRIGHT_MIN = 100U;      // Мин. яркость искр было 150                    
-constexpr uint8_t SPARK_BRIGHT_MAX = 225U;      // Макс. яркость искр было 255                   
+constexpr uint8_t COAL_ZONE_HEIGHT = 1U;        // Высота зоны углей (строк снизу)
+constexpr uint8_t SPARK_BRIGHT_MIN = 100U;      // Мин. яркость искр было 150
+constexpr uint8_t SPARK_BRIGHT_MAX = 225U;      // Макс. яркость искр было 255
 constexpr uint8_t spark_gap_probability = 20U;  // Вероятность промежутка между искрами (0–100 %)
 
 // static uint8_t COOLING_RAW;  // 0–255
@@ -13191,16 +13191,16 @@ static void fire2025Routine() {
     }
 
     // Получаем значения со слайдеров
-    deltaValue = 255U - modes[currentMode].Brightness;  // COOLING_RAW = 255 - static_cast<uint8_t>(modes[currentMode].Brightness );  // 0–255      
+    deltaValue = 255U - modes[currentMode].Brightness;  // COOLING_RAW = 255 - static_cast<uint8_t>(modes[currentMode].Brightness );  // 0–255
     deltaHue = (deltaValue < 20U) ? 20U : deltaValue;   // COOLING = std::max(static_cast<uint8_t>(20), COOLING_RAW);                 // минимум 20!
-    hue = modes[currentMode].Speed;                     // SPARKING = static_cast<uint8_t>(modes[currentMode].Speed);                 // 0–255      
-    hue2 = modes[currentMode].Scale;                    // FIRE_SPEED = static_cast<uint8_t>(modes[currentMode].Scale);               // 0–100      
+    hue = modes[currentMode].Speed;                     // SPARKING = static_cast<uint8_t>(modes[currentMode].Speed);                 // 0–255
+    hue2 = modes[currentMode].Scale;                    // FIRE_SPEED = static_cast<uint8_t>(modes[currentMode].Scale);               // 0–100
     emitterY = 0.0f;                                    // Текущая высота эмиттера физики
-    pcnt = 0U;  
+    pcnt = 0U;
 
     deltaHue2 = 10U + ((uint16_t)hue * 30U) / 255U;     // spark_value_pre
     ff_x = (uint16_t)(hue * 0.95f);                     // spark_chance_1
-    ff_y = hue + (deltaValue >> 2U);  
+    ff_y = hue + (deltaValue >> 2U);
 
     loadingFlag = false;
   }
@@ -13224,7 +13224,7 @@ static void fire2025Routine() {
     for (uint8_t x = 0U; x < WIDTH; x++) {
       uint8_t heat_val = noise3d[0U][x][y];
       heat_val = qsub8(heat_val, random8(cooling_limit));
-      
+
       // Мягкое тление кончиков пламени для слабых языков
       if (is_tip_zone && (heat_val < 50U)) {
         heat_val = qadd8(heat_val, random8(spark_val));
@@ -13249,7 +13249,7 @@ static void fire2025Routine() {
         new_heat += boost_factor;
         if (new_heat > 220) new_heat = 220;
       }
-      
+
       // Накладываем естественное затухание по высоте
       noise3d[0U][x][current_y] = qsub8((uint8_t)new_heat, natural_decay);
     }
@@ -13280,7 +13280,7 @@ static void fire2025Routine() {
 
   // Вывод
   const uint8_t dark_gap_threshold = (HEIGHT * 2U) / 5U;
-  
+
   // Предрассчитанный коэффициент влияния масштаба скорости на красный ореол
   const float scale_speed_factor = 1.0f + ((float)(fire_speed_val * 2U) * 0.01f);
 
@@ -13288,7 +13288,7 @@ static void fire2025Routine() {
     // ВЫНОС ИНВАРИАНТОВ СТРОКИ РЕНДЕРИНГА
     const bool is_dark_gap_zone = (y > dark_gap_threshold);
     const bool is_coal_zone = (y < COAL_ZONE_HEIGHT);
-    
+
     // Расчет красного ореола
     const float red_boost = 1.0f + 0.3f * (1.0f - (float)y * inv_height) * scale_speed_factor;
     const uint16_t red_boost_fixed = (uint16_t)(red_boost * 256.0f);
@@ -13303,19 +13303,19 @@ static void fire2025Routine() {
 
       if (colorindex < 85U) {
         // Оптимизация: Перевели мерцание капли и форму волны В ЦЕЛЫЕ ЧИСЛА БЕЗ FLOAT!
-        const uint16_t flicker_fixed = 179U + (random8(50U) * 218U) / 255U; 
-        const uint16_t shape_fixed = 205U + (sin8((uint8_t)(y * 5U + x * 3U)) * 51U) / 255U; 
+        const uint16_t flicker_fixed = 179U + (random8(50U) * 218U) / 255U;
+        const uint16_t shape_fixed = 205U + (sin8((uint8_t)(y * 5U + x * 3U)) * 51U) / 255U;
 
-        uint32_t r_calc = ((uint32_t)colorindex * 640U * flicker_fixed) >> 16U; 
+        uint32_t r_calc = ((uint32_t)colorindex * 640U * flicker_fixed) >> 16U;
         r_calc = (r_calc * shape_fixed) >> 8U;
         r = (r_calc > 255) ? 255U : (uint16_t)r_calc;
 
-        g = ((uint32_t)colorindex * 25U * flicker_fixed) >> 16U; 
-      } 
+        g = ((uint32_t)colorindex * 25U * flicker_fixed) >> 16U;
+      }
       else if (colorindex < 200U) {
         r = 255U;
-        g = (uint16_t)((colorindex - 85U) << 1U); 
-      } 
+        g = (uint16_t)((colorindex - 85U) << 1U);
+      }
       else {
         r = 255U;
         g = 255U;
@@ -13324,8 +13324,8 @@ static void fire2025Routine() {
 
       // Наложение темных дымовых промежутков в верхней части пламени
       if (is_dark_gap_zone) {
-        r = (r * 179U) >> 8U; 
-        g = (g * 77U) >> 8U;  
+        r = (r * 179U) >> 8U;
+        g = (g * 77U) >> 8U;
       }
 
       // Физика цвета горящих угольков нижней зоны
@@ -13335,8 +13335,8 @@ static void fire2025Routine() {
         else if (temp > 100U) { r = 255U; g = 100U; b = 0U;   }
         else if (temp > 50U)  { r = 200U; g = 50U;  b = 0U;   }
         else {
-          r = (uint16_t)((uint16_t)temp * 384U) >> 8U; 
-          g = (uint16_t)((uint16_t)temp * 77U) >> 8U;  
+          r = (uint16_t)((uint16_t)temp * 384U) >> 8U;
+          g = (uint16_t)((uint16_t)temp * 77U) >> 8U;
           b = 0U;
         }
       }
