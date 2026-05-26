@@ -11729,7 +11729,7 @@ static void arrowsRoutine() {
     arrow_mode = (arrow_mode_orig == 0U || arrow_mode_orig > 5U)
                      ? random8(1U, 5U)
                      : arrow_mode_orig;
-    
+
     arrow_play_mode_count_orig[0U] = 0;
     arrow_play_mode_count_orig[1U] = 4; // 4 фазы - все стрелки показаны по кругу
                                         // один раз - переходить к следующему ->
@@ -11742,7 +11742,7 @@ static void arrowsRoutine() {
 
     for (uint8_t i = 0U; i < 6U; i++) {
       arrow_play_mode_count[i] = arrow_play_mode_count_orig[i];
-    }    
+    }
     arrowSetupForMode(arrow_mode, true);
 
     ledsClear(); // esphome: FastLED.clear();
@@ -11752,13 +11752,13 @@ static void arrowsRoutine() {
 
   dimAll(160U);
   CHSV color;
-  
+
   constexpr CHSV black_color = CHSV(0U, 0U, 0U);
-  
+
   const uint8_t current_bri = modes[currentMode].Brightness;
   const int8_t w_limit = (int8_t)WIDTH;
   const int8_t h_limit = (int8_t)HEIGHT;
-  
+
   // движение стрелки - cлева направо
   if ((arrow_direction & 0x01U) != 0U) {
     color = CHSV(arrow_hue[0U], 255U, current_bri);
@@ -11778,7 +11778,7 @@ static void arrowsRoutine() {
     }
     arrow_x[0U]++;
   }
-  
+
   // движение стрелки - cнизу вверх
   if ((arrow_direction & 0x02U) != 0U) {
     color = CHSV(arrow_hue[1U], 255U, current_bri);
@@ -11855,7 +11855,7 @@ static void arrowsRoutine() {
       case 4U: arrow_complete = (arrow_x[2U] < stop_x[2U]); break;
       case 8U: arrow_complete = (arrow_y[3U] < stop_y[3U]); break;
     }
-    
+
     arrow_change_mode = false;
     if (arrow_complete) {
       arrow_direction = (arrow_direction << 1U) & 0x0FU;
