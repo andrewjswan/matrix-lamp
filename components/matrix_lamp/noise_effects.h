@@ -259,60 +259,58 @@ static void lavaNoiseRoutine()
 // --------------------------------------
 
 static void TasteHoney() {
-  uint8_t index;
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      // scale | speed
+      //                         scale | speed
       setModeSettings(random8(1U, 255U), random8(150U, 255U));
     }
     #endif
 
-    loadingFlag = false;
-
-    hue = modes[currentMode].Scale * 2.55f;
-    index = modes[currentMode].Scale / 10U;
-
     clearNoiseArr();
-    switch (index) {
-      case 0:
-        currentPalette = PartyColors_p;
-        break;
-      case 1:
-        currentPalette = LavaColors_p;
-        break;
-      case 2:
-      case 3:
-        currentPalette = ForestColors_p;
-        break;
-      case 4:
-        currentPalette = CloudColors_p;
-        break;
-      default :
-        currentPalette = AlcoholFireColors_p;
-        break;
+    
+    hue = (uint8_t)(modes[currentMode].Scale * 2.55f);
+
+    const uint8_t palette_idx = modes[currentMode].Scale / 10U;
+    switch (palette_idx) {
+      case 0U: curPalette = &PartyColors_p;       break;
+      case 1U: curPalette = &LavaColors_p;        break;
+      case 2U:
+      case 3U: curPalette = &ForestColors_p;      break;
+      case 4U: curPalette = &CloudColors_p;       break;
+      default: curPalette = &AlcoholFireColors_p; break;
     }
+
     ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
 
   fillNoiseLED();
-  memset8(&noise2[1][0][0], 255, (WIDTH + 1) * (HEIGHT + 1));
-  for (byte x = 0; x < WIDTH; x++) {
-    for (byte y = 0; y < HEIGHT; y++) {
-      uint8_t n0 = noise2[0][x][y];
-      uint8_t n1 = noise2[0][x + 1][y];
-      uint8_t n2 = noise2[0][x][y + 1];
 
-      int8_t xl = n0 - n1;
-      int8_t yl = n0 - n2;
+  CRGB col = CHSV(hue, 255U, 255U);
+  
+  for (uint8_t x = 0U; x < WIDTH; x++) {
+    const int16_t x_mul255 = (int16_t)((x << 8U) - x);    // (x * 255)
 
-      int16_t xa = (x * 255) + ((xl * ((n0 + n1) << 1)) >> 3);
-      int16_t ya = (y * 255) + ((yl * ((n0 + n2) << 1)) >> 3);
+    for (uint8_t y = 0U; y < HEIGHT; y++) {
+      const uint8_t n0 = (uint8_t)noise2[0U][x][y];
+      const uint8_t n1 = (uint8_t)noise2[0U][x + 1U][y];
+      const uint8_t n2 = (uint8_t)noise2[0U][x][y + 1U];
 
-      CRGB col = CHSV(hue, 255U, 255U);
-      wu_pixel(xa, ya, &col);
+      const int8_t xl = (int8_t)(n0 - n1);
+      const int8_t yl = (int8_t)(n0 - n2);
+
+      const int16_t y_mul255 = (int16_t)((y << 8U) - y);  // (y * 255)
+
+      // Вычисление смещения субпиксельной WU-координаты
+      const int16_t xa = x_mul255 + (int16_t)((xl * ((int16_t)(n0 + n1) << 1U)) >> 3U);
+      const int16_t ya = y_mul255 + (int16_t)((yl * ((int16_t)(n0 + n2) << 1U)) >> 3U);
+
+      // Отрисовка сглаженного WU-пикселя по смещенному вектору освещения
+      wu_pixel((uint32_t)xa, (uint32_t)ya, &col);
     }
-  }
+  }  
 }
 #endif
 
