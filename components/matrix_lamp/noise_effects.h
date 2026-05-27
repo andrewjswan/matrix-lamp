@@ -477,7 +477,7 @@ static void fillNoiseLED() {
       noise[i][j] = data;
     }
   }
-  
+
   // Обновление фаз и смещений осей шума
   z += speed;
   x += (speed >> 3U); // speed / 8
@@ -520,7 +520,7 @@ static void fillnoise8() {
       noise[i][j] = fastled_helper::perlin8(x + ioffset, y + joffset, z);
     }
   }
-  
+
   z += speed;
 }
 
