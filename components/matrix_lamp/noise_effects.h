@@ -366,9 +366,9 @@ static void Popuri() {
   }
 
   // change color --------
-  const uint8_t t1 = cos8((uint16_t)((42U * step) * 0.0333333f)); // 1.0f / 30.0f ≈ 0.0333333f
-  const uint8_t t2 = cos8((uint16_t)((35U * step) * 0.0333333f));
-  const uint8_t t3 = cos8((uint16_t)((38U * step) * 0.0333333f));
+  const uint8_t t1 = cos8((uint16_t)((42U * step) * inv30)); // 1.0f / 30.0f ≈ 0.0333333f
+  const uint8_t t2 = cos8((uint16_t)((35U * step) * inv30));
+  const uint8_t t3 = cos8((uint16_t)((38U * step) * inv30));
 
   const uint8_t scale_val = modes[currentMode].Scale;
   const bool is_even_index = ((deltaValue & 0x01U) == 0U);

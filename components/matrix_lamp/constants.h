@@ -45,11 +45,31 @@ inline constexpr uint8_t CENTER_X_MAJOR = CENTER_X + (WIDTH % 2);
 inline constexpr uint8_t CENTER_Y_MAJOR = CENTER_Y + (HEIGHT % 2);
 
 // Инварианты
-inline constexpr float inv10  = 1.0f /  10.0f;
-inline constexpr float inv100 = 1.0f / 100.0f;
-inline constexpr float inv255 = 1.0f / 255.0f;
-inline constexpr float inv256 = 1.0f / 256.0f;
-inline constexpr float invPI  = 1.0f /  M_PI;
+inline constexpr float inv2     = 1.0f /    2.0f;  // 0.5f
+inline constexpr float inv3     = 1.0f /    3.0f;  // ~0.33333334f
+inline constexpr float inv4     = 1.0f /    4.0f;  // 0.25f
+inline constexpr float inv5     = 1.0f /    5.0f;  // 0.2f
+inline constexpr float inv6     = 1.0f /    6.0f;  // ~0.16666667f
+inline constexpr float inv8     = 1.0f /    8.0f;  // 0.125f
+inline constexpr float inv10    = 1.0f /   10.0f;  // 0.1f
+inline constexpr float inv16    = 1.0f /   16.0f;  // 0.0625f
+inline constexpr float inv20    = 1.0f /   20.0f;  // 0.05f
+inline constexpr float inv30    = 1.0f /   30.0f;  // ~0.0333333f
+inline constexpr float inv99    = 1.0f /   99.0f;  // ~0.010101f
+inline constexpr float inv100   = 1.0f /  100.0f;  // 0.01f
+inline constexpr float inv127   = 1.0f /  127.0f;  // ~0.007874f
+inline constexpr float inv128   = 1.0f /  128.0f;  // 0.0078125f
+inline constexpr float inv200   = 1.0f /  200.0f;  // 0.005f
+inline constexpr float inv255   = 1.0f /  255.0f;  // ~0.00392157f
+inline constexpr float inv256   = 1.0f /  256.0f;  // 0.00390625f
+inline constexpr float inv380   = 1.0f /  380.0f;  // ~0.00263158f
+inline constexpr float inv500   = 1.0f /  500.0f;  // 0.002f
+inline constexpr float inv1000  = 1.0f / 1000.0f;  // 0.001f
+inline constexpr float inv2040  = 1.0f / 2040.0f;  // ~0.000490196f
+inline constexpr float inv4080  = 1.0f / 4080.0f;  // ~0.000245098f
+inline constexpr float inv32768 = 1.0f / 32768.0f; // ~0.000030518f
+inline constexpr float invPI    = 1.0f /  M_PI;    // ~0.31830988f
+inline constexpr float inv2PI   = 2.0f /  M_PI;    // ~0.63661975f
 
 // --- ЭФФЕКТЫ ------------------------------------------------------------------------------------------------------------------------------------------
 #define DYNAMIC               ( 0U)                         // динамическая задержка для кадров ( будет использоваться бегунок Скорость )

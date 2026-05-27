@@ -1002,15 +1002,15 @@ static void butterflysRoutine(bool isColored)
       if (step == i && random8(2U) == 0U) {
         trackingObjectState[i] = random8(220U, 244U);
 
-        float randX = ((float)random8(101U) * 0.05f) + 1.0f; // (float)random8(101U) / 20.0f + 1.0f
+        float randX = ((float)random8(101U) * inv20) + 1.0f; // (float)random8(101U) / 20.0f + 1.0f
         trackingObjectSpeedX[i] = (random8(2U) == 0U) ? -randX : randX;
 
-        float randY = ((float)random8(101U) * 0.05f) + 1.0f; // (float)random8(101U) / 20.0f + 1.0f
+        float randY = ((float)random8(101U) * inv20) + 1.0f; // (float)random8(101U) / 20.0f + 1.0f
         trackingObjectSpeedY[i] = (random8(2U) == 0U) ? -randY : randY;
 
         // проворот траектории
         uint8_t random_limit = (uint8_t)((std::abs(trackingObjectSpeedX[i]) + std::abs(trackingObjectSpeedY[i])) * 20.0f + 2.0f);
-        float shift_val = (float)random8(random_limit) * 0.005f; // / 200.0f;
+        float shift_val = (float)random8(random_limit) * inv200; // / 200.0f;
         trackingObjectShift[i] = (random8(2U) == 0U) ? -shift_val : shift_val;
       }
     } else {
@@ -1233,8 +1233,8 @@ static void ballsRoutine()
       vector[j][1U] = -vector[j][1U];
     }
 
-    float render_x = (float)coord[j][0U] * 0.1f;
-    float render_y = (float)coord[j][1U] * 0.1f;
+    float render_x = (float)coord[j][0U] * inv10;
+    float render_y = (float)coord[j][1U] * inv10;
     drawPixelXYF(render_x, render_y, ballColors[j]);
   }
 }
@@ -1945,7 +1945,7 @@ static void BBallsRoutine() {
   const uint32_t current_ms = millis();
 
   for (uint8_t i = 0 ; i < enlargedObjectNUM ; i++) {
-    bballsTCycle = (float)(current_ms - enlargedObjectTime[i]) * 0.001f;                              // Calculate the time since the last time the ball was on the ground
+    bballsTCycle = (float)(current_ms - enlargedObjectTime[i]) * inv1000;                              // Calculate the time since the last time the ball was on the ground
 
     // A little kinematics equation calculates positon as a function of time,
     // acceleration (gravity) and intial velocity
@@ -2262,13 +2262,13 @@ static void Sinusoid3Routine()
 
   const uint16_t _scale = (((modes[currentMode].Scale - 1U) % 9U) * 10U + 80U) << 7U; // = remap(scale, 1, 255, 0.1, 3);
   const uint16_t _scale3 = ((modes[currentMode].Scale - 1U) % 9U) * 1638U + 3276U;    // для спиралей на sin16
-  const float _scale2 = (float)((modes[currentMode].Scale - 1U) % 9U) * 0.2f + 0.4f;  // для спиралей на sinf
+  const float _scale2 = (float)((modes[currentMode].Scale - 1U) % 9U) * inv5 + 0.4f;  // для спиралей на sinf
 
   const uint32_t phase_shift_raw = time_shift * speedfactor;
 
   const float time_speed_factor = (float)time_shift * speedfactor;
   const float case34_phase = time_speed_factor * 100.0f;
-  const float case5_phaseB = time_speed_factor * 0.005f;
+  const float case5_phaseB = time_speed_factor * inv200;
   const float case5_phaseR = time_speed_factor * 0.0055f;
 
   const float center1x = float(e_s3_size * sin16(speedfactor * 72.0874f * time_shift)) / 0x7FFF - emitterX;
@@ -2420,21 +2420,21 @@ static void Sinusoid3Routine()
 
           float cx = (float)x + center1x;
           uint8_t v = 127 * (1 + sinf(3 * atan2(cy1, cx) + _scale2 * hypot(cy1, cx)));
-          float d = SQRT_VARIANT(cx * cx + cy1_sq) * 0.1f;
+          float d = SQRT_VARIANT(cx * cx + cy1_sq) * inv10;
           if (d < 0.06f) d = 0.06f;
           if (d < 1.0f) v = constrain(v - int16_t(1.0f / (d * d)), 0, 255);
           color.r = v;
 
           cx = (float)x + center2x;
           v = 127 * (1 + sinf(3 * atan2(cy2, cx) + _scale2 * hypot(cy2, cx)));
-          d = SQRT_VARIANT(cx * cx + cy2_sq) * 0.1f;
+          d = SQRT_VARIANT(cx * cx + cy2_sq) * inv10;
           if (d < 0.06f) d = 0.06f;
           if (d < 1.0f) v = constrain(v - int16_t(1.0f / (d * d)), 0, 255);
           color.b = v;
 
           cx = (float)x + center3x;
           v = 127 * (1 + float(sin16(atan2(cy3, cx) * 31255 + _scale3 * hypot(cy3, cx))) / 32767.0f);
-          d = SQRT_VARIANT(cx * cx + cy3_sq) * 0.1f;
+          d = SQRT_VARIANT(cx * cx + cy3_sq) * inv10;
           if (d < 0.06f) d = 0.06f;
           if (d < 1.0f) v = constrain(v - int16_t(1.0f / (d * d)), 0, 255);
           color.g = v;
@@ -2453,14 +2453,14 @@ static void Sinusoid3Routine()
 
           float cx = (float)x + center1x;
           uint8_t v = 127 * (1 + float(sin16(atan2(cy1, cx) * 31255 + _scale3 * hypot(cy1, cx))) / 32767.0f);
-          float d = SQRT_VARIANT(cx * cx + cy1_sq) * 0.1f;
+          float d = SQRT_VARIANT(cx * cx + cy1_sq) * inv10;
           if (d < 0.06f) d = 0.06f;
           if (d < 1.0f) v = constrain(v - int16_t(1.0f / (d * d)), 0, 255);
           color.g = v;
 
           cx = (float)x + center3x;
           v = 127 * (1 + float(sin16(atan2(cy3, cx) * 31255 + _scale3 * hypot(cy3, cx))) / 32767.0f);
-          d = SQRT_VARIANT(cx * cx + cy3_sq) * 0.1f;
+          d = SQRT_VARIANT(cx * cx + cy3_sq) * inv10;
           if (d < 0.06f) d = 0.06f;
           if (d < 1.0f) v = constrain(v - int16_t(1.0f / (d * d)), 0, 255);
           color.r = v;
@@ -2483,7 +2483,7 @@ static void Sinusoid3Routine()
 
           cx = (float)x + center2x;
           v = 127 * (1 + float(sin16(atan2(cy2, cx) * 31255 + _scale3 * hypot(cy2, cx))) / 32767.0f);
-          float d = SQRT_VARIANT(cx * cx + cy2_sq) * 0.0625f; // 1 / 16.0f
+          float d = SQRT_VARIANT(cx * cx + cy2_sq) * inv16; // 1 / 16.0f
           if (d < 0.06f) d = 0.06f;
           if (d < 1.0f) v = constrain(v - int16_t(1.0f / (d * d)), 0, 255);
           color.g = max(v, color.g);
@@ -3024,7 +3024,7 @@ class Boid {
 
         // Быстрая float-замена функции map(d, 0, 100, 0, maxspeed)
         // Формула: d * (maxspeed / 100.0f). Множитель считается компилятором заранее!
-        float m = d * (maxspeed * 0.01f);
+        float m = d * (maxspeed * inv100);
         desired *= m;
       } else {
         // Если частица далеко, летим на полной скорости без извлечения корня
@@ -3322,8 +3322,8 @@ static void whirlRoutine(bool oneColor) {
 
     uint8_t angle = fastled_helper::perlin8(ff_x + ioffset, ff_y + joffset, ff_z);
 
-    boid->velocity.x =   (float)sin8(angle) * 0.0078125f - 1.0f;
-    boid->velocity.y = -((float)cos8(angle) * 0.0078125f - 1.0f);
+    boid->velocity.x =   (float)sin8(angle) * inv128 - 1.0f;
+    boid->velocity.y = -((float)cos8(angle) * inv128 - 1.0f);
     boid->update();
 
     if (oneColor) {
@@ -4748,7 +4748,7 @@ static void LeapersRoutine(){
 
     setCurrentPalette();
 
-    enlargedObjectNUM = (float)((modes[currentMode].Scale - 1U) % 11U) * 0.1f * (float)(enlargedOBJECT_MAX_COUNT - 1U) + 1U;
+    enlargedObjectNUM = (float)((modes[currentMode].Scale - 1U) % 11U) * inv10 * (float)(enlargedOBJECT_MAX_COUNT - 1U) + 1U;
     if (enlargedObjectNUM > enlargedOBJECT_MAX_COUNT) {
       enlargedObjectNUM = enlargedOBJECT_MAX_COUNT;
     }
@@ -4784,7 +4784,7 @@ static void LeapersRoutine(){
 // float trackingObjectShift[enlargedOBJECT_MAX_COUNT];                    // радиус пузыря ... мог бы быть, если бы круги рисовались нормально
 
 static void LavaLampGetspeed(uint8_t l) {
-  trackingObjectSpeedY[l] = (float)random8(5U, 11U) / (257U - modes[currentMode].Speed) * 0.25f;  // / 4.0f // если скорость кадров фиксированная
+  trackingObjectSpeedY[l] = (float)random8(5U, 11U) / (257U - modes[currentMode].Speed) * inv4;  // / 4.0f // если скорость кадров фиксированная
 }
 
 static void drawBlob(uint8_t l, CRGB color) { //раз круги нарисовать не получается, будем попиксельно вырисовывать 2 варианта пузырей
@@ -5403,7 +5403,7 @@ static void LiquidLampPhysic() {
       if (pj_y < BOUNDARY_MARGIN || pj_y > boundary_top) continue;
 
       // Радиус взаимодействия масштабируется с размером матрицы
-      float radius = (rad_i + trackingObjectShift[j]) * 0.5f;
+      float radius = (rad_i + trackingObjectShift[j]) * inv2;
 
       float abs_diff_x = std::abs(pi_x - trackingObjectPosX[j]);
       float abs_diff_y = std::abs(pi_y - pj_y);
@@ -5607,7 +5607,7 @@ static void popcornRoutine() {
 
     speedfactor = remap(modes[currentMode].Speed, (uint8_t)1U, (uint8_t)255U, 0.25f, 1.0f);
 
-    enlargedObjectNUM = (float)((modes[currentMode].Scale - 1U) % 11U) * 0.1f * (float)(enlargedOBJECT_MAX_COUNT - 1U) + 1U;
+    enlargedObjectNUM = (float)((modes[currentMode].Scale - 1U) % 11U) * inv10 * (float)(enlargedOBJECT_MAX_COUNT - 1U) + 1U;
     if (enlargedObjectNUM > enlargedOBJECT_MAX_COUNT) {
       enlargedObjectNUM = enlargedOBJECT_MAX_COUNT;
     }
@@ -6054,8 +6054,8 @@ static void attractRoutine() {
 
     for (uint8_t i = 0U; i < enlargedObjectNUM; i++) {
       boids[i] = Boid(random8(WIDTH), random8(HEIGHT));
-      boids[i].mass = (float)random8(33U, 134U) * 0.01f;
-      boids[i].velocity.x = (float)random8(46U, 100U) * 0.002f; // 1 / 500
+      boids[i].mass = (float)random8(33U, 134U) * inv100;
+      boids[i].velocity.x = (float)random8(46U, 100U) * inv500; // 1 / 500
       if (random8(2U)) {
         boids[i].velocity.x = -boids[i].velocity.x;
       }
@@ -6114,7 +6114,7 @@ static void newMatrixRoutine()
     for (uint8_t i = 0U; i < enlargedObjectNUM; i++) {
       trackingObjectPosX[i] = random8(WIDTH);
       trackingObjectPosY[i] = random8(HEIGHT);
-      trackingObjectSpeedY[i] = (float)random8(150U, 250U) * 0.01f;
+      trackingObjectSpeedY[i] = (float)random8(150U, 250U) * inv100;
       trackingObjectState[i] = random8(127U, 255U);
     }
     hue = modes[currentMode].Scale * 2.55f;
@@ -6164,7 +6164,7 @@ static void newMatrixRoutine()
     if (trackingObjectPosY[i] < -1.0f) {
       trackingObjectPosX[i] = random8(WIDTH);
       trackingObjectPosY[i] = random8(spawn_min_y, HEIGHT);
-      trackingObjectSpeedY[i] = (float)random8(150U, 250U) * 0.01f;
+      trackingObjectSpeedY[i] = (float)random8(150U, 250U) * inv100;
       trackingObjectState[i] = random8(127U, 255U);
     }
   }
@@ -6193,7 +6193,7 @@ static void smokeballsRoutine() {
 
     for (uint8_t j = 0U; j < enlargedObjectNUM; j++) {
       trackingObjectShift[j]  = random16((WIDTH * 10) - (THIRD_X * 20));  // сумма trackingObjectState + trackingObjectShift не должна выскакивать за макс.Х
-      trackingObjectSpeedX[j] = (float)random16(25U, 80 * WIDTH) * 0.2f;  // / 5.0f;
+      trackingObjectSpeedX[j] = (float)random16(25U, 80 * WIDTH) * inv5;  // / 5.0f;
       trackingObjectState[j]  = random16(CENTER_X * 10, THIRD_X * 20);
       trackingObjectHue[j]    = random8();
       trackingObjectPosX[j]   = trackingObjectShift[j];
@@ -6221,7 +6221,7 @@ static void smokeballsRoutine() {
     uint16_t b_speed = (uint16_t)(trackingObjectSpeedX[j] * (speedfactor * 5.0f));
 
     trackingObjectPosX[j] = beatsin16(b_speed, trackingObjectShift[j], trackingObjectState[j] + trackingObjectShift[j], phase, trackingObjectHue[j] * 8U);
-    drawPixelXYF(trackingObjectPosX[j] * 0.1f, 0.05f, ColorFromPalette(*curPalette, trackingObjectHue[j]));
+    drawPixelXYF(trackingObjectPosX[j] * inv10, 0.05f, ColorFromPalette(*curPalette, trackingObjectHue[j]));
   }
 
   // Таймер мутации шаров
@@ -6533,7 +6533,7 @@ static void starfield2Routine() {
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
     // enlargedObjectNUM = (modes[currentMode].Scale - 1U) / 99.0f * (trackingOBJECT_MAX_COUNT - 1U) + 1U;
-    enlargedObjectNUM = (float)(modes[currentMode].Scale - 1U) * 0.010101f * (float)(trackingOBJECT_MAX_COUNT - 1U) + 1U;
+    enlargedObjectNUM = (float)(modes[currentMode].Scale - 1U) * inv99 * (float)(trackingOBJECT_MAX_COUNT - 1U) + 1U;
     if (enlargedObjectNUM > trackingOBJECT_MAX_COUNT) {
       enlargedObjectNUM = trackingOBJECT_MAX_COUNT;
     }
@@ -6623,7 +6623,7 @@ static void fairyRoutine(){
     deltaValue = 10U; // количество зарождающихся частиц за 1 цикл // perCycle = 1;
 
     // enlargedObjectNUM = (modes[currentMode].Scale - 1U) / 99.0f * (trackingOBJECT_MAX_COUNT - 1U) + 1U;
-    enlargedObjectNUM = (float)(modes[currentMode].Scale - 1U) * 0.010101f * (float)(trackingOBJECT_MAX_COUNT - 1U) + 1U;
+    enlargedObjectNUM = (float)(modes[currentMode].Scale - 1U) * inv99 * (float)(trackingOBJECT_MAX_COUNT - 1U) + 1U;
     if (enlargedObjectNUM > trackingOBJECT_MAX_COUNT) {
       enlargedObjectNUM = trackingOBJECT_MAX_COUNT;
     }
@@ -6635,7 +6635,7 @@ static void fairyRoutine(){
     // лень было придумывать алгоритм для траектории феи, поэтому это будет нулевой "бойд" из эффекта Притяжение
     boids[0] = Boid(random8(WIDTH), random8(HEIGHT));
     boids[0].mass = 0.5f;  // сюда можно поставить регулятор разлёта. чем меньше число, тем дальше от центра будет вылет
-    boids[0].velocity.x = (float)random8(46U, 100U) * 0.002f;
+    boids[0].velocity.x = (float)random8(46U, 100U) * inv500;
     if (random8(2U)) boids[0].velocity.x = -boids[0].velocity.x;
     boids[0].velocity.y = 0.0f;
 
@@ -6654,8 +6654,8 @@ static void fairyRoutine(){
     deltaHue2 = 0U;
 
     // Быстрое умножение вместо делений (1/4080 и 1/2040)
-    boids[1].velocity.x = ((float)random8() + 255.0f) * 0.000245098f;  //  / 4080.0f;
-    boids[1].velocity.y = ((float)random8() + 255.0f) * 0.000490196f;  //  / 2040.0f;
+    boids[1].velocity.x = ((float)random8() + 255.0f) * inv4080;  //  / 4080.0f;
+    boids[1].velocity.y = ((float)random8() + 255.0f) * inv2040;  //  / 2040.0f;
 
     if (boids[0].location.x > CENTER_X_F) boids[1].velocity.x = -boids[1].velocity.x;
     if (boids[0].location.y > CENTER_Y_F) boids[1].velocity.y = -boids[1].velocity.y;
@@ -8186,7 +8186,7 @@ static void FeatherCandleRoutine() {
 // =====================================
 static void VirtualExplosion(uint8_t f_type, int8_t timeline) {
   constexpr uint8_t DELAY_SECOND_EXPLOSION = QUARTER_Y;
-  constexpr uint8_t horizont = 1U;  // HEIGHT * 0.2f;
+  constexpr uint8_t horizont = 1U;  // HEIGHT * inv5;
   constexpr int8_t STEP = 255U / HEIGHT;
   constexpr uint8_t timeline_trigger = HEIGHT + DELAY_SECOND_EXPLOSION;
 
@@ -9316,8 +9316,8 @@ static void animeBobbles() {
 
 //---------------------------------------
 static void createScene(uint8_t idx) {
-  const uint8_t MID = MAX_Y / 2;                    // floor((H - 1) * 0.5)
-  const uint8_t H3  = (uint16_t)(HEIGHT * 3) / 10;  // floor(H * 0.3)
+  const uint8_t MID = MAX_Y / 2U;                     // floor((H - 1) * 0.5)
+  const uint8_t H3  = (uint16_t)(HEIGHT * 3U) / 10U;  // floor(H * 0.3)
 
   switch (idx) {
     case 0:     // blue green ------
@@ -9350,7 +9350,7 @@ static void createScene(uint8_t idx) {
 
 //---------------------------------------
 static void createSceneM(uint8_t idx) {
-  const uint8_t H3 = (uint16_t)(HEIGHT * 3) / 10; // замена floor(HEIGHT * 0.3)
+  const uint8_t H3 = (uint16_t)(HEIGHT * 3U) / 10U; // замена floor(HEIGHT * 0.3)
 
   switch (idx) {
     case 0:     // blue green ------
@@ -10650,7 +10650,7 @@ static void drawStar(float xlocl, float ylocl, float biggy, float little, int16_
    for (uint8_t i = 0U; i < points; i++) {
     const float i_rad2 = i * radius2;
     const float i_rad2_dangle = i_rad2 - dangle;
-    const float half_rad2 = radius2 * 0.5f;
+    const float half_rad2 = radius2 * inv2;
 
     const float sin_big = (sin8(i_rad2_dangle) - 128.0f) * inv128;
     const float cos_big = (cos8(i_rad2_dangle) - 128.0f) * inv128;
@@ -10728,7 +10728,7 @@ static void EffectStars() {
   float& sangle = trackingObjectPosY[1U];
   float& counter = trackingObjectPosX[2U];
 
-  const float speedFactor = ((float)ff_x * 0.0026315f + 0.05f);                 // ((float)spd / 380.0f + 0.05f)
+  const float speedFactor = ((float)ff_x * inv380 + 0.05f);                     // ((float)spd / 380.0f + 0.05f)
   counter += speedFactor;                                                       // определяет то, с какой скоростью будет приближаться звезда
 
   if (driftx > (float)(WIDTH - spirocenterX / 2U))                              // change directin of drift if you get near the right 1/4 of the screen
@@ -10883,7 +10883,7 @@ static float code(float t, float i, float x, float y) {
     /** © Motus Art @motus_art */
     case 1: /* Plasma */
       hue = 96U; hue2 = 224U;
-      return (sin16((x + t) * 8192.0f) * 0.5f + sin16((y + t) * 8192.0f) * 0.5f + sin16((x + y + t) * 8192.0f) * 0.33333334f) / 32767.0f;
+      return (sin16((x + t) * 8192.0f) * inv2 + sin16((y + t) * 8192.0f) * inv2 + sin16((x + y + t) * 8192.0f) * inv3) / 32767.0f;
       break;
 
     case 2: /* Up & Down */
@@ -10910,7 +10910,7 @@ static float code(float t, float i, float x, float y) {
 
     case 6: /* Vertical fade */
       hue = 160U; hue2 = 0U;
-      return sin16((y * 0.125f + t) * 8192.0f) / 32767.0f;  // y / 8 -> y * 0.125f
+      return sin16((y * inv8 + t) * 8192.0f) / 32767.0f;  // y / 8 -> y * inv8
       break;
 
     case 7: /* Waves */
@@ -10942,7 +10942,7 @@ static float code(float t, float i, float x, float y) {
     case 12: /* detunized */
       // https://www.reddit.com/r/programming/comments/jpqbux/minimal_16x16_dots_coding_environment/gbgk30l/
       hue = 136U; hue2 = 160U;
-      return sin16((y / CENTER_Y_F + t * 0.5f) * 8192.0f) / 32767.0f + x * 0.0625f - 0.5f;  // x / 16 -> x * 0.0625f
+      return sin16((y / CENTER_Y_F + t * inv2) * 8192.0f) / 32767.0f + x * inv16 - 0.5f;  // x / 16 -> x * inv16
       break;
 
     /** © @akella | https://twitter.com/akella/status/1323549082552619008 */
@@ -10953,7 +10953,7 @@ static float code(float t, float i, float x, float y) {
 
     case 14:
       hue = 32U; hue2 = 160U;
-      return sin16((i * 0.2f + t) * 16384.0f) / 32767.0f;  // i / 5 -> i * 0.2f
+      return sin16((i * inv5 + t) * 16384.0f) / 32767.0f;  // i / 5 -> i * inv5
       break;
 
     case 15: /* Burst */
@@ -10991,22 +10991,22 @@ static float code(float t, float i, float x, float y) {
 
     case 19:
       hue = 255U; hue2 = 224U;
-      return (y - 8.0f) * 0.33333334f - tan2pi_fast((x * 0.16666667f + 1.87f) * 0.63661975f) * sin16(t * 16834.0f) / 32767.0f;  // / 3 -> * 0.33333334f, / PI*2 -> * 0.63661975f
+      return (y - 8.0f) * inv3 - tan2pi_fast((x * inv6 + 1.87f) * inv2PI) * sin16(t * 16834.0f) / 32767.0f;  // / 3 -> * inv3, / PI*2 -> * inv2PI
       break;
 
     case 20:
       hue = 136U; hue2 = 160U;
-      return (y - 8.0f) * 0.33333334f - (sin16((x * 0.25f + t * 2.0f) * 8192.0f) / 32767.0f);  // / 3 -> * 0.33333334f
+      return (y - 8.0f) * inv3 - (sin16((x * inv4 + t * 2.0f) * 8192.0f) / 32767.0f);  // / 3 -> * inv3
       break;
 
     case 21:
       hue = 72U; hue2 = 96U;
-      return std::cos(sin16(x * t * 819.2f) / 32767.0f * PI) + cos16((sin16((y * t * 0.1f + SQRT_VARIANT(std::abs(cos16(x * t * 8192.0f) / 32767.0f))) * 8192.0f) / 32767.0f * PI) * 8192.0f) / 32767.0f;
+      return std::cos(sin16(x * t * 819.2f) / 32767.0f * PI) + cos16((sin16((y * t * inv10 + SQRT_VARIANT(std::abs(cos16(x * t * 8192.0f) / 32767.0f))) * 8192.0f) / 32767.0f * PI) * 8192.0f) / 32767.0f;
       break;
 
     case 22: /* bambuk */
       hue = 96U; hue2 = 80U;
-      return sin16(x * 0.33333334f * sin16(t * 2730.6667f) * 0.5f) / 32767.0f + cos16(y * 0.25f * sin16(t * 4096.0f) * 0.5f) / 32767.0f;
+      return sin16(x * inv3 * sin16(t * 2730.6667f) * inv2) / 32767.0f + cos16(y * inv4 * sin16(t * 4096.0f) * inv2) / 32767.0f;
       break;
 
     case 23:
@@ -11122,7 +11122,7 @@ class Spark {
     CRGB color;
     uint8_t Bri;
     uint8_t Hue;
-    float x, y, speedy = (float)random8(5U, 31U) * 0.1f;
+    float x, y, speedy = (float)random8(5U, 31U) * inv10;
 
   public:
     void addXY(float nx, float ny) {
@@ -11136,7 +11136,7 @@ class Spark {
 
     void reset() {
       uint32_t peak = 0;
-      speedy = (float)random8(5U, 31U) * 0.1f;
+      speedy = (float)random8(5U, 31U) * inv10;
       y = random8(QUARTER_Y, CENTER_Y);
 
       color = leds[XY(x, y)];
@@ -11197,7 +11197,7 @@ static void  FireSparks() {
   // Обсчет и отрисовка физики искр
   if (withSparks) {
     for (uint8_t i = 0U; i < sparksCount; i++) {
-      const float nx_drift = (float)((int16_t)random8(3U) - 1) * 0.5f;
+      const float nx_drift = (float)((int16_t)random8(3U) - 1) * inv2;
       sparks[i].addXY(nx_drift, 0.75f);
 
       if (sparks[i].getY() >= (float)HEIGHT && random8(50U) == 0U) {
@@ -11274,7 +11274,7 @@ class Circle {
 
     float radius() const {
       const uint16_t bpm = ((uint16_t)modes[currentMode].Speed * 2U) / 5U;
-      return (float)beatsin16(bpm, 0U, 500U, offset) * 0.01f;
+      return (float)beatsin16(bpm, 0U, 500U, offset) * inv100;
     }
 };
 
@@ -11996,7 +11996,7 @@ static void Avrora() {
     CRGB color = CHSV(cur_color, 255U, (uint8_t)(255U - y * OCTANT_Y));
 
     // Оптимизация: заменяем деление на 5 умножением на 0.2f
-    const int16_t calc_br = 255 - (int16_t)((y * HEIGHT) * 0.2f);
+    const int16_t calc_br = 255 - (int16_t)((y * HEIGHT) * inv5);
     const uint8_t br = (calc_br < 0) ? 0U : ((calc_br > 200) ? 200U : (uint8_t)calc_br);
 
     CRGB color2 = CHSV((uint8_t)(cur_color - 32U), (uint8_t)(255U - y * QUARTER_Y), br);
@@ -12170,7 +12170,7 @@ static void Fountain() {
     loadingFlag = false;
   }
 
-  const float radius = std::abs(128 - (int16_t)step) * 0.007874f * (float)CENTER_Y_MINOR;  // / 127.0f
+  const float radius = std::abs(128 - (int16_t)step) * inv127 * (float)CENTER_Y_MINOR;  // / 127.0f
 
   // Предрасчет шага базовой яркости
   const uint8_t br_div = 255U / ((uint8_t)emitterY + 1U);
@@ -12185,7 +12185,7 @@ static void Fountain() {
     const uint8_t br = (calc_br < 48) ? 48U : ((calc_br > 255) ? 255U : (uint8_t)calc_br);
 
     const int16_t boundaryLow = (int16_t)(emitterY - radius + 0.99f);
-    const int16_t boundaryMid = (int16_t)(emitterY - (radius * 0.5f) + 0.99f);
+    const int16_t boundaryMid = (int16_t)(emitterY - (radius * inv2) + 0.99f);
 
     const float fy_plus = (float)y + 0.5f;
     const float fy_minus = (float)y - 0.5f;
@@ -12728,9 +12728,9 @@ static void LightFilter() {
 
   pcnt++;
 
-  const uint8_t t1 = cos8((uint16_t)((42U * step) * 0.0333333f));
-  const uint8_t t2 = cos8((uint16_t)((35U * step) * 0.0333333f));
-  const uint8_t t3 = cos8((uint16_t)((38U * step) * 0.0333333f));
+  const uint8_t t1 = cos8((uint16_t)((42U * step) * inv30));
+  const uint8_t t2 = cos8((uint16_t)((35U * step) * inv30));
+  const uint8_t t3 = cos8((uint16_t)((38U * step) * inv30));
 
   uint8_t dX = hue2;
   uint8_t divider = deltaHue;
@@ -12831,7 +12831,7 @@ static void RainbowSpot() {
 
   // Calculate the radius based on the sound value --
   // Заменили деление на 127.0f быстрым умножением на инвариант (1.0f / 127.0f ≈ 0.007874f)
-  const float radius = std::abs(128 - (int16_t)step) * 0.007874f * (float)max(CENTER_X_MINOR, CENTER_Y_MINOR);
+  const float radius = std::abs(128 - (int16_t)step) * inv127 * (float)max(CENTER_X_MINOR, CENTER_Y_MINOR);
   const float radiusSq = radius * radius;
 
   const uint8_t scale_val = modes[currentMode].Scale;
@@ -12858,7 +12858,7 @@ static void RainbowSpot() {
       const uint8_t current_hue = step + (uint8_t)(distance * radius);
 
       // Check if the point is inside the radius ----
-      const uint8_t current_delta = (uint8_t)(200U - (STEP * distance * 0.25f));
+      const uint8_t current_delta = (uint8_t)(200U - (STEP * distance * inv4));
       const uint8_t inv_dist = (uint8_t)(255U - distance);
 
       if (distance < radius) {
@@ -12965,7 +12965,7 @@ static void RainbowRings() {
   dimAll(dimValue);
 
   const float ringSpeed = 0.6f + speedFactor * 2.4f;
-  const float deltaTime = (float)(currentTime - lastUpdateTime) * 0.001f;  // / 1000.0f
+  const float deltaTime = (float)(currentTime - lastUpdateTime) * inv1000;  // / 1000.0f
 
   // Обсчет физики расширения колец
   const float max_radius_limit = (float)max(CENTER_X_MAJOR, CENTER_Y_MAJOR) * 2.0f;
@@ -12979,7 +12979,7 @@ static void RainbowRings() {
   }
 
   // Инварианты времени для тригонометрии волн
-  const float t_seconds = (float)currentTime * 0.001f;
+  const float t_seconds = (float)currentTime * inv1000;
   const float t_double = t_seconds * 2.0f;
 
   for (uint8_t y = 0U; y < HEIGHT; y++) {
@@ -12996,7 +12996,7 @@ static void RainbowRings() {
         const float radius = trackingObjectPosX[i];
 
         if (std::abs(distance - radius) < 2.0f) {
-          const float wave = (float)sin16((int32_t)((t_double - distance + radius) * 8192.0f)) * 0.000030518f; // 1.0f / 32767.0f ≈ 0.000030518f
+          const float wave = (float)sin16((int32_t)((t_double - distance + radius) * 8192.0f)) * inv32768; // 1.0f / 32767.0f ≈ 0.000030518f
           const float fraction = ((wave + 1.0f) * 0.35f) * trackingObjectPosY[i]; // 0.7f / 2.0f = 0.35f
 
           if (fraction > 0.01f) {
@@ -13311,7 +13311,7 @@ static void fire2025Routine() {
   const uint8_t dark_gap_threshold = (HEIGHT * 2U) / 5U;
 
   // Предрассчитанный коэффициент влияния масштаба скорости на красный ореол
-  const float scale_speed_factor = 1.0f + ((float)(fire_speed_val * 2U) * 0.01f);
+  const float scale_speed_factor = 1.0f + ((float)(fire_speed_val * 2U) * inv100);
 
   for (uint8_t y = 0U; y < HEIGHT; y++) {
     // ВЫНОС ИНВАРИАНТОВ СТРОКИ РЕНДЕРИНГА
@@ -13521,7 +13521,7 @@ static void StarsEffect() {
   const uint32_t currentTime = millis();
   const uint8_t desiredStars = deltaHue;
 
-  const float deltaTime = (float)(currentTime - lastUpdateTime) * 0.001f;
+  const float deltaTime = (float)(currentTime - lastUpdateTime) * inv1000;
   const float speedFactor = (float)modes[currentMode].Speed * inv255;
 
   // Предрассчитанный коэффициент скорости мерцания на текущий кадр
