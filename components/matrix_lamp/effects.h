@@ -13419,64 +13419,77 @@ static void butterflyRoutine() {
     }
     #endif // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-
     setCurrentPalette();
-    dimAll(0);
 
-    colorChangeTime = 0;
-    enlargedObjectNUM = map(modes[currentMode].Scale, 1U, 100U, 1U, min(static_cast<uint8_t>(enlargedOBJECT_MAX_COUNT), static_cast<uint8_t>(5)));
+    dimAll(0U);
+
+    colorChangeTime = 0U;
+    
+    const uint8_t max_allowed = (enlargedOBJECT_MAX_COUNT < 5U) ? (uint8_t)enlargedOBJECT_MAX_COUNT : 5U;
+    enlargedObjectNUM = map(modes[currentMode].Scale, 1U, 100U, 1U, max_allowed);
     hue = map(modes[currentMode].Scale, 1U, 100U, 0U, 255U);
+    
+    const uint8_t hue_step = 256U / enlargedObjectNUM;
+
     for (uint8_t i = 0U; i < enlargedObjectNUM; i++) {
       trackingObjectPosX[i] = random8(WIDTH);
       trackingObjectPosY[i] = random8(HEIGHT);
-      trackingObjectSpeedX[i] = (float)random8(10, 20) / 10.0f * (random8(2) ? 1 : -1);
-      trackingObjectSpeedY[i] = (float)random8(10, 20) / 10.0f * (random8(2) ? 1 : -1);
-      trackingObjectHue[i] = hue + (i * (256 / enlargedObjectNUM));
-      trackingObjectState[i] = 0;
+      
+      trackingObjectSpeedX[i] = (float)random8(10U, 20U) * inv10 * (random8(2U) ? 1.0f : -1.0f);
+      trackingObjectSpeedY[i] = (float)random8(10U, 20U) * inv10 * (random8(2U) ? 1.0f : -1.0f);
+      trackingObjectHue[i] = hue + (i * hue_step);
+      trackingObjectState[i] = 0U;
       trackingObjectIsShift[i] = true;
       enlargedObjectTime[i] = millis();
     }
+
+    loadingFlag = false;
   }
 
-  float speedFactor = (float)modes[currentMode].Speed / 255.0f;
-  uint32_t colorInterval = 300 - (uint32_t)(speedFactor * 200);
-  if (millis() - colorChangeTime > colorInterval) {
-    hue += 2 + (uint8_t)(speedFactor * 5);
+  const float current_speed_factor = (float)modes[currentMode].Speed * inv255;
+  const uint32_t colorInterval = (300U - (uint32_t)(current_speed_factor * 200.0f));
+  const uint8_t hue_step = 256U / enlargedObjectNUM;
+  const uint32_t current_time = millis();
+
+  if (current_time - colorChangeTime > colorInterval) {
+    hue += 2U + (uint8_t)(current_speed_factor * 5.0f);
     for (uint8_t i = 0U; i < enlargedObjectNUM; i++) {
-      trackingObjectHue[i] = hue + (i * (256 / enlargedObjectNUM));
+      trackingObjectHue[i] = hue + (i * hue_step);
     }
-    colorChangeTime = millis();
+    colorChangeTime = current_time;
   }
 
-  dimAll(230);
+  dimAll(230U);
 
   for (uint8_t i = 0U; i < enlargedObjectNUM; i++) {
-    if (!trackingObjectIsShift[i]) continue;
+    if (!trackingObjectIsShift[i]) {
+      continue;
+    }
 
-    trackingObjectPosX[i] += trackingObjectSpeedX[i] * speedFactor;
-    trackingObjectPosY[i] += trackingObjectSpeedY[i] * speedFactor;
+    trackingObjectPosX[i] += trackingObjectSpeedX[i] * current_speed_factor;
+    trackingObjectPosY[i] += trackingObjectSpeedY[i] * current_speed_factor;
 
-    if (trackingObjectPosX[i] < 0 || trackingObjectPosX[i] >= WIDTH) {
+    if (trackingObjectPosX[i] < 0.0f || trackingObjectPosX[i] >= (float)WIDTH) {
       trackingObjectSpeedX[i] = -trackingObjectSpeedX[i];
-      trackingObjectPosX[i] = constrain(trackingObjectPosX[i], 0, MAX_X);
+      trackingObjectPosX[i] = constrain(trackingObjectPosX[i], 0.0f, (float)MAX_X);
     }
-    if (trackingObjectPosY[i] < 0 || trackingObjectPosY[i] >= HEIGHT) {
+    if (trackingObjectPosY[i] < 0.0f || trackingObjectPosY[i] >= (float)HEIGHT) {
       trackingObjectSpeedY[i] = -trackingObjectSpeedY[i];
-      trackingObjectPosY[i] = constrain(trackingObjectPosY[i], 0, MAX_Y);
+      trackingObjectPosY[i] = constrain(trackingObjectPosY[i], 0.0f, (float)MAX_Y);
     }
 
-    uint8_t wingPhase = (millis() - enlargedObjectTime[i]) / 100;
-    float wingSize = 1.0f + 0.5f * sin((float)wingPhase * PI / 8.0f);
+    const uint8_t wingPhase = (current_time - enlargedObjectTime[i]) / 100U;
+    const float wingSize = 1.0f + 0.5f * sin((float)wingPhase * M_PI / 8.0f);
 
-    CRGB color = ColorFromPalette(*curPalette, trackingObjectHue[i]);
+    const CRGB color = ColorFromPalette(*curPalette, trackingObjectHue[i]);
+    const CRGB wing_color = makeDarker(color, 50U);
 
     drawPixelXYF(trackingObjectPosX[i], trackingObjectPosY[i], color);
-    drawPixelXYF(trackingObjectPosX[i] + wingSize, trackingObjectPosY[i] + wingSize, makeDarker(color, 50));
-    drawPixelXYF(trackingObjectPosX[i] - wingSize, trackingObjectPosY[i] + wingSize, makeDarker(color, 50));
-    drawPixelXYF(trackingObjectPosX[i] + wingSize, trackingObjectPosY[i] - wingSize, makeDarker(color, 50));
-    drawPixelXYF(trackingObjectPosX[i] - wingSize, trackingObjectPosY[i] - wingSize, makeDarker(color, 50));
-  }
+    drawPixelXYF(trackingObjectPosX[i] + wingSize, trackingObjectPosY[i] + wingSize, wing_color);
+    drawPixelXYF(trackingObjectPosX[i] - wingSize, trackingObjectPosY[i] + wingSize, wing_color);
+    drawPixelXYF(trackingObjectPosX[i] + wingSize, trackingObjectPosY[i] - wingSize, wing_color);
+    drawPixelXYF(trackingObjectPosX[i] - wingSize, trackingObjectPosY[i] - wingSize, wing_color);
+  }  
 }
 #endif
 
