@@ -32,29 +32,27 @@ static void fillNoiseLED();
 static void fillnoise8();
 
 #ifdef DEF_MADNESS
-static void madnessNoiseRoutine()
-{
-  if (loadingFlag)
-  {
+static void madnessNoiseRoutine() {
+  if (loadingFlag)   {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
         uint8_t tmp = random8(9U);
+        //                       scale | speed
         setModeSettings(30U + tmp * tmp, 20U + random8(41U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-
     scale = modes[currentMode].Scale;
     speed = modes[currentMode].Speed;
+
+    loadingFlag = false;
   }
 
   fillnoise8();
-  for (uint8_t i = 0U; i < WIDTH; i++)
-  {
-    for (uint8_t j = 0U; j < HEIGHT; j++)
-    {
-      CRGB thisColor = CHSV(noise[j][i], 255, noise[i][j]);
+  
+  for (uint8_t j = 0U; j < HEIGHT; j++) {
+    for (uint8_t i = 0U; i < WIDTH; i++) {
+      CRGB thisColor = CHSV(noise[j][i], 255U, noise[i][j]);
       drawPixelXY(i, j, thisColor);
     }
   }
@@ -63,23 +61,24 @@ static void madnessNoiseRoutine()
 #endif
 
 #ifdef DEF_RAINBOW
-static void rainbowNoiseRoutine()
-{
-  if (loadingFlag)
-  {
+static void rainbowNoiseRoutine() {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
         uint8_t tmp = random8(10U);
+        //                       scale | speed
         setModeSettings(20U + tmp * tmp, 1U + random8(23U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-
     currentPalette = RainbowColors_p;
+    
     scale = modes[currentMode].Scale;
     speed = modes[currentMode].Speed;
-    colorLoop = 1;
+    
+    colorLoop = 1U;
+
+    loadingFlag = false;
   }
 
   fillNoiseLED();
@@ -87,42 +86,42 @@ static void rainbowNoiseRoutine()
 #endif
 
 #ifdef DEF_RAINBOW_STRIPE
-static void rainbowStripeNoiseRoutine()
-{
-  if (loadingFlag)
-  {
+static void rainbowStripeNoiseRoutine() {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
+        //                         scale | speed
         setModeSettings(8U + random8(17U), 1U + random8(9U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-
     currentPalette = RainbowStripeColors_p;
+
     scale = modes[currentMode].Scale;
     speed = modes[currentMode].Speed;
-    colorLoop = 1;
+    
+    colorLoop = 1U;
+
+    loadingFlag = false;
   }
+  
   fillNoiseLED();
 }
 #endif
 
 #ifdef DEF_ZEBRA
-static void zebraNoiseRoutine()
-{
-  if (loadingFlag)
-  {
+static void zebraNoiseRoutine() {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
+        //                          scale | speed
         setModeSettings(12U + random8(16U), 1U + random8(9U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-
     // 'black out' all 16 palette entries...
     fill_solid(currentPalette, 16, CRGB::Black);
+
     // and set every fourth one to white.
     currentPalette[ 0] = CRGB::White;
     currentPalette[ 4] = CRGB::White;
@@ -131,51 +130,58 @@ static void zebraNoiseRoutine()
 
     scale = modes[currentMode].Scale;
     speed = modes[currentMode].Speed;
-    colorLoop = 1;
+
+    colorLoop = 1U;
+
+    loadingFlag = false;
   }
+  
   fillNoiseLED();
 }
 #endif
 
 #ifdef DEF_FOREST
-static void forestNoiseRoutine()
-{
-  if (loadingFlag)
-  {
+static void forestNoiseRoutine() {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
+        //                          scale | speed
         setModeSettings(70U + random8(31U), 2U + random8(24U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-
     currentPalette = ForestColors_p;
+
     scale = modes[currentMode].Scale;
     speed = modes[currentMode].Speed;
-    colorLoop = 0;
+
+    colorLoop = 0U;
+
+    loadingFlag = false;
   }
+  
   fillNoiseLED();
 }
 #endif
 
 #ifdef DEF_OCEAN
-static void oceanNoiseRoutine()
-{
-  if (loadingFlag)
-  {
+static void oceanNoiseRoutine() {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
+        //                         scale | speed
         setModeSettings(6U + random8(25U), 4U + random8(8U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-
     currentPalette = OceanColors_p;
+
     scale = modes[currentMode].Scale;
     speed = modes[currentMode].Speed;
-    colorLoop = 0;
+
+    colorLoop = 0U;
+
+    loadingFlag = false;
   }
 
   fillNoiseLED();
@@ -183,24 +189,26 @@ static void oceanNoiseRoutine()
 #endif
 
 #ifdef DEF_PLASMA
-static void plasmaNoiseRoutine()
-{
-  if (loadingFlag)
-  {
+static void plasmaNoiseRoutine() {
+  if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
         uint8_t tmp = random8(10U);
+        //                       scale | speed
         setModeSettings(20U + tmp * tmp, 1U + random8(27U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-
     currentPalette = PartyColors_p;
+
     scale = modes[currentMode].Scale;
     speed = modes[currentMode].Speed;
-    colorLoop = 1;
+
+    colorLoop = 1U;
+
+    loadingFlag = false;
   }
+
   fillNoiseLED();
 }
 #endif
@@ -221,7 +229,7 @@ static void cloudsNoiseRoutine()
     currentPalette = CloudColors_p;
     scale = modes[currentMode].Scale;
     speed = modes[currentMode].Speed;
-    colorLoop = 0;
+    colorLoop = 0U;
   }
   fillNoiseLED();
 }
@@ -235,17 +243,21 @@ static void lavaNoiseRoutine()
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
         uint8_t tmp = random8(9U);
+        //                       scale | speed
         setModeSettings(10U + tmp * tmp, 5U + random8(16U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-
     currentPalette = LavaColors_p;
+
     scale = modes[currentMode].Scale;
     speed = modes[currentMode].Speed;
-    colorLoop = 0;
+
+    colorLoop = 0U;
+
+    loadingFlag = false;
   }
+
   fillNoiseLED();
 }
 #endif
