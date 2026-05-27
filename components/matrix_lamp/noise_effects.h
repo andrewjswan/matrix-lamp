@@ -268,7 +268,7 @@ static void TasteHoney() {
     #endif
 
     clearNoiseArr();
-    
+
     hue = (uint8_t)(modes[currentMode].Scale * 2.55f);
 
     const uint8_t palette_idx = modes[currentMode].Scale / 10U;
@@ -289,7 +289,7 @@ static void TasteHoney() {
   fillNoiseLED();
 
   CRGB col = CHSV(hue, 255U, 255U);
-  
+
   for (uint8_t x = 0U; x < WIDTH; x++) {
     const int16_t x_mul255 = (int16_t)((x << 8U) - x);    // (x * 255)
 
@@ -310,7 +310,7 @@ static void TasteHoney() {
       // Отрисовка сглаженного WU-пикселя по смещенному вектору освещения
       wu_pixel((uint32_t)xa, (uint32_t)ya, &col);
     }
-  }  
+  }
 }
 #endif
 
