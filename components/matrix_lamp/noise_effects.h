@@ -345,7 +345,7 @@ static void Popuri() {
 
     if (deltaValue < 1U) {
       currentPalette = LavaColors_p;
-      currentPalette[8U] = CRGB::DarkRed;
+      currentPalette[8] = CRGB::DarkRed;
     } else {
       currentPalette = custom_eff ? PartyColors_p : AlcoholFireColors_p;
     }
