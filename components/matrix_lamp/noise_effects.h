@@ -345,14 +345,14 @@ static void Popuri() {
     deltaHue2 = modes[currentMode].Scale / 25U;
 
     clearNoiseArr();
-    
+
     if (deltaHue2 < 1U) {
       curPalette = &LavaColors_p;
       (*curPalette)[8U] = CRGB::DarkRed;
     } else {
       curPalette = custom_eff ? &PartyColors_p : &AlcoholFireColors_p;
     }
-    
+
     ledsClear(); // esphome: FastLED.clear();
 
     loadingFlag = false;
@@ -372,7 +372,7 @@ static void Popuri() {
 
   const uint8_t t1_div2 = t1 >> 1U;
   const uint8_t t3_div2 = t3 >> 2U;
-  
+
   if (scale_val < 50U) {
     fillNoiseLED();
 
@@ -417,11 +417,11 @@ static void Popuri() {
         }
       }
     }
-  } 
+  }
   else {
     // Ветка Scale >= 50: Отрисовка волновых змеек WU
     fadeToBlackBy(leds, NUM_LEDS, WIDTH);
-    
+
     // Предрасчет цвета змейки на текущий кадр кадра
     CRGB col = (hue < 80U) ? CHSV(0U, 255U, 255U) : CHSV(hue, 255U, 255U);
     const uint16_t padding_x256 = PADDING << 8U;
@@ -457,7 +457,7 @@ static void Popuri() {
           wu_pixel(yy, (uint32_t)(xx + padding_x256), &col);
         }
       }
-      
+
       // Смещение оттенка палитры
       if ((step % WIDTH) == 0U) {
         hue++;
