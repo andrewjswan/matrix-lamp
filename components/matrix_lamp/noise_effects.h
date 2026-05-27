@@ -291,17 +291,17 @@ static void TasteHoney() {
   CRGB col = CHSV(hue, 255U, 255U);
 
   for (uint8_t x = 0U; x < WIDTH; x++) {
-    const int16_t x_mul255 = (int16_t)((x << 8U) - x);    // (x * 255)
+    const int16_t x_mul255 = (int16_t)((x << 8U) - x);  // x * 255
 
     for (uint8_t y = 0U; y < HEIGHT; y++) {
-      const uint8_t n0 = (uint8_t)noise2[0U][x][y];
-      const uint8_t n1 = (uint8_t)noise2[0U][x + 1U][y];
-      const uint8_t n2 = (uint8_t)noise2[0U][x][y + 1U];
+      const uint8_t n0 = noise[x][y];
+      const uint8_t n1 = (x + 1U < WIDTH)  ? noise[x + 1U][y] : n0;
+      const uint8_t n2 = (y + 1U < HEIGHT) ? noise[x][y + 1U] : n0;
 
       const int8_t xl = (int8_t)(n0 - n1);
       const int8_t yl = (int8_t)(n0 - n2);
 
-      const int16_t y_mul255 = (int16_t)((y << 8U) - y);  // (y * 255)
+      const int16_t y_mul255 = (int16_t)((y << 8U) - y);  // y * 25
 
       // Вычисление смещения субпиксельной WU-координаты
       const int16_t xa = x_mul255 + (int16_t)((xl * ((int16_t)(n0 + n1) << 1U)) >> 3U);
