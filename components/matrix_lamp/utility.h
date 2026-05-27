@@ -641,6 +641,32 @@ static void fadePixel(uint8_t i, uint8_t j, uint8_t step) {
 
 
 // ------------------------------------------------
+static void wu_pixel(uint32_t x, uint32_t y, const CRGB *col) { // awesome wu_pixel procedure by reddit u/sutaburosu
+  // extract the fractional parts and derive their inverses
+  uint8_t xx = x & 0xff, yy = y & 0xff, ix = 255 - xx, iy = 255 - yy;
+
+  // calculate the intensities for each affected pixel
+  uint8_t wu[4] = {WU_WEIGHT(ix, iy), WU_WEIGHT(xx, iy),
+                   WU_WEIGHT(ix, yy), WU_WEIGHT(xx, yy)};
+
+  // Извлекаем базовые целые координаты пикселя (деление на 256 -> сдвиг >> 8)
+  uint16_t base_x = x >> 8;
+  uint16_t base_y = y >> 8;
+
+  // multiply the intensities by the colour, and saturating-add them to the pixels
+  for (uint8_t i = 0U; i < 4; i++) {
+    uint16_t xy = XY(base_x + (i & 1), base_y + ((i >> 1) & 1));
+    if (xy < NUM_LEDS) {
+      uint8_t weight = wu[i];
+      leds[xy].r = qadd8(leds[xy].r, ((uint16_t)col->r * weight) >> 8);
+      leds[xy].g = qadd8(leds[xy].g, ((uint16_t)col->g * weight) >> 8);
+      leds[xy].b = qadd8(leds[xy].b, ((uint16_t)col->b * weight) >> 8);
+    }
+  }
+}
+
+
+// ------------------------------------------------
 // Settings
 static void restoreSettings()
 {
