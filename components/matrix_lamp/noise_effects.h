@@ -447,71 +447,80 @@ static void Popuri() {
 
 
 // ************* СЛУЖЕБНЫЕ *************
-static void fillNoiseLED()
-{
-  uint8_t dataSmoothing = 0;
+static void fillNoiseLED() {
+  uint8_t dataSmoothing = 0U;
 
-  if (speed < 50) {
-    dataSmoothing = 200 - (speed * 4);
+  if (speed < 50U) {
+    dataSmoothing = (uint8_t)(200U - (speed << 2U)); // speed * 4
   }
 
+  // Инвариант веса сглаживания для FastLED scale8
+  const uint8_t smoothing_inv = (uint8_t)(255U - dataSmoothing);
+
+  // ФАЗА 1: Генерация сырого Перлин-шума в буфер noise
   for (uint8_t i = 0U; i < MAX_SIDE; i++) {
-    int32_t ioffset = scale * i;
+    const int32_t ioffset = (int32_t)(scale * i);
 
     for (uint8_t j = 0U; j < MAX_SIDE; j++) {
-      int32_t joffset = scale * j;
+      const int32_t joffset = (int32_t)(scale * j);
 
       uint8_t data = fastled_helper::perlin8(x + ioffset, y + joffset, z);
 
-      data = qsub8(data, 16);
-      data = qadd8(data, scale8(data, 39));
+      data = qsub8(data, 16U);
+      data = qadd8(data, scale8(data, 39U));
 
-      if (dataSmoothing) {
-        uint8_t olddata = noise[i][j];
-        uint8_t newdata = scale8(olddata, dataSmoothing) + scale8(data, 256 - dataSmoothing);
-        data = newdata;
+      if (dataSmoothing != 0U) {
+        const uint8_t olddata = noise[i][j];
+        data = (uint8_t)(scale8(olddata, dataSmoothing) + scale8(data, smoothing_inv));
       }
 
       noise[i][j] = data;
     }
   }
+
+  // Обновление фаз и смещений осей шума
   z += speed;
+  x += (speed >> 3U); // speed / 8
+  y -= (speed >> 4U); // speed / 16
 
-  // apply slow drift to X and Y, just for visual variation.
-  x += speed / 8U;
-  y -= speed / 16U;
+  const uint8_t current_ihue = ihue;
+  const bool has_color_loop = colorLoop;
 
-  for (uint8_t i = 0U; i < WIDTH; i++) {
-    for (uint8_t j = 0U; j < HEIGHT; j++) {
+  // ФАЗА 2: Перенос кадра на leds
+  for (uint8_t j = 0U; j < HEIGHT; j++) {
+    for (uint8_t i = 0U; i < WIDTH; i++) {
       uint8_t index = noise[j][i];
       uint8_t bri   = noise[i][j];
-      // if this palette is a 'loop', add a slowly-changing base value
-      if (colorLoop) {
-        index += ihue;
+
+      if (has_color_loop) {
+        index += current_ihue;
       }
-      // brighten up, as the color palette itself often contains the
-      // light/dark dynamic range desired
-      if (bri > 127) {
-        bri = 255;
+
+      if (bri > 127U) {
+        bri = 255U;
       } else {
-        bri = dim8_raw( bri * 2);
+        bri = dim8_raw((uint8_t)(bri << 1U)); // bri * 2
       }
-      CRGB color = ColorFromPalette(currentPalette, index, bri);
-      drawPixelXY(i, j, color);                             //leds[XY(i, j)] = color;
+
+      drawPixelXY(i, j, ColorFromPalette(currentPalette, index, bri));
     }
   }
+
   ihue += 1;
 }
 
-static void fillnoise8()
-{
+static void fillnoise8() {
+  // Линейный двумерный цикл генерации базового 3D-шума Перлина
   for (uint8_t i = 0U; i < MAX_SIDE; i++) {
-    int32_t ioffset = scale * i;
+    const int32_t ioffset = (int32_t)(scale * i);
+
     for (uint8_t j = 0U; j < MAX_SIDE; j++) {
-      int32_t joffset = scale * j;
+      const int32_t joffset = (int32_t)(scale * j);
+
       noise[i][j] = fastled_helper::perlin8(x + ioffset, y + joffset, z);
     }
   }
+
   z += speed;
 }
 
