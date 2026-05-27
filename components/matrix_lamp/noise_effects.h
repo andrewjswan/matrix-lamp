@@ -49,7 +49,7 @@ static void madnessNoiseRoutine() {
   }
 
   fillnoise8();
-  
+
   for (uint8_t j = 0U; j < HEIGHT; j++) {
     for (uint8_t i = 0U; i < WIDTH; i++) {
       CRGB thisColor = CHSV(noise[j][i], 255U, noise[i][j]);
@@ -72,10 +72,10 @@ static void rainbowNoiseRoutine() {
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
     currentPalette = RainbowColors_p;
-    
+
     scale = modes[currentMode].Scale;
     speed = modes[currentMode].Speed;
-    
+
     colorLoop = 1U;
 
     loadingFlag = false;
@@ -99,12 +99,12 @@ static void rainbowStripeNoiseRoutine() {
 
     scale = modes[currentMode].Scale;
     speed = modes[currentMode].Speed;
-    
+
     colorLoop = 1U;
 
     loadingFlag = false;
   }
-  
+
   fillNoiseLED();
 }
 #endif
@@ -135,7 +135,7 @@ static void zebraNoiseRoutine() {
 
     loadingFlag = false;
   }
-  
+
   fillNoiseLED();
 }
 #endif
@@ -159,7 +159,7 @@ static void forestNoiseRoutine() {
 
     loadingFlag = false;
   }
-  
+
   fillNoiseLED();
 }
 #endif
