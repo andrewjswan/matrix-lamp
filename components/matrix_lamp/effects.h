@@ -13424,17 +13424,17 @@ static void butterflyRoutine() {
     dimAll(0U);
 
     colorChangeTime = 0U;
-    
+
     const uint8_t max_allowed = (enlargedOBJECT_MAX_COUNT < 5U) ? (uint8_t)enlargedOBJECT_MAX_COUNT : 5U;
     enlargedObjectNUM = map(modes[currentMode].Scale, 1U, 100U, 1U, max_allowed);
     hue = map(modes[currentMode].Scale, 1U, 100U, 0U, 255U);
-    
+
     const uint8_t hue_step = 256U / enlargedObjectNUM;
 
     for (uint8_t i = 0U; i < enlargedObjectNUM; i++) {
       trackingObjectPosX[i] = random8(WIDTH);
       trackingObjectPosY[i] = random8(HEIGHT);
-      
+
       trackingObjectSpeedX[i] = (float)random8(10U, 20U) * inv10 * (random8(2U) ? 1.0f : -1.0f);
       trackingObjectSpeedY[i] = (float)random8(10U, 20U) * inv10 * (random8(2U) ? 1.0f : -1.0f);
       trackingObjectHue[i] = hue + (i * hue_step);
@@ -13489,7 +13489,7 @@ static void butterflyRoutine() {
     drawPixelXYF(trackingObjectPosX[i] - wingSize, trackingObjectPosY[i] + wingSize, wing_color);
     drawPixelXYF(trackingObjectPosX[i] + wingSize, trackingObjectPosY[i] - wingSize, wing_color);
     drawPixelXYF(trackingObjectPosX[i] - wingSize, trackingObjectPosY[i] - wingSize, wing_color);
-  }  
+  }
 }
 #endif
 
