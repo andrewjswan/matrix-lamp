@@ -345,11 +345,11 @@ static void Popuri() {
 
     if (deltaValue < 1U) {
       currentPalette = LavaColors_p;
-      currentPalette[8U] = CRGB::DarkRed;      
+      currentPalette[8U] = CRGB::DarkRed;
     } else {
       currentPalette = custom_eff ? PartyColors_p : AlcoholFireColors_p;
     }
-    
+
     ledsClear(); // esphome: FastLED.clear();
 
     loadingFlag = false;
@@ -359,7 +359,7 @@ static void Popuri() {
   const uint8_t t1 = cos8((uint16_t)((42U * step) * 0.0333333f)); // 1.0f / 30.0f ≈ 0.0333333f
   const uint8_t t2 = cos8((uint16_t)((35U * step) * 0.0333333f));
   const uint8_t t3 = cos8((uint16_t)((38U * step) * 0.0333333f));
-  
+
   const uint8_t scale_val = modes[currentMode].Scale;
   const bool is_even_index = ((deltaValue & 0x01U) == 0U);
 
@@ -397,7 +397,7 @@ static void Popuri() {
           r = (g < 128U) ? (uint8_t)(exp_gamma[b] / 3U) : 0U;
         } else {
           if (g < 20U) g = exp_gamma[r];
-          r = (b < 128U) ? (uint8_t)(exp_gamma[g] >> 1U) : 0U; 
+          r = (b < 128U) ? (uint8_t)(exp_gamma[g] >> 1U) : 0U;
         }
 
         // Черная разделительная черта по границе PADDING
@@ -413,7 +413,7 @@ static void Popuri() {
         CRGB col;
 
         if (scale_val < 50U) {
-          // Стекающий мёд 
+          // Стекающий мёд
           const uint8_t n0 = noise[x][y];
           const uint8_t n1 = (x + 1U < WIDTH)  ? noise[x + 1U][y] : n0;
           const uint8_t n2 = (y + 1U < HEIGHT) ? noise[x][y + 1U] : n0;
@@ -428,11 +428,11 @@ static void Popuri() {
 
           col = CHSV(hue, 255U, 255U);
           wu_pixel((uint32_t)xa, (uint32_t)ya, &col);
-        } 
+        }
         else {
           // Волновые змейки WU Уитни
           const uint32_t xx = beatsin16(WIDTH, 0U, (uint16_t)((HEIGHT - (PADDING << 1U) - 1U) << 8U), 0U, x_freq);
-          
+
           col = (hue < 80U) ? CHSV(0U, 255U, 255U) : CHSV(hue, 255U, 255U);
           wu_pixel(yy, (uint32_t)(xx + (PADDING << 8U)), &col); // PADDING * 256
         }
