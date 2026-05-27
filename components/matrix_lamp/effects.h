@@ -87,15 +87,17 @@ static void sparklesRoutine()
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
       if (selectedSettings){
-        setModeSettings(4U+random8(97U), 99U+random8(125U));
+        setModeSettings(4U + random8(97U), 99U + random8(125U));
       }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    for (uint16_t i = 0U; i < NUM_LEDS; i++)
-      if (random8(3U))
+    for (uint16_t i = 0U; i < NUM_LEDS; i++) {
+      if (random8(3U)) {
         leds[i].nscale8(random8());
-      else
+      } else {
         leds[i] = 0U;
+      }
+    }
 
     loadingFlag = false;
   }
@@ -103,12 +105,11 @@ static void sparklesRoutine()
   const uint8_t max_sparks = modes[currentMode].Scale;
   for (uint8_t i = 0U; i < max_sparks; i++)
   {
-    uint8_t x = random8(WIDTH);
-    uint8_t y = random8(HEIGHT);
+    const uint8_t x = random8(WIDTH);
+    const uint8_t y = random8(HEIGHT);
 
-    uint16_t led_index = XY(x, y);
-    if ((uint32_t)leds[led_index] == 0U) {
-      leds[led_index] = CHSV(random8(), 255U, 255U);
+    if (getPixColorXY(x, y) == 0U) {
+      leds[XY(x, y)] = CHSV(random8(), 255U, 255U);
     }
   }
 
@@ -802,8 +803,8 @@ static void matrixRoutine()
   for (uint8_t x = 0U; x < WIDTH; x++) {
     // обрабатываем нашу матрицу снизу вверх до второй сверху строчки
     for (uint8_t y = 0U; y < MAX_Y; y++) {
-      uint32_t thisColor  = (uint32_t)leds[XY(x, y)];                                            // берём цвет нашего пикселя
-      uint32_t upperColor = (uint32_t)leds[XY(x, y + 1U)];                                       // берём цвет пикселя над нашим
+      const uint32_t thisColor  = getPixColorXY(x, y);                                           // берём цвет нашего пикселя
+      const uint32_t upperColor = getPixColorXY(x, y + 1U);                                      // берём цвет пикселя над нашим
 
       if (upperColor >= 0x900000 && random16(head_ignore_limit) != 0U) {                         // если выше нас максимальная яркость, игнорим этот факт с некой вероятностью или опускаем цепочку ниже
         leds[XY(x, y)] = upperColor;
@@ -824,24 +825,23 @@ static void matrixRoutine()
     }
 
     // Аналогично обрабатываем верхний ряд пикселей матрицы
-    const uint8_t top_y = MAX_Y;
-    uint32_t thisColor = (uint32_t)leds[XY(x, top_y)];
+    uint32_t thisColor = getPixColorXY(x, MAX_Y);
 
     if (thisColor == 0U) {                                                                       // если наш верхний пиксель не горит, заполняем его с вероятностью .Scale
       if (random8(scale_inverted) == 0U) {
-        leds[XY(x, top_y)] = 0x9BF800;
+        leds[XY(x, MAX_Y)] = 0x9BF800;
       }
     } else if (thisColor <= 0x050800) {                                                         // если наш верхний пиксель почти погас, стараемся сделать затухание медленней
       if (thisColor >= 0x030000) {
-        leds[XY(x, top_y)] = 0x020300;
+        leds[XY(x, MAX_Y)] = 0x020300;
       } else {
-        leds[XY(x, top_y)] = CRGB::Black;
+        leds[XY(x, MAX_Y)] = CRGB::Black;
       }
     } else if (thisColor >= 0x900000) {                                                         // если наш верхний пиксель максимальной яркости, резко снижаем яркость
-      leds[XY(x, top_y)] = 0x558800;
+      leds[XY(x, MAX_Y)] = 0x558800;
     } else {
-      leds[XY(x, top_y)] = thisColor - 0x0A1000;                                                // в остальных случаях снижаем яркость на 1 уровень
-      // leds[XY(x, top_y)] = thisColor - 0x050800;                                             // для длинных хвостов
+      leds[XY(x, MAX_Y)] = thisColor - 0x0A1000;                                                // в остальных случаях снижаем яркость на 1 уровень
+      // leds[XY(x, MAX_Y)] = thisColor - 0x050800;                                             // для длинных хвостов
     }
   }
 }
@@ -7205,14 +7205,19 @@ static void magmaRoutine(){
 
 // пришлось изобрести очередную функцию субпиксельной графики. на этот раз бесшовная по ИКСу, работающая в цветовом пространстве HSV и без смешивания цветов
 static void wu_pixel_maxV(int16_t item) {
-  const int16_t base_x = trackingObjectPosX[item];
-  const int16_t base_y = trackingObjectPosY[item];
+  const float pos_x = trackingObjectPosX[item];
+  const float pos_y = trackingObjectPosY[item];
 
-  const uint8_t xx = (trackingObjectPosX[item] - base_x) * 255.0f;
-  const uint8_t yy = (trackingObjectPosY[item] - base_y) * 255.0f;
+  const int16_t base_x = (pos_x >= 0.0f) ? (int16_t)pos_x : (int16_t)pos_x - 1;
+  const int16_t base_y = (pos_y >= 0.0f) ? (int16_t)pos_y : (int16_t)pos_y - 1;
+
+  // Рассчитываем веса субпикселей
+  const uint8_t xx = (uint8_t)((pos_x - (float)base_x) * 255.0f);
+  const uint8_t yy = (uint8_t)((pos_y - (float)base_y) * 255.0f);
   const uint8_t ix = 255U - xx;
   const uint8_t iy = 255U - yy;
 
+  // Веса WU для четырех соседних пикселей
   // calculate the intensities for each affected pixel
   const uint8_t wu[4] = {
     WU_WEIGHT(ix, iy), WU_WEIGHT(xx, iy),
@@ -7224,16 +7229,22 @@ static void wu_pixel_maxV(int16_t item) {
 
   // multiply the intensities by the colour, and saturating-add them to the pixels
   for (uint8_t i = 0U; i < 4U; i++) {
-    int16_t x1 = base_x + (i & 1U);
-    if (x1 < 0) x1 += WIDTH;
-    else if (x1 >= WIDTH) x1 -= WIDTH;
-    const uint8_t y1 = base_y + ((i >> 1U) & 1U);
-    const uint8_t val = (obj_hue * wu[i]) >> 8U;
+    int16_t x1 = base_x + (int16_t)(i & 1U);
+    int16_t y1 = base_y + (int16_t)((i >> 1U) & 1U);
 
-    if (y1 < HEIGHT && val >= noise3d[1][x1][y1]) {
-      noise3d[0][x1][y1] = obj_shift;
-      shiftValue[y1] = 255U;
-      noise3d[1][x1][y1] = val;
+    // Бесшовный ИКС по горизонтали матрицы
+    if (x1 < 0) x1 += (int16_t)WIDTH;
+    else if (x1 >= (int16_t)WIDTH) x1 -= (int16_t)WIDTH;
+
+    if (y1 >= 0 && y1 < (int16_t)HEIGHT && x1 >= 0 && x1 < (int16_t)WIDTH) {
+      const uint8_t val = ((uint16_t)obj_hue * wu[i]) >> 8U;
+      
+      // Сравниваем и пишем в карту яркости (noise3d[1] - яркость, noise3d[0] - оттенок)
+      if (val >= noise3d[1][x1][y1]) {
+        noise3d[0][x1][y1] = obj_shift;
+        shiftValue[y1] = 255U;
+        noise3d[1][x1][y1] = val;
+      }
     }
   }
 }
@@ -7321,10 +7332,12 @@ static void execStringsFlame() { // внимание! эффект заточе�
                                                                                            // 20 - это диапазон из градиента цвета от выбранного пользователем оттенка (диапазон от 254 до 254+20)
 
       trackingObjectPosX[i] = (float)random16(WIDTH * 255U) * inv255;
+      if (trackingObjectPosX[i] >= (float)WIDTH)
+        trackingObjectPosX[i] = (float)WIDTH - 0.01f;
       trackingObjectPosY[i] = -0.9f;
 
-      trackingObjectSpeedX[i] = (FLAME_MIN_DX + random8(dx_diff)) * inv256;
-      trackingObjectSpeedY[i] = (FLAME_MIN_DY + random8(dy_diff)) * inv256;
+      trackingObjectSpeedX[i] = (float)(FLAME_MIN_DX + (int16_t)random8(dx_diff)) * inv256;
+      trackingObjectSpeedY[i] = (float)(FLAME_MIN_DY + (int16_t)random8(dy_diff)) * inv256;
       trackingObjectHue[i]    = FLAME_MIN_VALUE + random8(val_diff);
     }
   }
@@ -9268,9 +9281,10 @@ static void RadialWave() {
 
 static void flora() {
   constexpr uint32_t FLORA_COLOR = 0x2F1F00;
-  constexpr uint8_t posX = (CENTER_X_MINOR > THIRD_X) ? (CENTER_X_MINOR - THIRD_X) : 0U;
+  constexpr uint8_t  rawX = (CENTER_X_MINOR > THIRD_X) ? (CENTER_X_MINOR - THIRD_X) : 0U;
 
-  uint8_t h = random8((uint8_t)(HEIGHT - 6U)) + 4U;
+  const uint8_t posX = constrain(rawX, 1U, (uint8_t)(WIDTH - 3U));
+  const uint8_t h = constrain((uint8_t)(random8((uint8_t)(HEIGHT - 6U)) + 4U), 0U, (uint8_t)(HEIGHT - 1U));
 
   DrawLine(posX + 1U, 1U, posX + 1U, h - 1U, 0x000000);
   DrawLine(posX + 2U, 1U, posX + 2U, h, FLORA_COLOR);
@@ -9282,33 +9296,37 @@ static void flora() {
     drawPixelXY(posX + 1U, h / 2U, random8(2U) == 1U ? 0xEF001F : 0x9FFF00);
   }
 
-  h = ((uint16_t)h * 166U) >> 8U;  // h = floor(h * 0.65); // Быстрое умножение на 0.65 через сдвиг
+  // Быстрое умножение на 0.65f через сдвиг и ограничение новой высоты
+  const uint8_t h_low = constrain((uint8_t)(((uint16_t)h * 166U) >> 8U), 0U, (uint8_t)(HEIGHT - 1U));
 
   if (WIDTH > 8U) {
-    DrawLine(posX - 1U, 1U, posX - 1U, h - 1U, 0x000000);
+    DrawLine(posX - 1U, 1U, posX - 1U, h_low - 1U, 0x000000);
   }
 
-  DrawLine(posX, 1U, posX, h, FLORA_COLOR);
-  drawPixelXY(posX, h - random8((uint8_t)(h / 2U)), random8(2U) == 1U ? 0xFF00E0 : 0xFFFF00);
+  DrawLine(posX, 1U, posX, h_low, FLORA_COLOR);
+  drawPixelXY(posX, h_low - random8((uint8_t)(h_low / 2U)), random8(2U) == 1U ? 0xFF00E0 : 0xFFFF00);
 }
 
 //---------------------------------------
 static void animeBobbles() {
   constexpr uint32_t BOBBLE_COLOR = 0xFFFFF7;
 
-  // сдвигаем всё вверх ----
-  for (uint8_t x = CENTER_X_MAJOR; x < WIDTH; x++) {
-    for (uint8_t y = MAX_Y; y > 0U; y--) {
-      if (getPixColorXY(x, y - 1U) == BOBBLE_COLOR) {
+  for (uint8_t y = MAX_Y; y > 0U; y--) {
+    const uint32_t bgColor = getPixColorXY(0U, y - 1U);
+    const uint8_t y_minus_1 = y - 1U;
+
+    for (uint8_t x = CENTER_X_MAJOR; x < WIDTH; x++) {
+      if (getPixColorXY(x, y_minus_1) == BOBBLE_COLOR) {
         drawPixelXY(x, y, BOBBLE_COLOR);
-        drawPixelXY(x, y - 1U, getPixColorXY(0U, y - 1U));
+        drawPixelXY(x, y_minus_1, bgColor);
       }
     }
   }
 
-  if (step % 4U == 0U) {
+  if ((step % 4U) == 0U) {
     drawPixelXY((uint8_t)(CENTER_X_MAJOR + random8(5U)), 0U, BOBBLE_COLOR);
-    if (step % 12U == 0U) {
+    
+    if ((step % 12U) == 0U) {
       drawPixelXY((uint8_t)(CENTER_X_MAJOR + 2U + random8(3U)), 0U, BOBBLE_COLOR);
     }
   }
@@ -9400,13 +9418,12 @@ static void BotswanaRivers() {
 #endif
 
     deltaValue = 255U - modes[currentMode].Speed + 1U;
-    step = deltaValue;                                          // чтообы при старте эффекта сразу покрасить лампу
-    hue = (modes[currentMode].Scale - 1U) / 20U;                // divider - маштаб задает смену палитры воды
-
-    #if (ALT_GRADIENT == 1U)
-      createSceneM(hue);
+    step = deltaValue;  // чтообы при старте эффекта сразу покрасить лампу
+    const uint8_t divider = (modes[currentMode].Scale - 1U) / 20U;
+    #if (ALT_GRADIENT == 0U)
+      createScene(divider);
     #else
-      createScene(hue);
+      createSceneM(divider);
     #endif
 
     loadingFlag = false;
@@ -9416,29 +9433,29 @@ static void BotswanaRivers() {
     step = 0U;
   }
 
-  // restore scene after power on ---------
-  if (getPixColorXY(0U, HEIGHT - 2U) == CRGB::Black) {
-    #if (ALT_GRADIENT == 1U)
-      createSceneM(hue);
-    #else
-      createScene(hue);
-    #endif
-  }
-
   // light at the bottom ------------------
   #if (ALT_GRADIENT == 0U)
     if ((step & 0x01U) == 0U) {
-      if (random8(6U) == 1U) {
+      const bool isRareBrighter = (random8(6U) == 1U);
+      // Определяем максимальную ширину заполнения вспышки
+      const uint8_t maxFillX = isRareBrighter ? constrain(random8((uint8_t)(WIDTH + random8(6U))), 1U, WIDTH) : constrain(random8(WIDTH), 1U, WIDTH);
+      
+      // Цвета для интерполяции градиента (CHSV в CRGB)
+      const CRGB colorStart = isRareBrighter ? CRGB(CHSV(96U, 255U, 190U)) : CRGB(CHSV(85U, 128U, 255U));
+      const CRGB colorEnd   = isRareBrighter ? CRGB(CHSV(90U, 200U, 255U)) : CRGB(CHSV(90U, 255U, 180U));
+
+      // Рендерим градиент
+      for (uint8_t x = 0U; x < maxFillX; x++) {
+        // Линейная интерполяция цвета (blend) от 0 до maxFillX
+        const uint8_t amount = (uint8_t)(((uint16_t)x * 255U) / maxFillX);
+        const CRGB blendedColor = blend(colorStart, colorEnd, amount);
+
         if (ORIENTATION < 3U || ORIENTATION == 7U) {
-          fill_gradient(leds, 0, CHSV(96U, 255U, 190U), random8((uint8_t)(WIDTH + random8(6U))), CHSV(90U, 200U, 255U), fl::SHORTEST_HUES);
+          // Отрисовка на физическом низу матрицы (Y = 0)
+          drawPixelXY(x, 0U, blendedColor);
         } else {
-          fill_gradient(leds, NUM_LEDS - random8((uint8_t)(WIDTH + random8(6U))), CHSV(96U, 255U, 190U), NUM_LEDS, CHSV(90U, 200U, 255U), fl::SHORTEST_HUES);
-        }
-      } else {
-        if (ORIENTATION < 3U || ORIENTATION == 7U) {
-          fill_gradient(leds, 0, CHSV(85U, 128U, 255U), random8(WIDTH), CHSV(90U, 255U, 180U), fl::SHORTEST_HUES);
-        } else {
-          fill_gradient(leds, NUM_LEDS - random8(WIDTH), CHSV(85U, 128U, 255U), NUM_LEDS, CHSV(90U, 255U, 180U), fl::SHORTEST_HUES);
+          // Отрисовка на инвертированном низу матрицы (Y = MAX_Y)
+          drawPixelXY(x, MAX_Y, blendedColor);
         }
       }
     }
@@ -10542,12 +10559,8 @@ static void Bamboo() {
 //          Блуждающий кубик
 // =====================================
 
-#define RANDOM_COLOR          (1U)                          // случайный цвет при отскоке
-
-static int16_t coordB[2U];
-static int8_t vectorB[2U];
-static CHSV _pulse_color;
-static CRGB ballColor;
+// случайный цвет при отскоке
+#define RANDOM_COLOR (1U)
 
 static void ballRoutine() {
   if (loadingFlag) {
@@ -10557,79 +10570,100 @@ static void ballRoutine() {
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    constexpr int16_t start_coord = CENTER_X * 10;
-    for (uint8_t i = 0U; i < 2U; i++) {
-      coordB[i] = start_coord;
-      vectorB[i] = random8(8U, 20U);
-    }
+    // Инициализируем готовые одиночные глобальные координаты из пула
+    emitterX = (float)CENTER_X;
+    emitterY = (float)CENTER_Y;
 
-    // Расчет размера мячика (ballSize)
+    // Задаем случайную скорость в пул (глобальный speedfactor)
+    speedfactor = 1.0f + ((float)random8(81U) * 0.01f);
+
+    // Вычисляем случайный стартовый угол в радианах: 0 ... 2*PI
+    const float angle = (float)random8() * 0.02463994f;
+    
+    // Записываем векторы скоростей строго в готовые глобальные массивы пула
+    trackingObjectSpeedX[0U] = speedfactor * cosf(angle);
+    trackingObjectSpeedY[0U] = speedfactor * sinf(angle);
+
+    // Расчет размера кубика
     deltaValue = map((uint8_t)(modes[currentMode].Scale * 2.55f), 0U, 255U, 2U, (uint8_t)max(MIN_SIDE / 3, 4));
 
-    // Генерация стартовых цветов
-    ballColor = CHSV((uint8_t)(random8(9U) * 28U), 255U, 255U);
-    _pulse_color = CHSV((uint8_t)(random8(9U) * 28U), 255U, 255U);
+    // Забиваем стартовые оттенки цвета в глобальные hue
+    hue = (uint8_t)(random8(9U) * 28U);  
 
     loadingFlag = false;
   }
 
-  ledsClear(); // esphome: FastLED.clear();
-
   const uint8_t size = deltaValue;
   const bool has_pulse = (modes[currentMode].Scale & 0x01U);
 
-  const int16_t ball_x = coordB[0U] / 10;
-  const int16_t ball_y = coordB[1U] / 10;
-
-  // Отрисовка следа импульса (если Scale нечетный)
   if (has_pulse) {
-    for (uint8_t i = 0U; i < size; i++) {
-      const int16_t px = ball_x + i;
-      for (uint8_t j = 0U; j < size; j++) {
-        leds[XY(px, ball_y + j)] = _pulse_color;
-      }
-    }
+    fadeToBlackBy(leds, NUM_LEDS, 55U); 
+  } else {
+    ledsClear();
   }
 
-  // Обсчет физики шага движения по осям X и Y
-  for (uint8_t i = 0U; i < 2U; i++) {
-    coordB[i] += vectorB[i];
-    if (coordB[i] < 0) {
-      coordB[i] = 0;
-      vectorB[i] = -vectorB[i];
-      #if (RANDOM_COLOR == 1U)
-        ballColor = CHSV((uint8_t)(random8(9U) * 28U), 255U, 255U);
-      #endif
-    }
-  }
+  emitterX += trackingObjectSpeedX[0U];
+  emitterY += trackingObjectSpeedY[0U];
 
-  // Проверка правого края матрицы по оси X с учетом размера мячика
-  const int16_t max_x_limit = (WIDTH - size) * 10;
-  if (coordB[0U] > max_x_limit) {
-    coordB[0U] = max_x_limit;
-    vectorB[0U] = -vectorB[0U];
+  // Отскок от левой стены (X < 0.0f) -> направляем куб вправо
+  if (emitterX < 0.0f) {
+    emitterX = 0.0f;
+    speedfactor = 1.0f + ((float)random8(81U) * 0.01f);        // Меняем глобальную скорость
+    const float angle = ((float)random8() * 0.010196f) - 1.3f; // Сектор вправо
+    trackingObjectSpeedX[0U] = speedfactor * cosf(angle);
+    trackingObjectSpeedY[0U] = speedfactor * sinf(angle);
     #if (RANDOM_COLOR == 1U)
-      ballColor = CHSV((uint8_t)(random8(9U) * 28U), 255U, 255U);
+      hue = (uint8_t)(random8(9U) * 28U);
     #endif
   }
 
-  // Проверка верхнего края матрицы по оси Y с учетом размера мячика
-  const int16_t max_y_limit = (HEIGHT - size) * 10;
-  if (coordB[1U] > max_y_limit) {
-    coordB[1U] = max_y_limit;
-    vectorB[1U] = -vectorB[1U];
+  // Отскок от нижней стены (Y < 0.0f) -> направляем куб вверх
+  if (emitterY < 0.0f) {
+    emitterY = 0.0f;
+    speedfactor = 1.0f + ((float)random8(81U) * 0.01f);
+    const float angle = ((float)random8() * 0.010274f) + 0.26f; // Сектор вверх
+    trackingObjectSpeedX[0U] = speedfactor * cosf(angle);
+    trackingObjectSpeedY[0U] = speedfactor * sinf(angle);
     #if (RANDOM_COLOR == 1U)
-      ballColor = CHSV((uint8_t)(random8(9U) * 28U), 255U, 255U);
+      hue = (uint8_t)(random8(9U) * 28U);
     #endif
   }
 
-  const int16_t final_x = coordB[0U] / 10;
-  const int16_t final_y = coordB[1U] / 10;
+  // Проверка и отскок от правой стены с учетом размера куба
+  const float max_x_limit = (float)(WIDTH - size);
+  if (emitterX > max_x_limit) {
+    emitterX = max_x_limit;
+    speedfactor = 1.0f + ((float)random8(81U) * 0.01f);
+    const float angle = ((float)random8() * 0.010274f) + 1.83f; // Сектор влево
+    trackingObjectSpeedX[0U] = speedfactor * cosf(angle);
+    trackingObjectSpeedY[0U] = speedfactor * sinf(angle);
+    #if (RANDOM_COLOR == 1U)
+      hue = (uint8_t)(random8(9U) * 28U);
+    #endif
+  }
 
+  // Проверка и отскок от верхней стены с учетом размера куба
+  const float max_y_limit = (float)(HEIGHT - size);
+  if (emitterY > max_y_limit) {
+    emitterY = max_y_limit;
+    speedfactor = 1.0f + ((float)random8(81U) * 0.01f);
+    const float angle = ((float)random8() * 0.010274f) + 3.4f; // Сектор вниз
+    trackingObjectSpeedX[0U] = speedfactor * cosf(angle);
+    trackingObjectSpeedY[0U] = speedfactor * sinf(angle);
+    #if (RANDOM_COLOR == 1U)
+      hue = (uint8_t)(random8(9U) * 28U);
+    #endif
+  }
+
+  const int16_t final_x = (int16_t)emitterX;
+  const int16_t final_y = (int16_t)emitterY;
+  const CRGB ballColor = CHSV(hue, 255U, 255U);
+
+  // Отрисовка куба с выносом инварианта строки (Правило №4)
   for (uint8_t i = 0U; i < size; i++) {
     const int16_t px = final_x + i;
     for (uint8_t j = 0U; j < size; j++) {
-      leds[XY(px, final_y + j)] = ballColor;
+      drawPixelXY(px, final_y + j, ballColor);
     }
   }
 }
