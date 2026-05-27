@@ -344,10 +344,10 @@ static void Popuri() {
     deltaValue = modes[currentMode].Scale / 25U; // index
 
     if (deltaValue < 1U) {
-      curPalette = &LavaColors_p;
-      (*curPalette)[8U] = CRGB::DarkRed;
+      currentPalette = LavaColors_p;
+      currentPalette[8U] = CRGB::DarkRed;      
     } else {
-      curPalette = custom_eff ? &PartyColors_p : &AlcoholFireColors_p;
+      currentPalette = custom_eff ? PartyColors_p : AlcoholFireColors_p;
     }
     
     ledsClear(); // esphome: FastLED.clear();
