@@ -323,127 +323,150 @@ static void TasteHoney() {
 //                Попурі
 // =====================================
 static void Popuri() {
-  constexpr uint8_t PADDING = HEIGHT * 0.25f;
-  constexpr double freq = 3000;
+  constexpr uint8_t PADDING = (uint8_t)(HEIGHT * 0.25f);
+  constexpr float freq = 3000.0f;
 
-  static int64_t frameCount;
-  static byte index;
+  // Переиспользуем свободные переменные из нашего глобального пула:
+  // step      => frameCount (8-битный счетчик кадров анимации)
+  // deltaHue2 => Индекс масштаба (index)
+  // hue       => Базовый оттенок цвета
 
   // ---------------------
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      setModeSettings(128, random8(4, 254U));
+      //            scale | speed
+      setModeSettings(128U, random8(4U, 254U));
     }
     #endif
 
-    loadingFlag = false;
+    hue = 0U;
+    step = 0U;
+    deltaHue2 = modes[currentMode].Scale / 25U;
 
-    hue = 0;
-    frameCount = 0;
-    currentPalette = LavaColors_p;
-    index = modes[currentMode].Scale / 25;
-
-    // ---------------------
     clearNoiseArr();
-    if (index < 1) {
-      currentPalette = LavaColors_p;
-      currentPalette[8] = CRGB::DarkRed;
+    
+    if (deltaHue2 < 1U) {
+      curPalette = &LavaColors_p;
+      (*curPalette)[8U] = CRGB::DarkRed;
     } else {
-      if (custom_eff) {
-        currentPalette = PartyColors_p;
-      } else {
-        currentPalette = AlcoholFireColors_p;
-      }
+      curPalette = custom_eff ? &PartyColors_p : &AlcoholFireColors_p;
     }
-    FastLED.clear();
+    
+    ledsClear(); // esphome: FastLED.clear();
+
+    loadingFlag = false;
   }
 
   // change color --------
-  frameCount++;
-  uint8_t t1 = cos8((42 * frameCount) / 30);
-  uint8_t t2 = cos8((35 * frameCount) / 30);
-  uint8_t t3 = cos8((38 * frameCount) / 30);
+  const uint8_t t1 = cos8((uint16_t)((42U * step) * 0.0333333f)); // 1.0f / 30.0f ≈ 0.0333333f
+  const uint8_t t2 = cos8((uint16_t)((35U * step) * 0.0333333f));
+  const uint8_t t3 = cos8((uint16_t)((38U * step) * 0.0333333f));
 
-  uint8_t r = 0;
-  uint8_t g = 0;
-  uint8_t b = 0;
-  // ---------------------
+  const uint8_t scale_val = modes[currentMode].Scale;
+  const uint8_t current_index = deltaHue2;
+  const bool is_even_index = ((current_index & 0x01U) == 0U);
 
-  uint16_t ms = millis();
+  const int8_t w_limit = (int8_t)WIDTH;
+  const int8_t h_limit = (int8_t)HEIGHT;
 
-  // float mn = 255.0 / 13.8;
-  float mn = 255.0 / WIDTH; // 27.6;
-
-  if (modes[currentMode].Scale < 50) {
+  const uint8_t t1_div2 = t1 >> 1U;
+  const uint8_t t3_div2 = t3 >> 2U;
+  
+  if (scale_val < 50U) {
     fillNoiseLED();
-    memset8(&noise2[1][0][0], 255, (WIDTH + 1) * (HEIGHT + 1));
-  } else {
-    fadeToBlackBy(leds, NUM_LEDS, WIDTH);
-  }
-  // body if big height matrix ---------
-  for (uint16_t y = 0U; y < HEIGHT; y++) {
-    for (uint16_t x = 0U; x < WIDTH; x++) {
 
-      if ( (y <= PADDING - 1) | (y >=  HEIGHT - PADDING) ) {
-        r = sin8((x - 8) * cos8((y + 20) * 4) / 4);
-        g = cos8((y << 3) + t1 + cos8((t3 >> 2) + (x << 3)));
-        b = cos8((y << 3) + t2 + cos8(t1 + x + (g >> 2)));
+    CRGB col = CHSV(hue, 255U, 255U);
 
-        g = exp_gamma[g];
-        b = exp_gamma[b];
+    for (uint8_t y = 0U; y < HEIGHT; y++) {
+      const bool is_border_y = (y <= (uint8_t)(PADDING - 1U)) || (y >= (uint8_t)(HEIGHT - PADDING));
+      const bool is_line_edge = (y == (uint8_t)(PADDING - 1U)) || (y == (uint8_t)(HEIGHT - PADDING));
+      const uint8_t y8 = y << 3U;
 
-        // if (modes[currentMode].Scale < 50) {
-        if (index % 2U == 0) {
-          // green blue magenta --
-          if (b < 20) b = exp_gamma[r];
-          r = (g < 128) ? exp_gamma[b] / 3 : 0;
-        } else {
-          // green blue yellow ---
-          if (g < 20) g = exp_gamma[r];
-          r = (b < 128) ? exp_gamma[g] / 2 : 0;
-        }
-        if ( (y == PADDING - 1) | (y ==  HEIGHT - PADDING) ) {
-          r = 0;
-          g = 0;
-          b = 0;
-        }
-        leds[XY(x, y)] = CRGB(r, g, b);
-      } else {
-        // ---------------------
-        CRGB col;
-        if (modes[currentMode].Scale < 50) {
-          uint8_t n0 = noise2[0][x][y];
-          uint8_t n1 = noise2[0][x + 1][y];
-          uint8_t n2 = noise2[0][x][y + 1];
-          int8_t xl = n0 - n1;
-          int8_t yl = n0 - n2;
-          int16_t xa = (x * 255) + ((xl * ((n0 + n1) << 1)) >> 3);
-          int16_t ya = (y * 255) + ((yl * ((n0 + n2) << 1)) >> 3);
+      for (uint8_t x = 0U; x < WIDTH; x++) {
+        if (is_border_y) {
+          // Отрисовка плазменной рамки
+          uint8_t r = sin8((uint8_t)(((int16_t)x - 8) * cos8((uint8_t)((y + 20U) << 2U)) >> 2U));
+          uint8_t g = cos8((uint8_t)(y8 + t1 + cos8((uint8_t)(t3_div2 + (x << 3U)))));
+          uint8_t b = cos8((uint8_t)(y8 + t2 + cos8((uint8_t)(t1 + x + (g >> 2U)))));
 
-          col = CHSV(hue, 255U, 255U);
-          wu_pixel(xa, ya, &col);
-          // ---------------------
-        } else {
-          uint32_t xx = beatsin16(WIDTH, 0, (HEIGHT - PADDING * 2 - 1) * 256, 0, x * freq);
-          uint32_t yy = x * 256;
+          g = exp_gamma[g]; b = exp_gamma[b];
 
-          if (hue < 80) {
-            col = CHSV(0, 255U, 255U);
+          if (is_even_index) {
+            if (b < 20U) b = exp_gamma[r];
+            r = (g < 128U) ? (uint8_t)(exp_gamma[b] / 3U) : 0U;
           } else {
-            col = CHSV(hue, 255U, 255U);
+            if (g < 20U) g = exp_gamma[r];
+            r = (b < 128U) ? (uint8_t)(exp_gamma[g] >> 1U) : 0U; // / 2 заменено на >> 1U
           }
-          wu_pixel (yy, xx + PADDING * 256, &col);
+
+          if (is_line_edge) { r = 0U; g = 0U; b = 0U; }
+          leds[XY(x, y)] = CRGB(r, g, b);
+        } else {
+          // Отрисовка стекающего мёда
+          const uint8_t n0 = (uint8_t)noise2[0U][x][y];
+          const uint8_t n1 = (uint8_t)noise2[0U][x + 1U][y];
+          const uint8_t n2 = (uint8_t)noise2[0U][x][y + 1U];
+          const int8_t xl = (int8_t)(n0 - n1);
+          const int8_t yl = (int8_t)(n0 - n2);
+
+          const int16_t xa = (int16_t)((x << 8U) - x) + (int16_t)((xl * ((int16_t)(n0 + n1) << 1U)) >> 3U);
+          const int16_t ya = (int16_t)((y << 8U) - y) + (int16_t)((yl * ((int16_t)(n0 + n2) << 1U)) >> 3U);
+
+          wu_pixel((uint32_t)xa, (uint32_t)ya, &col);
         }
       }
     }
-    if (modes[currentMode].Scale > 50) {
-      if (step % WIDTH == 0U) hue++;
+  } 
+  else {
+    // Ветка Scale >= 50: Отрисовка волновых змеек WU
+    fadeToBlackBy(leds, NUM_LEDS, WIDTH);
+    
+    // Предрасчет цвета змейки на текущий кадр кадра
+    CRGB col = (hue < 80U) ? CHSV(0U, 255U, 255U) : CHSV(hue, 255U, 255U);
+    const uint16_t padding_x256 = PADDING << 8U;
+
+    for (uint8_t y = 0U; y < HEIGHT; y++) {
+      const bool is_border_y = (y <= (uint8_t)(PADDING - 1U)) || (y >= (uint8_t)(HEIGHT - PADDING));
+      const bool is_line_edge = (y == (uint8_t)(PADDING - 1U)) || (y == (uint8_t)(PADDING - 1U));
+      const uint8_t y8 = y << 3U;
+
+      for (uint8_t x = 0U; x < WIDTH; x++) {
+        if (is_border_y) {
+          uint8_t r = sin8((uint8_t)(((int16_t)x - 8) * cos8((uint8_t)((y + 20U) << 2U)) >> 2U));
+          uint8_t g = cos8((uint8_t)(y8 + t1 + cos8((uint8_t)(t3_div2 + (x << 3U)))));
+          uint8_t b = cos8((uint8_t)(y8 + t2 + cos8((uint8_t)(t1 + x + (g >> 2U)))));
+
+          g = exp_gamma[g]; b = exp_gamma[b];
+
+          if (is_even_index) {
+            if (b < 20U) b = exp_gamma[r];
+            r = (g < 128U) ? (uint8_t)(exp_gamma[b] / 3U) : 0U;
+          } else {
+            if (g < 20U) g = exp_gamma[r];
+            r = (b < 128U) ? (uint8_t)(exp_gamma[g] >> 1U) : 0U;
+          }
+
+          if (is_line_edge) { r = 0U; g = 0U; b = 0U; }
+          leds[XY(x, y)] = CRGB(r, g, b);
+        } else {
+          // Геометрия волновых змеек WU Уитни
+          const uint32_t xx = beatsin16(WIDTH, 0U, (uint16_t)((HEIGHT - (PADDING << 1U) - 1U) << 8U), 0U, (uint16_t)((float)x * freq));
+          const uint32_t yy = (uint32_t)(x << 8U);
+
+          wu_pixel(yy, (uint32_t)(xx + padding_x256), &col);
+        }
+      }
+      
+      // Смещение оттенка палитры
+      if ((step % WIDTH) == 0U) {
+        hue++;
+      }
     }
   }
 
   // -----------------
-  step++;
+  step++; // инкремент 8-битного frameCount кадра
 }
 #endif
 
