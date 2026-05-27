@@ -13515,7 +13515,7 @@ static void StarsEffect() {
 
     lastUpdateTime = millis();
     hue = map(modes[currentMode].Scale, 1U, 100U, 0U, 255U);
-    
+
     deltaValue = map(modes[currentMode].Scale, 1U, 100U, 225U, 240U);   // dimValue
     deltaHue = map(modes[currentMode].Scale, 1U, 100U, 3U, MAX_STARS);  // desiredStars
     deltaHue2 = 0U;                                                     // activeStars = 0
@@ -13523,7 +13523,7 @@ static void StarsEffect() {
     for (uint8_t i = 0U; i < MAX_STARS; i++) {
       trackingObjectIsShift[i] = false;                                 // active = false
     }
-    
+
     loadingFlag = false;
   }
 
@@ -13531,7 +13531,7 @@ static void StarsEffect() {
 
   const uint32_t currentTime = millis();
   const uint8_t desiredStars = deltaHue;
-  
+
   const float deltaTime = (float)(currentTime - lastUpdateTime) * 0.001f;
   const float speedFactor = (float)modes[currentMode].Speed * inv255;
 
@@ -13544,13 +13544,13 @@ static void StarsEffect() {
   // 1. Обсчет физики и рендеринг существующих звезд
   for (uint8_t i = 0U; i < MAX_STARS; i++) {
     if (trackingObjectIsShift[i]) {                                      // Проверка active
-      
-      // Накапливаем фазу яркости: скорость (speedX) * коэффициент кадра. 
+
+      // Накапливаем фазу яркости: скорость (speedX) * коэффициент кадра.
       // Переводим шаг во встроенный байтовый масштаб (сдвиг радианов 0..TWO_PI в 0..255)
       // В радианах шаг был speed * speed_multiplier. В байтах это умножается на (255.0f / TWO_PI) ≈ 40.584f
       float step_phase = trackingObjectSpeedX[i] * speed_multiplier * 40.584f;
       float next_phase = (float)trackingObjectState[i] + step_phase;
-      
+
       // Аппаратное циклическое зацикливание байта 0..255 срабатывает само при кастинге!
       trackingObjectState[i] = (uint8_t)next_phase;
 
@@ -13571,7 +13571,7 @@ static void StarsEffect() {
 
       if (pixelBright > 5U && trackingObjectShift[i] > 0.0f) {
         const CRGB color = CHSV((uint8_t)trackingObjectHue[i], 200U, pixelBright);
-        
+
         if (trackingObjectSpeedY[i] <= 1.0f) {                           // Проверка size
           drawPixelXY(x, y, color);
         } else {
@@ -13606,11 +13606,11 @@ static void StarsEffect() {
           trackingObjectPosY[i] = (float)random8(HEIGHT);
           trackingObjectHue[i]  = hue + random8(32U);
           trackingObjectState[i] = random8();
-          
+
           trackingObjectSpeedX[i] = (float)random8(6U, 19U) * inv10;     // random(600U, 1800U) / 1000.0f
           trackingObjectSpeedY[i] = (random8(100U) < 20U) ? 2.0f : 1.0f; // size
           trackingObjectShift[i]  = (float)random8(2U, 6U);              // random(2000U, 5000U) / 1000.0f lifetime
-          
+
           trackingObjectIsShift[i] = true;                               // active = true
           deltaHue2++;                                                   // activeStars++
           break;
