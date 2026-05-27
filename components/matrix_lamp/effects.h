@@ -13488,22 +13488,19 @@ static void butterflyRoutine() {
 // ======================================
 
 #define MAX_STARS (30U)
-#ifndef TWO_PI
-  #define TWO_PI (6.28318530718f)
-#endif
 
 static void StarsEffect() {
-  static struct Star {
-    float x, y;
-    uint8_t hue;
-    float brightness;
-    float speed;
-    float size;
-    bool active;
-    float lifetime;
-  } stars[MAX_STARS];
-
-  static uint8_t activeStars = 0;
+  // trackingObjectPosX    => Координата X звезды
+  // trackingObjectPosY    => Координата Y звезды
+  // trackingObjectSpeedX  => Скорость мерцания speed
+  // trackingObjectSpeedY  => Размер звезды size (1.0f или 2.0f)
+  // trackingObjectShift   => Оставшееся время жизни lifetime
+  // trackingObjectHue     => Оттенок hue
+  // trackingObjectState   => Фаза яркости brightness (упакована в байт 0..255)
+  // trackingObjectIsShift => Флаг активности active (true / false)
+  // deltaHue2             => Количество активных звезд activeStars
+  // deltaValue            => Значение затухания dimValue
+  // deltaHue              => Целевое количество звезд desiredStars
 
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
@@ -13513,83 +13510,109 @@ static void StarsEffect() {
     }
     #endif // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    loadingFlag = false;
-
     setCurrentPalette();
-    dimAll(0);
+    dimAll(0U);
 
     lastUpdateTime = millis();
     hue = map(modes[currentMode].Scale, 1U, 100U, 0U, 255U);
-    activeStars = 0;
+    
+    deltaValue = map(modes[currentMode].Scale, 1U, 100U, 225U, 240U);   // dimValue
+    deltaHue = map(modes[currentMode].Scale, 1U, 100U, 3U, MAX_STARS);  // desiredStars
+    deltaHue2 = 0U;                                                     // activeStars = 0
+
     for (uint8_t i = 0U; i < MAX_STARS; i++) {
-      stars[i].active = false;
+      trackingObjectIsShift[i] = false;                                 // active = false
     }
+    
+    loadingFlag = false;
   }
 
-  const uint8_t dimValue = map(modes[currentMode].Scale, 1, 100, 225, 240);
-
-  dimAll(dimValue);
+  dimAll(deltaValue);
 
   const uint32_t currentTime = millis();
-  const uint8_t desiredStars = map(modes[currentMode].Scale, 1, 100, 3, MAX_STARS);
-  const float deltaTime = (currentTime - lastUpdateTime) / 1000.0f;
-  const float speedFactor = (float)modes[currentMode].Speed / 255.0f;
+  const uint8_t desiredStars = deltaHue;
+  
+  const float deltaTime = (float)(currentTime - lastUpdateTime) * 0.001f;
+  const float speedFactor = (float)modes[currentMode].Speed * inv255;
 
+  // Предрассчитанный коэффициент скорости мерцания на текущий кадр
+  const float speed_multiplier = deltaTime * (0.8f + speedFactor * 2.5f);
+
+  const int8_t w_limit = (int8_t)WIDTH;
+  const int8_t h_limit = (int8_t)HEIGHT;
+
+  // 1. Обсчет физики и рендеринг существующих звезд
   for (uint8_t i = 0U; i < MAX_STARS; i++) {
-    if (stars[i].active) {
-      stars[i].brightness += stars[i].speed * deltaTime * (0.8f + speedFactor * 2.5f);
-      if (stars[i].brightness > TWO_PI) {
-        stars[i].brightness -= TWO_PI;
-      }
-      float bright = (sin(stars[i].brightness) * 0.5f + 0.5f) * (sin(stars[i].brightness * 1.5f) * 0.5f + 0.5f);
-      bright = constrain(bright, 0.0f, 1.0f);
-      uint8_t pixelBright = (uint8_t)(bright * 200);
+    if (trackingObjectIsShift[i]) {                                      // Проверка active
+      
+      // Накапливаем фазу яркости: скорость (speedX) * коэффициент кадра. 
+      // Переводим шаг во встроенный байтовый масштаб (сдвиг радианов 0..TWO_PI в 0..255)
+      // В радианах шаг был speed * speed_multiplier. В байтах это умножается на (255.0f / TWO_PI) ≈ 40.584f
+      float step_phase = trackingObjectSpeedX[i] * speed_multiplier * 40.584f;
+      float next_phase = (float)trackingObjectState[i] + step_phase;
+      
+      // Аппаратное циклическое зацикливание байта 0..255 срабатывает само при кастинге!
+      trackingObjectState[i] = (uint8_t)next_phase;
 
-      stars[i].lifetime -= deltaTime;
+      // Расчет дыхания звезд через быструю табличную sin8()!
+      const uint8_t phase1 = trackingObjectState[i];
+      // Вторая гармоника на частоте 1.5x: phase * 1.5 -> phase + phase / 2
+      const uint8_t phase2 = (uint8_t)(phase1 + (phase1 >> 1U));
 
-      if (pixelBright > 5 && stars[i].lifetime > 0) {
-        CRGB color = CHSV(stars[i].hue, 200, pixelBright);
-        if (stars[i].size <= 1.0f) {
-          drawPixelXY((uint8_t)stars[i].x, (uint8_t)stars[i].y, color);
-        } else {
-          uint8_t x = (uint8_t)stars[i].x;
-          uint8_t y = (uint8_t)stars[i].y;
+      // sin8 выдает диапазон 0..255. Перемножаем амплитуды
+      uint16_t bright_calc = ((uint16_t)sin8(phase1) * sin8(phase2)) >> 8U;
+      // Масштабируем до пиковых значений (bright_calc * 200 / 255) -> примерно * 0.784
+      uint8_t pixelBright = (uint8_t)((bright_calc * 200U) >> 8U);
+
+      trackingObjectShift[i] -= deltaTime;                               // Уменьшаем lifetime
+
+      const uint8_t x = (uint8_t)trackingObjectPosX[i];
+      const uint8_t y = (uint8_t)trackingObjectPosY[i];
+
+      if (pixelBright > 5U && trackingObjectShift[i] > 0.0f) {
+        const CRGB color = CHSV((uint8_t)trackingObjectHue[i], 200U, pixelBright);
+        
+        if (trackingObjectSpeedY[i] <= 1.0f) {                           // Проверка size
           drawPixelXY(x, y, color);
-          if (x + 1 < WIDTH) drawPixelXY(x + 1, y, color);
-          if (y + 1 < HEIGHT) drawPixelXY(x, y + 1, color);
-          if (x + 1 < WIDTH && y + 1 < HEIGHT) drawPixelXY(x + 1, y + 1, color);
+        } else {
+          drawPixelXY(x, y, color);
+          if ((int8_t)(x + 1U) < w_limit) drawPixelXY((uint8_t)(x + 1U), y, color);
+          if ((int8_t)(y + 1U) < h_limit) drawPixelXY(x, (uint8_t)(y + 1U), color);
+          if (((int8_t)(x + 1U) < w_limit) && ((int8_t)(y + 1U) < h_limit)) drawPixelXY((uint8_t)(x + 1U), (uint8_t)(y + 1U), color);
         }
       } else {
-        if (stars[i].size <= 1.0f) {
-          drawPixelXY((uint8_t)stars[i].x, (uint8_t)stars[i].y, CRGB::Black);
+        // Гашение звезды при окончании времени жизни или яркости
+        if (trackingObjectSpeedY[i] <= 1.0f) {
+          drawPixelXY(x, y, 0x000000);
         } else {
-          uint8_t x = (uint8_t)stars[i].x;
-          uint8_t y = (uint8_t)stars[i].y;
-          drawPixelXY(x, y, CRGB::Black);
-          if (x + 1 < WIDTH) drawPixelXY(x + 1, y, CRGB::Black);
-          if (y + 1 < HEIGHT) drawPixelXY(x, y + 1, CRGB::Black);
-          if (x + 1 < WIDTH && y + 1 < HEIGHT) drawPixelXY(x + 1, y + 1, CRGB::Black);
+          drawPixelXY(x, y, 0x000000);
+          if ((int8_t)(x + 1U) < w_limit) drawPixelXY((uint8_t)(x + 1U), y, 0x000000);
+          if ((int8_t)(y + 1U) < h_limit) drawPixelXY(x, (uint8_t)(y + 1U), 0x000000);
+          if (((int8_t)(x + 1U) < w_limit) && ((int8_t)(y + 1U) < h_limit)) drawPixelXY((uint8_t)(x + 1U), (uint8_t)(y + 1U), 0x000000);
         }
-        stars[i].active = false;
-        activeStars--;
+        trackingObjectIsShift[i] = false; // active = false
+        deltaHue2--;                                                     // activeStars--
       }
     }
   }
 
-  if (activeStars < desiredStars) {
-    uint8_t spawnChance = 10 + (uint8_t)(speedFactor * 15);
-    if (random8(100) < spawnChance) {
+  // 2. Спавн и рождение новых звезд при нехватке лимита
+  if (deltaHue2 < desiredStars) {
+    const uint8_t spawnChance = 10U + (uint8_t)(speedFactor * 15.0f);
+    if (random8(100U) < spawnChance) {
       for (uint8_t i = 0U; i < MAX_STARS; i++) {
-        if (!stars[i].active) {
-          stars[i].x = random8(WIDTH);
-          stars[i].y = random8(HEIGHT);
-          stars[i].hue = hue + random8(32);
-          stars[i].brightness = random8() / 255.0f * TWO_PI;
-          stars[i].speed = random(600, 1800) / 1000.0f;
-          stars[i].size = random8(100) < 20 ? 2.0f : 1.0f;
-          stars[i].lifetime = random(2000, 5000) / 1000.0f;
-          stars[i].active = true;
-          activeStars++;
+        if (!trackingObjectIsShift[i]) {
+          trackingObjectPosX[i] = (float)random8(WIDTH);
+          trackingObjectPosY[i] = (float)random8(HEIGHT);
+          trackingObjectHue[i]  = hue + random8(32U);
+          trackingObjectState[i] = random8();
+          
+          trackingObjectSpeedX[i] = (float)random8(6U, 19U) * inv10;     // random(600U, 1800U) / 1000.0f
+          trackingObjectSpeedY[i] = (random8(100U) < 20U) ? 2.0f : 1.0f; // size
+          trackingObjectShift[i]  = (float)random8(2U, 6U);              // random(2000U, 5000U) / 1000.0f lifetime
+          
+          trackingObjectIsShift[i] = true;                               // active = true
+          deltaHue2++;                                                   // activeStars++
           break;
         }
       }
