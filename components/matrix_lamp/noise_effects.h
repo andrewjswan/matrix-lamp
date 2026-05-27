@@ -273,12 +273,12 @@ static void TasteHoney() {
 
     const uint8_t palette_idx = modes[currentMode].Scale / 10U;
     switch (palette_idx) {
-      case 0U: curPalette = &PartyColors_p;       break;
-      case 1U: curPalette = &LavaColors_p;        break;
+      case 0U: currentPalette = PartyColors_p;       break;
+      case 1U: currentPalette = LavaColors_p;        break;
       case 2U:
-      case 3U: curPalette = &ForestColors_p;      break;
-      case 4U: curPalette = &CloudColors_p;       break;
-      default: curPalette = &AlcoholFireColors_p; break;
+      case 3U: currentPalette = ForestColors_p;      break;
+      case 4U: currentPalette = CloudColors_p;       break;
+      default: currentPalette = AlcoholFireColors_p; break;
     }
 
     ledsClear(); // esphome: FastLED.clear();
