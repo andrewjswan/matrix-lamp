@@ -539,6 +539,10 @@ light:
           mode: INCREMENTAL_DRIFT
 
       - matrix_lamp_effect:
+          name: Tetrix
+          mode: TETRIX
+
+      - matrix_lamp_effect:
           name: White light  # Бeлый cвeт
           mode: WHITE_COLOR
 
