@@ -13625,7 +13625,7 @@ constexpr uint8_t START_PROBABILITY = (320U / WIDTH < 5U) ? 5U : (320U / WIDTH);
 
 constexpr float SPEED_FACTOR_MIN = 250.0f;   // 500.0f
 constexpr float SPEED_FACTOR_MAX = 5000.0f;  // 8000.0f
-constexpr float SPEED_FACTOR_RANGE = SPEED_FACTOR_MAX - SPEED_FACTOR_MIN; 
+constexpr float SPEED_FACTOR_RANGE = SPEED_FACTOR_MAX - SPEED_FACTOR_MIN;
 
 static void tetrixRoutine() {
   const uint32_t currentMillis = millis();
@@ -13714,7 +13714,7 @@ static void tetrixRoutine() {
           brickStartedThisFrame = true;       // Блокируем запуск других линий в этом кадре
         }
       }
-      
+
       // Зачищаем фон над стаканом, пока кирпич ожидает вылета
       const uint8_t stackHeight = (uint8_t)trackingObjectPosY[x];
       for (uint8_t y = stackHeight; y < HEIGHT; y++) {
@@ -13738,7 +13738,7 @@ static void tetrixRoutine() {
         const uint8_t intPos = (uint8_t)currentPos;
         const uint8_t brickTop = intPos + (uint8_t)trackingObjectShift[x];
         const uint8_t currentHue = trackingObjectHue[x];
-        
+
         // Выбор цветовой схемы на основе ползунка Масштаб (Scale)
         CRGB brickColor;
         if (current_scale <= 210U) {
