@@ -539,7 +539,7 @@ light:
           mode: INCREMENTAL_DRIFT
 
       - matrix_lamp_effect:
-          name: Tetrix
+          name: Tetrix  # Тетрикс
           mode: TETRIX
 
       - matrix_lamp_effect:
