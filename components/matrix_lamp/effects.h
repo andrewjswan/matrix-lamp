@@ -13616,4 +13616,197 @@ static void StarsEffect() {
 }
 #endif
 
+#ifdef DEF_TETRIX
+// =============== Tetrix ===============
+//                (c) WLED
+//          adopted by andrewjswan
+//                Тетрикс
+// ======================================
+
+constexpr uint8_t MAX_FALLING_LINES = (WIDTH > 4U) ? ((WIDTH * 4U) / 10U) : 2U;
+constexpr uint8_t MAX_BRICK_HEIGHT = (HEIGHT / 3U < 2U) ? 2U : (HEIGHT / 3U);
+constexpr uint8_t START_PROBABILITY = (320U / WIDTH < 5U) ? 5U : (320U / WIDTH);
+
+constexpr float SPEED_FACTOR_MIN = 250.0f;   // 500.0f
+constexpr float SPEED_FACTOR_MAX = 5000.0f;  // 8000.0f
+constexpr float SPEED_FACTOR_RANGE = SPEED_FACTOR_MAX - SPEED_FACTOR_MIN;
+
+static void tetrixRoutine() {
+  const uint32_t currentMillis = millis();
+  const uint8_t current_speed = modes[currentMode].Speed;
+  const uint8_t current_scale = modes[currentMode].Scale;
+
+  if (loadingFlag) {
+    #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+    if (selectedSettings) {
+      //                          scale | speed
+      setModeSettings(1U + random8(255U), 1U + random8(255U));
+    }
+    #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+
+    dimAll(0U);
+
+    for (uint8_t x = 0U; x < WIDTH; x++) {
+      enlargedObjectTime[x] = (long)(currentMillis + random16(0U, 4000U));
+      trackingObjectState[x] = 3U;    // Состояние 3: стартовая очистка/затухание
+      trackingObjectPosY[x] = 0.0f;   // Обнуляем высоту стакана для каждой колонки
+    }
+
+    // Выбор цветовой схемы на основе ползунка Масштаб (Scale)
+    if (current_scale <= 42U) {
+      currentPalette = RainbowColors_p;
+    } else if (current_scale <= 84U) {
+      currentPalette = PartyColors_p;
+    } else if (current_scale <= 126U) {
+      currentPalette = OceanColors_p;
+    } else if (current_scale <= 168U) {
+      currentPalette = CloudColors_p;
+    } else if (current_scale <= 210U) {
+      currentPalette = ForestColors_p;
+    } // else (211 - 255) - HSV спектр
+
+    loadingFlag = false;
+  }
+
+  const float speedFactor = SPEED_FACTOR_MIN + SPEED_FACTOR_RANGE * (1.0f - (float)current_speed * inv255);
+  const float baseSpeed = ((float)HEIGHT * 30.0f) / speedFactor;
+
+  uint8_t currentlyFallingCount = 0U;
+  for (uint8_t x = 0U; x < WIDTH; x++) {
+    if (trackingObjectState[x] == 2U) {
+      currentlyFallingCount++;
+    }
+  }
+
+  bool brickStartedThisFrame = false;
+
+  hue += 1U;
+
+  // Основной цикл обработки колонок матрицы
+  for (uint8_t x = 0U; x < WIDTH; x++) {
+    const uint8_t currentStepState = trackingObjectState[x];
+
+    // --- Состояние 0: Инициализация нового кирпичика ---
+    if (currentStepState == 0U) {
+      if ((uint8_t)trackingObjectPosY[x] >= HEIGHT - 1U) {
+        enlargedObjectTime[x] = (long)(currentMillis + 2000U);
+        trackingObjectState[x] = 3U; // Переходим в режим угасания
+        continue;
+      }
+
+      trackingObjectSpeedY[x] = baseSpeed * (1.0f + (float)random8(0, 4) * 0.1f);
+      trackingObjectPosX[x]   = (float)HEIGHT; // Старт из-за верхней границы матрицы
+
+      // Привязываем оттенок кирпича к hue
+      trackingObjectHue[x] = hue + (x * 4U);
+
+      // Вычисляем размер кирпича на основе масштаба
+      const uint8_t brickSize = random8(1U, MAX_BRICK_HEIGHT);
+
+      trackingObjectShift[x] = (float)brickSize;
+      trackingObjectState[x] = 1U;
+      continue;
+    }
+
+    // --- Состояние 1: Ожидание случайного старта падения ---
+    if (currentStepState == 1U) {
+      // Разрешаем старт падения только если лимит не превышен и в этом кадре еще никто не зародился
+      if (!brickStartedThisFrame && currentlyFallingCount < MAX_FALLING_LINES) {
+        if (random8() < START_PROBABILITY) {
+          trackingObjectState[x] = 2U;
+          currentlyFallingCount++;            // Учитываем взлетевший кирпич
+          brickStartedThisFrame = true;       // Блокируем запуск других линий в этом кадре
+        }
+      }
+
+      // Зачищаем фон над стаканом, пока кирпич ожидает вылета
+      const uint8_t stackHeight = (uint8_t)trackingObjectPosY[x];
+      for (uint8_t y = stackHeight; y < HEIGHT; y++) {
+        leds[XY(x, y)] = CRGB::Black;
+      }
+      continue;
+    }
+
+    // --- Состояние 2: Процесс падения кирпичика ---
+    if (currentStepState == 2U) {
+      const float stackPos = trackingObjectPosY[x];  // Высота стакана из trackingObjectPosY
+      float currentPos = trackingObjectPosX[x];
+
+      if (currentPos > stackPos) {
+        currentPos -= trackingObjectSpeedY[x];       // Падаем вниз
+        if (currentPos < stackPos) {
+          currentPos = stackPos;
+        }
+        trackingObjectPosX[x] = currentPos;
+
+        const uint8_t intPos = (uint8_t)currentPos;
+        const uint8_t brickTop = intPos + (uint8_t)trackingObjectShift[x];
+        const uint8_t currentHue = trackingObjectHue[x];
+
+        // Выбор цветовой схемы на основе ползунка Масштаб (Scale)
+        CRGB brickColor;
+        if (current_scale <= 210U) {
+          brickColor = ColorFromPalette(currentPalette, currentHue);
+        } else {
+          brickColor = CHSV(currentHue, 255U, 255U);
+        }
+
+        for (uint8_t y = 0U; y < HEIGHT; y++) {
+          if (y < (uint8_t)stackPos) {
+            // Стакан внизу не трогаем, сохраняя его старые цвета
+            continue;
+          }
+          else if (y >= intPos && y < brickTop) {
+            leds[XY(x, y)] = brickColor;
+          } else {
+            leds[XY(x, y)] = CRGB::Black;
+          }
+        }
+      } else {
+        // Фиксация кирпичика на стаке: увеличиваем высоту стакана
+        trackingObjectPosY[x] += trackingObjectShift[x];
+
+        if ((uint8_t)trackingObjectPosY[x] >= HEIGHT) {
+          enlargedObjectTime[x] = (long)(currentMillis + 2000U);
+          trackingObjectState[x] = 3U;               // Переходим в режим угасания
+        } else {
+          // После падения отправляем колонку на небольшую паузу отдыха перед новым циклом
+          enlargedObjectTime[x] = (long)(currentMillis + random16(200U, 1500U));
+          trackingObjectState[x] = 4U;               // Переходим в режим паузы
+        }
+      }
+      continue;
+    }
+
+    // --- Состояние 3: Плавное угасание стакана при заполнении ---
+    if (currentStepState == 3U) {
+      if (enlargedObjectTime[x] > (long)currentMillis) {
+        // Гашение пикселей столбца X
+        for (uint8_t y = 0U; y < HEIGHT; y++) {
+          leds[XY(x, y)].nscale8(220U);
+        }
+      } else {
+        // Таймер угасания истек: сброс стакана строго в существующем массиве
+        trackingObjectPosY[x] = 0.0f;
+        trackingObjectState[x] = 0U;
+      }
+      continue; // Переход на следующую итерацию
+    }
+
+    // --- Состояние 4: Искусственная пауза отдыха между кирпичами в одной колонке ---
+    if (currentStepState == 4U) {
+      if ((long)currentMillis >= enlargedObjectTime[x]) {
+        trackingObjectState[x] = 0U; // Пауза прошла, колонка снова готова создавать кирпич
+      }
+      // Пока колонка отдыхает, удерживаем стакан и фон в стабильном состоянии
+      const uint8_t stackHeight = (uint8_t)trackingObjectPosY[x];
+      for (uint8_t y = stackHeight; y < HEIGHT; y++) {
+        leds[XY(x, y)] = CRGB::Black;
+      }
+      continue; // Переход на следующую итерацию
+    }
+  }
+}
+#endif
+
 }  // namespace esphome::matrix_lamp
