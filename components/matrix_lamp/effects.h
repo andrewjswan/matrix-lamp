@@ -34,7 +34,10 @@ static uint16_t ff_x, ff_y, ff_z;                         // большие сч
 static int8_t noise2[2][WIDTH + 1][HEIGHT + 1];
 
 // массивы состояния объектов, которые могут использоваться в любом эффекте
-#define trackingOBJECT_MAX_COUNT (100U)                                         // максимальное количество отслеживаемых объектов (очень влияет на расход памяти)
+// 100% безопасный расчет без лишнего расхода RAM
+inline constexpr uint16_t trackingOBJECT_MAX_COUNT = std::max(100U, static_cast<unsigned>(WIDTH)); // максимальное количество отслеживаемых объектов
+                                                                                                   // (очень влияет на расход памяти)
+
 static float    trackingObjectPosX[trackingOBJECT_MAX_COUNT];
 static float    trackingObjectPosY[trackingOBJECT_MAX_COUNT];
 static float    trackingObjectSpeedX[trackingOBJECT_MAX_COUNT];
@@ -44,8 +47,9 @@ static uint8_t  trackingObjectHue[trackingOBJECT_MAX_COUNT];
 static uint8_t  trackingObjectState[trackingOBJECT_MAX_COUNT];
 static bool     trackingObjectIsShift[trackingOBJECT_MAX_COUNT];
 
-#define enlargedOBJECT_MAX_COUNT (WIDTH * 2U)                                   // максимальное количество сложных отслеживаемых объектов (меньше, чем trackingOBJECT_MAX_COUNT)
-static uint16_t  enlargedObjectNUM;                                             // используемое в эффекте количество объектов
+inline constexpr uint16_t enlargedOBJECT_MAX_COUNT = std::clamp(MAX_SIDE, uint8_t{32U}, uint8_t{96U});  // максимальное количество сложных отслеживаемых объектов
+                                                                                                        // (меньше, чем trackingOBJECT_MAX_COUNT)
+static uint16_t  enlargedObjectNUM;                                                                     // используемое в эффекте количество объектов
 static long      enlargedObjectTime[enlargedOBJECT_MAX_COUNT];
 static float     liquidLampHot[enlargedOBJECT_MAX_COUNT];
 static float     liquidLampSpf[enlargedOBJECT_MAX_COUNT];
