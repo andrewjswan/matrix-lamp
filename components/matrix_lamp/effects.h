@@ -13618,18 +13618,18 @@ static void tetrixRoutine() {
 
   if (loadingFlag) {
     dimAll(0U);
-    
+
     for (uint8_t x = 0U; x < WIDTH; x++) {
-      enlargedObjectTime[x] = (long)(currentMillis + 2000U); 
+      enlargedObjectTime[x] = (long)(currentMillis + 2000U);
       trackingObjectState[x] = 3U;    // Состояние 3: стартовая очистка/затухание
       trackingObjectPosY[x] = 0.0f;   // Обнуляем высоту стакана для каждой колонки
     }
-    
-    loadingFlag = false; 
+
+    loadingFlag = false;
   }
 
-  const uint8_t current_speed = modes[currentMode].Speed; 
-  const uint8_t current_scale = modes[currentMode].Scale; 
+  const uint8_t current_speed = modes[currentMode].Speed;
+  const uint8_t current_scale = modes[currentMode].Scale;
   const bool oneColor = (current_scale > 50U);
 
   const float speedFactor = 250.0f + (5000.0f - 250.0f) * (1.0f - (float)current_speed * inv255);
@@ -13641,28 +13641,28 @@ static void tetrixRoutine() {
 
     // --- Состояние 0: Инициализация нового кирпичика ---
     if (currentStepState == 0U) {
-      trackingObjectSpeedY[x] = baseSpeed;  
+      trackingObjectSpeedY[x] = baseSpeed;
       trackingObjectPosX[x]   = (float)HEIGHT; // Старт из-за верхней границы матрицы
-      
+
       if (!oneColor) {
-        trackingObjectHue[x] = random8(0U, 15U) << 4U; 
+        trackingObjectHue[x] = random8(0U, 15U) << 4U;
       }
-      
+
       // Вычисляем размер кирпича на основе масштаба
       uint8_t brickSize = (current_scale ? (current_scale >> 5U) + 1U : random8(1U, 5U));
       if (brickSize >= HEIGHT) {
         brickSize = THIRD_Y;
       }
-      trackingObjectShift[x] = (float)brickSize; 
-      
-      trackingObjectState[x] = 1U; 
+      trackingObjectShift[x] = (float)brickSize;
+
+      trackingObjectState[x] = 1U;
       continue;
     }
 
     // --- Состояние 1: Ожидание случайного старта падения ---
     if (currentStepState == 1U) {
-      if (random8() >> 6U) { 
-        trackingObjectState[x] = 2U; 
+      if (random8() >> 6U) {
+        trackingObjectState[x] = 2U;
       }
       continue;
     }
@@ -13677,7 +13677,7 @@ static void tetrixRoutine() {
         if (currentPos < stackPos) {
           currentPos = stackPos;
         }
-        trackingObjectPosX[x] = currentPos; 
+        trackingObjectPosX[x] = currentPos;
 
         const uint8_t intPos = (uint8_t)currentPos;
         const uint8_t brickTop = intPos + (uint8_t)trackingObjectShift[x];
@@ -13690,10 +13690,10 @@ static void tetrixRoutine() {
             leds[XY(x, y)] = CRGB::Black;
           }
         }
-      } else { 
+      } else {
         // Фиксация кирпичика на стаке: увеличиваем высоту стакана
-        trackingObjectPosY[x] += trackingObjectShift[x]; 
-        
+        trackingObjectPosY[x] += trackingObjectShift[x];
+
         if ((uint8_t)trackingObjectPosY[x] >= HEIGHT) {
           enlargedObjectTime[x] = (long)(currentMillis + 2000U);
           trackingObjectState[x] = 3U; // Переходим в режим угасания
@@ -13713,11 +13713,11 @@ static void tetrixRoutine() {
         }
       } else {
         // Таймер угасания истек: сброс стакана строго в существующем массиве
-        trackingObjectPosY[x] = 0.0f; 
-        trackingObjectState[x] = 0U; 
-        
+        trackingObjectPosY[x] = 0.0f;
+        trackingObjectState[x] = 0U;
+
         if (oneColor) {
-          trackingObjectHue[x] += 16U; 
+          trackingObjectHue[x] += 16U;
         }
       }
     }
