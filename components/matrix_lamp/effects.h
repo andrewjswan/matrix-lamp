@@ -13809,4 +13809,325 @@ static void tetrixRoutine() {
 }
 #endif
 
+#ifdef DEF_TETRIS
+// =============== Tetris ===============
+//             (c) andrewjswan
+//           Tetris / Sand Tetris
+//         Тетрис / Песочный тетрис
+// ======================================
+
+// Каждые 4 бита слева направо описывают одну строку фигуры 4x4.
+inline constexpr uint16_t T_PIECES_MASK[] = {
+  0b1000000000000000U, // 0: Точка
+  0b1100110000000000U, // 1: Куб O
+  0b0100010001000100U, // 2: Линия I
+  0b1000100011000000U, // 3: Уголок L
+  0b0100010011000000U, // 4: Обратный J
+  0b1110010000000000U, // 5: T-образная
+  0b0110110000000000U, // 6: Z-фигура
+  0b1100011000000000U  // 7: S-фигура
+};
+
+// Максимальное количество кадров для анимации плавления строк Тетриса
+inline constexpr uint8_t TETRIS_MELT_MAX_STEPS = 6U; 
+
+// Инлайновая проверка бита в маске. r - строка (0..3), c - столбец (0..3)
+static inline bool getPieceCell(uint16_t mask, uint8_t r, uint8_t c) __attribute__((always_inline));
+static inline bool getPieceCell(uint16_t mask, uint8_t r, uint8_t c) {
+  return (mask & (0x8000U >> ((r << 2U) + c))) != 0U;
+}
+
+// Проверка столкновений по буферу ledsbuff
+static bool check_tetris_collision(int16_t nx, int16_t ny, uint16_t pieceMask) {
+  for (uint8_t r = 0U; r < 4U; r++) {
+    for (uint8_t c = 0U; c < 4U; c++) {
+      if (getPieceCell(pieceMask, r, c)) {
+        const int16_t gx = nx + c;
+        const int16_t gy = ny + r;
+        
+        if (gx < 0 || gx >= (int16_t)WIDTH || gy >= (int16_t)HEIGHT) return true;
+        if (gy >= 0) {
+          const uint16_t idx = XY(gx, gy);
+          if (idx < NUM_LEDS) {
+            // Если пиксель в стакане ledsbuff не черный — это столкновение
+            if (ledsbuff[idx].r || ledsbuff[idx].g || ledsbuff[idx].b) return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
+void tetrisSandRoutine() {
+  const uint32_t currentMillis = millis();
+
+  if (loadingFlag) {
+    deltaValue          = 0U;  // game_mode = 0 (Классика)
+    deltaHue            = 0U;  // melt_animation = false
+    deltaHue2           = 1U;  // spawn_next = true
+    hue                 = 0U;  // melt_step = 0
+    hue2                = 0U;  // move_timer = 0
+    step                = 0U;  // drop_timer = 0
+    ff_z                = 0U;  // Полностью зачищаем маску от мусора старых эффектов в RAM
+
+    fillAll(CRGB::Black);                            // Системная очистка физической матрицы leds
+    memset(ledsbuff, 0, NUM_LEDS * sizeof(CRGB));    // Очищаем внутренний линейный игровой стакан
+    memset(shiftValue, 0, HEIGHT * sizeof(uint8_t));
+    
+    loadingFlag = false;
+  }
+
+  // Register Cache: запираем маску текущей детали
+  uint16_t cur_piece_mask = ff_z; 
+
+  // Кэшируем флаги состояния
+  bool melt_animation = (deltaHue == 1U);
+  bool spawn_next     = (deltaHue2 == 1U);
+  uint8_t game_mode   = deltaValue;
+
+  // Инкрементируем счетчики кадров для логики движений и падения ИИ-бота
+  hue2++; // move_timer++
+  step++; // drop_timer++
+
+  // --- РЕЖИМ АНИМАЦИИ: ПЛАВНОЕ РАСТВОРЕНИЕ СГОРАЮЩИХ ЛИНИЙ ---
+  if (melt_animation) {
+    hue++; // melt_step++
+    
+    float alpha_f = (float)hue * (1.0f / (float)TETRIS_MELT_MAX_STEPS);
+    if (alpha_f > 1.0f) alpha_f = 1.0f;
+    const uint8_t alpha = (uint8_t)(alpha_f * 255.0f);
+
+    for (int16_t y = (int16_t)MAX_Y; y >= 0; y--) {
+      if (shiftValue[y]) { // Если строка y помечена на сжигание
+        const uint16_t row_offset = y * WIDTH;
+        
+        for (uint8_t x = 0U; x < WIDTH; x++) {
+          const uint16_t idx_current = row_offset + x; 
+          
+          CRGB top_color = CRGB::Black;
+          if (y > 0) {
+            const uint16_t idx_top = idx_current - WIDTH; // Предыдущая строка в линейной памяти
+            if (idx_top < NUM_LEDS) top_color = ledsbuff[idx_top];
+          }
+          
+          if (idx_current < NUM_LEDS) {
+            ledsbuff[idx_current] = blend(ledsbuff[idx_current], top_color, alpha);
+          }
+        }
+      }
+    }
+
+    if (hue >= TETRIS_MELT_MAX_STEPS) {
+      hue = 0U;      // melt_step = 0
+      melt_animation = false;
+
+      // Физический каскадный сдвиг стакана вниз после завершения растворения рядов
+      for (int16_t y = (int16_t)MAX_Y; y >= 0; y--) {
+        if (shiftValue[y]) {
+          for (int16_t ty = y; ty > 0; ty--) {
+            const uint16_t idx_to_row = ty * WIDTH;
+            const uint16_t idx_from_row = (ty - 1) * WIDTH;
+            for (uint8_t x = 0U; x < WIDTH; x++) {
+              ledsbuff[idx_to_row + x] = ledsbuff[idx_from_row + x]; // Линейный сдвиг байт памяти
+            }
+          }
+          // Очищаем самую верхнюю строчку линейного игрового стакана
+          for (uint8_t x = 0U; x < WIDTH; x++) {
+            ledsbuff[x] = CRGB::Black;
+          }
+          shiftValue[y] = 0U;  // Сбрасываем флаг сжигания строки
+          y++;                 // Возвращаемся на шаг назад для повторной проверки сместившегося ряда
+        }
+      }
+      spawn_next = true;
+    }
+  }
+  // --- РЕЖИМ: ОСНОВНАЯ ИГРА ---
+  else {
+    hue2++; // move_timer++
+    step++; // drop_timer++
+
+    // 1. Спавн новой детали
+    if (spawn_next) {
+      const uint8_t type = random8(0U, 8U);        // Быстрый случайный выбор фигуры
+      cur_piece_mask = T_PIECES_MASK[type];
+      ff_z = cur_piece_mask;                       // Сразу сохраняем её в глобальную память
+      
+      // Выбираем случайный яркий цвет из палитры
+      const CRGB cur_color = ColorFromPalette(RainbowColors_p, random8(), 255, LINEARBLEND);
+      // Пакуем 24-битный цвет во float-переменную speedfactor
+      const uint32_t packedColor = ((uint32_t)cur_color.r << 16U) | ((uint32_t)cur_color.g << 8U) | cur_color.b;
+      speedfactor = *(float*)&packedColor;
+
+      emitterX = (float)(CENTER_X_MINOR - 1);  // px = WIDTH / 2 - 2
+      emitterY = -2.0f;                        // py = -2
+      spawn_next = false;
+      
+      // Проверка на Game Over сразу при появлении новой фигуры
+      if (check_tetris_collision((int16_t)emitterX, 0, cur_piece_mask)) {
+        // Заливаем матрицу цветом-индикатором смены режима
+        const CRGB signalColor = (game_mode == 0U) ? CRGB::Red : CRGB::Green;
+        fillAll(signalColor); 
+        
+        // Полный сброс и очистка стакана в ledsbuff
+        memset(ledsbuff, 0, NUM_LEDS * sizeof(CRGB));
+        deltaValue = (game_mode == 0U) ? 1U : 0U;  // Переключаем игровой режим: 0 <-> 1
+        deltaHue   = 0U;                           // melt_animation = false
+        deltaHue2  = 1U;                           // spawn_next = true
+        ff_z       = cur_piece_mask;               // Сохраняем состояние регистра перед выходом
+        return;
+      }
+    }
+
+    // Распаковываем цвет летящей фигуры обратно из float-контейнера speedfactor
+    const uint32_t packedColorOut = *(uint32_t*)&speedfactor;
+    const CRGB cur_color((packedColorOut >> 16U) & 0xFFU, (packedColorOut >> 8U) & 0xFFU, packedColorOut & 0xFFU);
+
+    // 2. Движения фигуры в полете (ИИ-Бот)
+    if (hue2 >= 6U) { // move_timer
+      hue2 = 0U;
+      const uint8_t action = random8(0U, 4U);
+      const int16_t ipx = (int16_t)emitterX;
+      const int16_t ipy = (int16_t)emitterY;
+
+      if (action == 0U && !check_tetris_collision(ipx - 1, ipy, cur_piece_mask)) emitterX -= 1.0f;
+      else if (action == 1U && !check_tetris_collision(ipx + 1, ipy, cur_piece_mask)) emitterX += 1.0f;
+      else if (action == 2U) {
+        // Поворот битовой маски 4х4 на 90 градусов прямо в регистрах процессора
+        uint16_t rotatedMask = 0U;
+        for (uint8_t r = 0U; r < 4U; r++) {
+          for (uint8_t c = 0U; c < 4U; c++) {
+            if (getPieceCell(cur_piece_mask, r, c)) {
+              rotatedMask |= (0x8000U >> ((c << 2U) + (3U - r)));
+            }
+          }
+        }
+        if (!check_tetris_collision(ipx, ipy, rotatedMask)) {
+          cur_piece_mask = rotatedMask; // Обновляем локальную маску в регистре
+        }
+      }
+    }
+
+    // 3. Шаг падения вниз
+    if (step >= 8U) { // drop_timer
+      step = 0U;
+      const int16_t ipx = (int16_t)emitterX;
+      const int16_t ipy = (int16_t)emitterY;
+
+      if (!check_tetris_collision(ipx, ipy + 1, cur_piece_mask)) {
+        emitterY += 1.0f;
+      } else {
+        // --- ПРИЗЕМЛЕНИЕ ФИГУРЫ В СТАКАН ---
+        for (uint8_t r = 0U; r < 4U; r++) {
+          for (uint8_t c = 0U; c < 4U; c++) {
+            if (getPieceCell(cur_piece_mask, r, c)) {
+              const int16_t gx = ipx + c;
+              const int16_t gy = ipy + r;
+              if (gx >= 0 && gx < (int16_t)WIDTH && gy >= 0 && gy < (int16_t)HEIGHT) {
+                const uint16_t idx = gy * WIDTH + gx; 
+                if (idx < NUM_LEDS) ledsbuff[idx] = cur_color;
+              }
+            }
+          }
+        }
+
+        // --- ПЕСОЧНАЯ ГРАВИТАЦИЯ (Режим 1) ---
+        if (game_mode == 1U) {
+          for (uint8_t x = 0U; x < WIDTH; x++) {
+            int16_t writeY = MAX_Y;
+            // Сканируем строго снизу вверх и пересобираем колонку без воздушных пустот
+            for (int16_t y = (int16_t)MAX_Y; y >= 0; y--) {
+              const uint16_t idx_read = y * WIDTH + x; 
+              if (idx_read < NUM_LEDS && (ledsbuff[idx_read].r || ledsbuff[idx_read].g || ledsbuff[idx_read].b)) {
+                CRGB tempColor = ledsbuff[idx_read];
+                ledsbuff[idx_read] = CRGB::Black;
+                
+                const uint16_t idx_write = writeY * WIDTH + x;
+                if (idx_write < NUM_LEDS) ledsbuff[idx_write] = tempColor;
+                writeY--;
+              }
+            }
+          }
+        }
+        
+        // Проверка заполненных рядов на сжигание
+        bool found_full_line = false;
+        for (uint8_t y = 0U; y < HEIGHT; y++) {
+          bool line_full = true;
+          const uint16_t row_offset = y * WIDTH;
+
+          for (uint8_t x = 0U; x < WIDTH; x++) {
+            const uint16_t idx = row_offset + x; 
+            if (idx < NUM_LEDS && !(ledsbuff[idx].r || ledsbuff[idx].g || ledsbuff[idx].b)) {
+              line_full = false;
+              break;
+            }
+          }
+          if (line_full) {
+            shiftValue[y] = 1U; // Помечаем строку y на растворение в массиве shiftValue
+            found_full_line = true;
+          }
+        }
+
+        if (found_full_line) {
+          melt_animation = true;
+          hue = 0U;        // melt_step = 0
+        } else {
+          spawn_next = true;
+        }
+      }
+    }
+  }
+
+  // --- ИТОГОВАЯ ОТРИСОВКА И ВЫВОД КАДРА НА ЭКРАН ---
+  // Полностью очищаем буфер вывода leds напрямую
+  fillAll(CRGB::Black);
+
+  // 1. Копируем стакан из линейной памяти игры в физическую память матрицы
+  for (uint8_t y = 0U; y < HEIGHT; y++) {
+    const uint16_t row_offset = y * WIDTH; 
+
+    for (uint8_t x = 0U; x < WIDTH; x++) {
+      const uint16_t idx_buf = row_offset + x; 
+      
+      const uint16_t idx_led = XY(x, y); 
+      if (idx_led < NUM_LEDS) {
+        leds[idx_led] = ledsbuff[idx_buf]; // Копируем пиксель напрямую!
+      }
+    }
+  }
+
+  // 2. Накладываем летящую фигуру поверх стакана (если нет активных анимаций)
+  if (!melt_animation && !spawn_next) {
+    const uint32_t packedColorOut = *(uint32_t*)&speedfactor;
+    const CRGB flyingColor((packedColorOut >> 16U) & 0xFFU, (packedColorOut >> 8U) & 0xFFU, packedColorOut & 0xFFU);
+
+    const int16_t ipx = (int16_t)emitterX;
+    const int16_t ipy = (int16_t)emitterY;
+
+    for (uint8_t r = 0U; r < 4U; r++) {
+      for (uint8_t c = 0U; c < 4U; c++) {
+        if (getPieceCell(cur_piece_mask, r, c)) {
+          const int16_t gx = ipx + c;
+          const int16_t gy = ipy + r;
+          
+          // Жесткие Guard Checks геометрии и защиты памяти leds
+          if (gx >= 0 && gx < (int16_t)WIDTH && gy >= 0 && gy < (int16_t)HEIGHT) {
+            const uint16_t idx_led = XY(gx, gy);
+            if (idx_led < NUM_LEDS) {
+              leds[idx_led] = flyingColor; // Накладываем пиксель фигуры в физическую память матрицы
+            }
+          }
+        }
+      }
+    }    
+  }
+  
+  ff_z = cur_piece_mask;                 // Сохраняем маску фигуры
+  deltaHue   = melt_animation ? 1U : 0U; // Конвертируем bool обратно в uint8_t
+  deltaHue2  = spawn_next ? 1U : 0U;     // Конвертируем bool обратно в uint8_t
+}
+#endif
+
 }  // namespace esphome::matrix_lamp
