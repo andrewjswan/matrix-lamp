@@ -541,8 +541,8 @@ static uint8_t validMinMax(float val, uint8_t minV, uint8_t maxV) {
 // ------------------------------------------------
 // ------------------------------------------------
 // альтернативный градиент для ламп собраных из лент с вертикальной компоновкой
-static void gradientHorizontal(uint8_t startX, uint8_t startY, uint8_t endX, uint8_t endY, 
-                               uint8_t start_color, uint8_t end_color, 
+static void gradientHorizontal(uint8_t startX, uint8_t startY, uint8_t endX, uint8_t endY,
+                               uint8_t start_color, uint8_t end_color,
                                uint8_t start_br, uint8_t end_br, uint8_t saturate) {
   if (startX == endX) {
     endX++;
@@ -583,8 +583,8 @@ static void gradientHorizontal(uint8_t startX, uint8_t startY, uint8_t endX, uin
 
 
 // ------------------------------------------------
-static void gradientVertical(uint8_t startX, uint8_t startY, uint8_t endX, uint8_t endY, 
-                             uint8_t start_color, uint8_t end_color, 
+static void gradientVertical(uint8_t startX, uint8_t startY, uint8_t endX, uint8_t endY,
+                             uint8_t start_color, uint8_t end_color,
                              uint8_t start_br, uint8_t end_br, uint8_t saturate) {
   if (startX == endX) {
     endX++;
@@ -631,7 +631,7 @@ static void gradientDownTop(uint8_t bottom, CHSV bottom_color, uint8_t top, cons
   //  BACKWARD_HUES: hue always goes counter-clockwise
   //  SHORTEST_HUES: hue goes whichever way is shortest
   //  LONGEST_HUES:  hue goes whichever way is longest
-  
+
   const uint32_t bottom_row_idx = (uint32_t)bottom * WIDTH;
   const uint32_t top_row_idx    = (uint32_t)top * WIDTH;
 
@@ -647,7 +647,7 @@ static void gradientDownTop(uint8_t bottom, CHSV bottom_color, uint8_t top, cons
   else
   {
     // STRIP_DIRECTION to DOWN ======
-    // Защита от переполнения: если bottom_row_idx или top_row_idx больше NUM_LEDS, 
+    // Защита от переполнения: если bottom_row_idx или top_row_idx больше NUM_LEDS,
     uint16_t start_p = (NUM_LEDS > bottom_row_idx) ? (NUM_LEDS - bottom_row_idx - 1U) : 0U;
     uint16_t end_p   = (NUM_LEDS > top_row_idx)    ? (NUM_LEDS - top_row_idx) : 0U;
 

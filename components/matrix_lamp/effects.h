@@ -7238,7 +7238,7 @@ static void wu_pixel_maxV(int16_t item) {
 
     if (y1 >= 0 && y1 < (int16_t)HEIGHT && x1 >= 0 && x1 < (int16_t)WIDTH) {
       const uint8_t val = ((uint16_t)obj_hue * wu[i]) >> 8U;
-      
+
       // Сравниваем и пишем в карту яркости (noise3d[1] - яркость, noise3d[0] - оттенок)
       if (val >= noise3d[1][x1][y1]) {
         noise3d[0][x1][y1] = obj_shift;
@@ -9325,7 +9325,7 @@ static void animeBobbles() {
 
   if ((step % 4U) == 0U) {
     drawPixelXY((uint8_t)(CENTER_X_MAJOR + random8(5U)), 0U, BOBBLE_COLOR);
-    
+
     if ((step % 12U) == 0U) {
       drawPixelXY((uint8_t)(CENTER_X_MAJOR + 2U + random8(3U)), 0U, BOBBLE_COLOR);
     }
@@ -9439,7 +9439,7 @@ static void BotswanaRivers() {
       const bool isRareBrighter = (random8(6U) == 1U);
       // Определяем максимальную ширину заполнения вспышки
       const uint8_t maxFillX = isRareBrighter ? constrain(random8((uint8_t)(WIDTH + random8(6U))), 1U, WIDTH) : constrain(random8(WIDTH), 1U, WIDTH);
-      
+
       // Цвета для интерполяции градиента (CHSV в CRGB)
       const CRGB colorStart = isRareBrighter ? CRGB(CHSV(96U, 255U, 190U)) : CRGB(CHSV(85U, 128U, 255U));
       const CRGB colorEnd   = isRareBrighter ? CRGB(CHSV(90U, 200U, 255U)) : CRGB(CHSV(90U, 255U, 180U));
@@ -10579,7 +10579,7 @@ static void ballRoutine() {
 
     // Вычисляем случайный стартовый угол в радианах: 0 ... 2*PI
     const float angle = (float)random8() * 0.02463994f;
-    
+
     // Записываем векторы скоростей строго в готовые глобальные массивы пула
     trackingObjectSpeedX[0U] = speedfactor * cosf(angle);
     trackingObjectSpeedY[0U] = speedfactor * sinf(angle);
@@ -10588,7 +10588,7 @@ static void ballRoutine() {
     deltaValue = map((uint8_t)(modes[currentMode].Scale * 2.55f), 0U, 255U, 2U, (uint8_t)max(MIN_SIDE / 3, 4));
 
     // Забиваем стартовые оттенки цвета в глобальные hue
-    hue = (uint8_t)(random8(9U) * 28U);  
+    hue = (uint8_t)(random8(9U) * 28U);
 
     loadingFlag = false;
   }
@@ -10597,7 +10597,7 @@ static void ballRoutine() {
   const bool has_pulse = (modes[currentMode].Scale & 0x01U);
 
   if (has_pulse) {
-    fadeToBlackBy(leds, NUM_LEDS, 55U); 
+    fadeToBlackBy(leds, NUM_LEDS, 55U);
   } else {
     ledsClear();
   }
