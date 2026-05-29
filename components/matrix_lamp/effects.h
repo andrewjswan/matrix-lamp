@@ -47,9 +47,9 @@ static uint8_t  trackingObjectHue[trackingOBJECT_MAX_COUNT];
 static uint8_t  trackingObjectState[trackingOBJECT_MAX_COUNT];
 static bool     trackingObjectIsShift[trackingOBJECT_MAX_COUNT];
 
-inline constexpr uint16_t enlargedOBJECT_MAX_COUNT = std::clamp(static_cast<uint16_t>(MAX_SIDE), 32U, 96U); // максимальное количество сложных отслеживаемых объектов
-                                                                                                            // (меньше, чем trackingOBJECT_MAX_COUNT)
-static uint16_t  enlargedObjectNUM;                                                                         // используемое в эффекте количество объектов
+inline constexpr uint16_t enlargedOBJECT_MAX_COUNT = std::clamp(MAX_SIDE, uint8_t{32U}, uint8_t{96U});  // максимальное количество сложных отслеживаемых объектов
+                                                                                                        // (меньше, чем trackingOBJECT_MAX_COUNT)
+static uint16_t  enlargedObjectNUM;                                                                     // используемое в эффекте количество объектов
 static long      enlargedObjectTime[enlargedOBJECT_MAX_COUNT];
 static float     liquidLampHot[enlargedOBJECT_MAX_COUNT];
 static float     liquidLampSpf[enlargedOBJECT_MAX_COUNT];
