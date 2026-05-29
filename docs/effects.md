@@ -146,6 +146,7 @@
 |Rainbow Rings|RAINBOW_RINGS|Веселкові кільця|
 |Vyshyvanka|VYSHYVANKA|Вишиванка|
 |Incremental Drift|INCREMENTAL_DRIFT|Инкрементальный дрейф|
+|Tetrix|TETRIX|Тетрикс|
 |White light|WHITE_COLOR|Бeлый cвeт|
 |Colors|COLORS|Cмeнa цвeтa|
 |Ukraine|UKRAINE|Україна|
