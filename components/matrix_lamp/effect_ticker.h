@@ -428,8 +428,11 @@ static void effectsTick()
     #ifdef DEF_STARS_NIGHT
     case EFF_STARS_NIGHT:         LOW_DELAY_TICK { effTimer = millis(); StarsEffect();                         }  break;  // (135U) Звездная ночь
     #endif
+    #ifdef DEF_TETRIX
+    case EFF_TETRIXT:             LOW_DELAY_TICK { effTimer = millis(); tetrixRoutine();                       }  break;  // (136U) Tetrix
+    #endif
     #ifdef DEF_UKRAINE
-    case EFF_UKRAINE:             DYNAMIC_DELAY_TICK { effTimer = millis(); Ukraine();                         }  break;  // (136U) Україна
+    case EFF_UKRAINE:             DYNAMIC_DELAY_TICK { effTimer = millis(); Ukraine();                         }  break;  // (137U) Україна
     #endif
   }
 }
