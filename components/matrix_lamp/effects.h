@@ -13846,7 +13846,7 @@ static bool check_tetris_collision(int16_t nx, int16_t ny, uint16_t pieceMask) {
       if (getPieceCell(pieceMask, r, c)) {
         const int16_t gx = nx + c;
         const int16_t gy = ny + r;
-        
+
         if (gx < 0 || gx >= (int16_t)WIDTH || gy >= (int16_t)HEIGHT) return true;
         if (gy >= 0) {
           const uint16_t idx = gy * WIDTH + gx;
@@ -13904,7 +13904,7 @@ static void tetrisRoutine() {
       for (int16_t y = (int16_t)MAX_Y; y > 0; y--) {
         const uint16_t idx_to_row = y * WIDTH;
         const uint16_t idx_from_row = (y - 1) * WIDTH;
-                
+
         for (uint8_t x = 0U; x < WIDTH; x++) {
           ledsbuff[idx_to_row + x] = ledsbuff[idx_from_row + x];
         }
@@ -13914,7 +13914,7 @@ static void tetrisRoutine() {
       fill_solid(ledsbuff, WIDTH, CRGB::Black);
 
       // Анимация завершена
-      if (pcnt >= SAND_COLLAPSE_MAX_PAD) { 
+      if (pcnt >= SAND_COLLAPSE_MAX_PAD) {
         memset(ledsbuff, 0, NUM_LEDS * sizeof(CRGB));
         memset(shiftValue, 0, HEIGHT * sizeof(uint8_t));
         ff_x       = 0U;                                     // Выключаем режим финала, запуская новый раунд
@@ -13936,7 +13936,7 @@ static void tetrisRoutine() {
   }
 
   // =========================================================================
-  // --- Game 
+  // --- Game
   // =========================================================================
 
   // Register Cache: запираем маску текущей детали
@@ -13999,7 +13999,7 @@ static void tetrisRoutine() {
           for (uint8_t x = 0U; x < WIDTH; x++) {
             ledsbuff[x] = CRGB::Black;
           }
-          
+
           shiftValue[y] = 0U;                                // Сбрасываем флаг сгоревшей строки
           y++;                                               // Возвращаем индекс y на шаг назад, так как на это место упала новая строка сверху!
         }
@@ -14030,7 +14030,7 @@ static void tetrisRoutine() {
       // Проверка на Game Over сразу при появлении новой фигуры
       if (check_tetris_collision((int16_t)emitterX, 0, cur_piece_mask)) {
         // Случайно выбираем финальную анимацию: 10 - затухание, 20 - осыпание
-        ff_x = (random8() & 1U) ? 10U : 20U; 
+        ff_x = (random8() & 1U) ? 10U : 20U;
         pcnt = 0U;                                           // Сбрасываем счетчик кадров финала
 
         deltaValue = (game_mode == 0U) ? 1U : 0U;            // Переключаем игровой режим: 0 <-> 1
@@ -14147,15 +14147,15 @@ static void tetrisRoutine() {
 
   // 1. Копируем стакан из линейной памяти игры в физическую память матрицы
   for (uint8_t y = 0U; y < HEIGHT; y++) {
-    const uint16_t row_offset = y * WIDTH; 
+    const uint16_t row_offset = y * WIDTH;
 
     for (uint8_t x = 0U; x < WIDTH; x++) {
-      const uint16_t idx_buf = row_offset + x; 
-      
-      const uint16_t idx_led = XY(x, (uint8_t)(MAX_Y - y)); 
-      
+      const uint16_t idx_buf = row_offset + x;
+
+      const uint16_t idx_led = XY(x, (uint8_t)(MAX_Y - y));
+
       if (idx_led < NUM_LEDS) {
-        leds[idx_led] = ledsbuff[idx_buf]; 
+        leds[idx_led] = ledsbuff[idx_buf];
       }
     }
   }
