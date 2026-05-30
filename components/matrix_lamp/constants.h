@@ -222,9 +222,11 @@ inline constexpr float inv2PI   = 2.0f /  M_PI;    // ~0.63661975f
 #define EFF_INCREMENTALDRIFT    (133U)   // Инкрементальный дрейф
 #define EFF_BUTTERFLY           (134U)   // Бабочка
 #define EFF_STARS_NIGHT         (135U)   // Звездная ночь
-#define EFF_UKRAINE             (136U)   // Україна
+#define EFF_TETRIX              (136U)   // Tetrix
+#define EFF_TETRIS              (137U)   // Tetris
+#define EFF_UKRAINE             (138U)   // Україна
 
-#define MODE_AMOUNT             (137U)   // Количество режимов
+#define MODE_AMOUNT             (139U)   // Количество режимов
 
 namespace esphome::matrix_lamp {
 
@@ -368,6 +370,8 @@ static const uint8_t defaultSettings[][3] PROGMEM = {
   { 200, 170,  30}, // Инкрементальный дрейф
   {  20,  11,   3}, // Бабочка
   {  25,  18,  26}, // Звездная ночь
+  {  25, 150,   1}, // Tetrix
+  {  25, 150,   1}, // Tetris
   {  15, 240,  50}  // Україна
 }; //             ^-- проверьте, чтобы у предыдущей строки не было запятой после скобки
 // { Яркость, Скорость, Масштаб},

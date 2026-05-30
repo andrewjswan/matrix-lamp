@@ -539,6 +539,14 @@ light:
           mode: INCREMENTAL_DRIFT
 
       - matrix_lamp_effect:
+          name: Tetrix  # Тетрикс
+          mode: TETRIX
+
+      - matrix_lamp_effect:
+          name: Tetris / Sand Tetris  # Тетрис / Песочный тетрис
+          mode: TETRIS
+
+      - matrix_lamp_effect:
           name: White light  # Бeлый cвeт
           mode: WHITE_COLOR
 

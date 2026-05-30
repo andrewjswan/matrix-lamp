@@ -13650,4 +13650,580 @@ static void StarsEffect() {
 }
 #endif
 
+#ifdef DEF_TETRIX
+// =============== Tetrix ===============
+//                (c) WLED
+//          adopted by andrewjswan
+//                Тетрикс
+// ======================================
+
+constexpr uint8_t MAX_FALLING_LINES = (WIDTH > 4U) ? ((WIDTH * 4U) / 10U) : 2U;
+constexpr uint8_t MAX_BRICK_HEIGHT = (HEIGHT / 3U < 2U) ? 2U : (HEIGHT / 3U);
+constexpr uint8_t START_PROBABILITY = (320U / WIDTH < 5U) ? 5U : (320U / WIDTH);
+
+constexpr float SPEED_FACTOR_MIN = 250.0f;   // 500.0f
+constexpr float SPEED_FACTOR_MAX = 5000.0f;  // 8000.0f
+constexpr float SPEED_FACTOR_RANGE = SPEED_FACTOR_MAX - SPEED_FACTOR_MIN;
+
+static void tetrixRoutine() {
+  const uint32_t currentMillis = millis();
+  const uint8_t current_speed = modes[currentMode].Speed;
+  const uint8_t current_scale = modes[currentMode].Scale;
+
+  if (loadingFlag) {
+    #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+    if (selectedSettings) {
+      //                          scale | speed
+      setModeSettings(1U + random8(255U), 1U + random8(255U));
+    }
+    #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+
+    dimAll(0U);
+
+    for (uint8_t x = 0U; x < WIDTH; x++) {
+      enlargedObjectTime[x] = (long)(currentMillis + random16(0U, 4000U));
+      trackingObjectState[x] = 3U;    // Состояние 3: стартовая очистка/затухание
+      trackingObjectPosY[x] = 0.0f;   // Обнуляем высоту стакана для каждой колонки
+    }
+
+    // Выбор цветовой схемы на основе ползунка Масштаб (Scale)
+    if (current_scale <= 42U) {
+      currentPalette = RainbowColors_p;
+    } else if (current_scale <= 84U) {
+      currentPalette = PartyColors_p;
+    } else if (current_scale <= 126U) {
+      currentPalette = OceanColors_p;
+    } else if (current_scale <= 168U) {
+      currentPalette = CloudColors_p;
+    } else if (current_scale <= 210U) {
+      currentPalette = ForestColors_p;
+    } // else (211 - 255) - HSV спектр
+
+    loadingFlag = false;
+  }
+
+  const float speedFactor = SPEED_FACTOR_MIN + SPEED_FACTOR_RANGE * (1.0f - (float)current_speed * inv255);
+  const float baseSpeed = ((float)HEIGHT * 30.0f) / speedFactor;
+
+  uint8_t currentlyFallingCount = 0U;
+  for (uint8_t x = 0U; x < WIDTH; x++) {
+    if (trackingObjectState[x] == 2U) {
+      currentlyFallingCount++;
+    }
+  }
+
+  bool brickStartedThisFrame = false;
+
+  hue += 1U;
+
+  // Основной цикл обработки колонок матрицы
+  for (uint8_t x = 0U; x < WIDTH; x++) {
+    const uint8_t currentStepState = trackingObjectState[x];
+
+    // --- Состояние 0: Инициализация нового кирпичика ---
+    if (currentStepState == 0U) {
+      if ((uint8_t)trackingObjectPosY[x] >= HEIGHT - 1U) {
+        enlargedObjectTime[x] = (long)(currentMillis + 2000U);
+        trackingObjectState[x] = 3U; // Переходим в режим угасания
+        continue;
+      }
+
+      trackingObjectSpeedY[x] = baseSpeed * (1.0f + (float)random8(0, 4) * 0.1f);
+      trackingObjectPosX[x]   = (float)HEIGHT; // Старт из-за верхней границы матрицы
+
+      // Привязываем оттенок кирпича к hue
+      trackingObjectHue[x] = hue + (x * 4U);
+
+      // Вычисляем размер кирпича на основе масштаба
+      const uint8_t brickSize = random8(1U, MAX_BRICK_HEIGHT);
+
+      trackingObjectShift[x] = (float)brickSize;
+      trackingObjectState[x] = 1U;
+      continue;
+    }
+
+    // --- Состояние 1: Ожидание случайного старта падения ---
+    if (currentStepState == 1U) {
+      // Разрешаем старт падения только если лимит не превышен и в этом кадре еще никто не зародился
+      if (!brickStartedThisFrame && currentlyFallingCount < MAX_FALLING_LINES) {
+        if (random8() < START_PROBABILITY) {
+          trackingObjectState[x] = 2U;
+          currentlyFallingCount++;            // Учитываем взлетевший кирпич
+          brickStartedThisFrame = true;       // Блокируем запуск других линий в этом кадре
+        }
+      }
+
+      // Зачищаем фон над стаканом, пока кирпич ожидает вылета
+      const uint8_t stackHeight = (uint8_t)trackingObjectPosY[x];
+      for (uint8_t y = stackHeight; y < HEIGHT; y++) {
+        leds[XY(x, y)] = CRGB::Black;
+      }
+      continue;
+    }
+
+    // --- Состояние 2: Процесс падения кирпичика ---
+    if (currentStepState == 2U) {
+      const float stackPos = trackingObjectPosY[x];  // Высота стакана из trackingObjectPosY
+      float currentPos = trackingObjectPosX[x];
+
+      if (currentPos > stackPos) {
+        currentPos -= trackingObjectSpeedY[x];       // Падаем вниз
+        if (currentPos < stackPos) {
+          currentPos = stackPos;
+        }
+        trackingObjectPosX[x] = currentPos;
+
+        const uint8_t intPos = (uint8_t)currentPos;
+        const uint8_t brickTop = intPos + (uint8_t)trackingObjectShift[x];
+        const uint8_t currentHue = trackingObjectHue[x];
+
+        // Выбор цветовой схемы на основе ползунка Масштаб (Scale)
+        CRGB brickColor;
+        if (current_scale <= 210U) {
+          brickColor = ColorFromPalette(currentPalette, currentHue);
+        } else {
+          brickColor = CHSV(currentHue, 255U, 255U);
+        }
+
+        for (uint8_t y = 0U; y < HEIGHT; y++) {
+          if (y < (uint8_t)stackPos) {
+            // Стакан внизу не трогаем, сохраняя его старые цвета
+            continue;
+          }
+          else if (y >= intPos && y < brickTop) {
+            leds[XY(x, y)] = brickColor;
+          } else {
+            leds[XY(x, y)] = CRGB::Black;
+          }
+        }
+      } else {
+        // Фиксация кирпичика на стаке: увеличиваем высоту стакана
+        trackingObjectPosY[x] += trackingObjectShift[x];
+
+        if ((uint8_t)trackingObjectPosY[x] >= HEIGHT) {
+          enlargedObjectTime[x] = (long)(currentMillis + 2000U);
+          trackingObjectState[x] = 3U;               // Переходим в режим угасания
+        } else {
+          // После падения отправляем колонку на небольшую паузу отдыха перед новым циклом
+          enlargedObjectTime[x] = (long)(currentMillis + random16(200U, 1500U));
+          trackingObjectState[x] = 4U;               // Переходим в режим паузы
+        }
+      }
+      continue;
+    }
+
+    // --- Состояние 3: Плавное угасание стакана при заполнении ---
+    if (currentStepState == 3U) {
+      if (enlargedObjectTime[x] > (long)currentMillis) {
+        // Гашение пикселей столбца X
+        for (uint8_t y = 0U; y < HEIGHT; y++) {
+          leds[XY(x, y)].nscale8(220U);
+        }
+      } else {
+        // Таймер угасания истек: сброс стакана строго в существующем массиве
+        trackingObjectPosY[x] = 0.0f;
+        trackingObjectState[x] = 0U;
+      }
+      continue; // Переход на следующую итерацию
+    }
+
+    // --- Состояние 4: Искусственная пауза отдыха между кирпичами в одной колонке ---
+    if (currentStepState == 4U) {
+      if ((long)currentMillis >= enlargedObjectTime[x]) {
+        trackingObjectState[x] = 0U; // Пауза прошла, колонка снова готова создавать кирпич
+      }
+      // Пока колонка отдыхает, удерживаем стакан и фон в стабильном состоянии
+      const uint8_t stackHeight = (uint8_t)trackingObjectPosY[x];
+      for (uint8_t y = stackHeight; y < HEIGHT; y++) {
+        leds[XY(x, y)] = CRGB::Black;
+      }
+      continue; // Переход на следующую итерацию
+    }
+  }
+}
+#endif
+
+#ifdef DEF_TETRIS
+// =============== Tetris ===============
+//             (c) andrewjswan
+//           Tetris / Sand Tetris
+//         Тетрис / Песочный тетрис
+// ======================================
+
+// Каждые 4 бита слева направо описывают одну строку фигуры 4x4.
+inline constexpr uint16_t T_PIECES_MASK[] = {
+  0b1000000000000000U, // 0: Точка
+  0b1100110000000000U, // 1: Куб O
+  0b0100010001000100U, // 2: Линия I
+  0b1000100011000000U, // 3: Уголок L
+  0b0100010011000000U, // 4: Обратный J
+  0b1110010000000000U, // 5: T-образная
+  0b0110110000000000U, // 6: Z-фигура
+  0b1100011000000000U  // 7: S-фигура
+};
+
+// Максимальное количество кадров для анимации плавления строк Тетриса
+inline constexpr uint8_t TETRIS_MELT_MAX_STEPS = 6U;
+// Максимальное количество кадров осыпания в конце игры
+inline constexpr uint16_t SAND_COLLAPSE_MAX_PAD = static_cast<uint16_t>(HEIGHT) + 10U;
+
+// Инлайновая проверка бита в маске. r - строка (0..3), c - столбец (0..3)
+static inline bool getPieceCell(uint16_t mask, uint8_t r, uint8_t c) __attribute__((always_inline));
+static inline bool getPieceCell(uint16_t mask, uint8_t r, uint8_t c) {
+  return (mask & (0x8000U >> ((r << 2U) + c))) != 0U;
+}
+
+// Проверка столкновений строго по ЛИНЕЙНОМУ буферу стакана ledsbuff
+static bool check_tetris_collision(int16_t nx, int16_t ny, uint16_t pieceMask) {
+  for (uint8_t r = 0U; r < 4U; r++) {
+    for (uint8_t c = 0U; c < 4U; c++) {
+      if (getPieceCell(pieceMask, r, c)) {
+        const int16_t gx = nx + c;
+        const int16_t gy = ny + r;
+
+        if (gx < 0 || gx >= (int16_t)WIDTH || gy >= (int16_t)HEIGHT) return true;
+        if (gy >= 0) {
+          const uint16_t idx = gy * WIDTH + gx;
+          if (idx < NUM_LEDS) {
+            // Если пиксель в стакане ledsbuff не черный — это столкновение
+            if (ledsbuff[idx].r || ledsbuff[idx].g || ledsbuff[idx].b) return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}
+
+
+static void tetrisRoutine() {
+  const uint32_t currentMillis = millis();
+
+  if (loadingFlag) {
+    deltaValue          = 0U;  // game_mode = 0 (Классика)
+    deltaHue            = 0U;  // melt_animation = false
+    deltaHue2           = 1U;  // spawn_next = true
+    hue                 = 0U;  // melt_step = 0
+    hue2                = 0U;  // move_timer = 0
+    step                = 0U;  // drop_timer = 0
+    ff_z                = 0U;  // Полностью зачищаем маску от мусора старых эффектов в RAM
+    ff_x                = 0U;  // Режим анимации Game Over (0 - нет, 10 - Fade, 20 - Sand)
+    pcnt                = 0U;  // Счетчик кадров анимации Game Over
+
+    fillAll(CRGB::Black);                            // Системная очистка физической матрицы leds
+    memset(ledsbuff, 0, NUM_LEDS * sizeof(CRGB));    // Очищаем внутренний линейный игровой стакан
+    memset(shiftValue, 0, HEIGHT * sizeof(uint8_t));
+
+    loadingFlag = false;
+  }
+
+  // =========================================================================
+  // --- Game Over: Если активна анимация финала
+  // =========================================================================
+  if (ff_x > 0U) {
+    pcnt++;                                                  // Увеличиваем счетчик кадров финальной анимации
+
+    if (ff_x == 10U) {                                       // --- ВАРИАНТ 1: Плавное затухание всего стакана ---
+      for (uint16_t i = 0U; i < NUM_LEDS; i++) {
+        ledsbuff[i].nscale8(220U);                           // Уменьшаем яркость на ~15% каждый кадр
+      }
+
+      if (pcnt >= 25U) {                                     // Анимация завершена (~1.2 сек при HIGH_DELAY)
+        memset(ledsbuff, 0, NUM_LEDS * sizeof(CRGB));
+        memset(shiftValue, 0, HEIGHT * sizeof(uint8_t));
+        ff_x = 0U;                                           // Выключаем режим финала
+      }
+    } else if (ff_x == 20U) {                                // --- ВАРИАНТ 2: Песочное осыпание стакана на дно ---
+      // Построчный сдвиг. Сканируем снизу вверх, чтобы строки плавно уезжали вниз
+      for (int16_t y = (int16_t)MAX_Y; y > 0; y--) {
+        const uint16_t idx_to_row = y * WIDTH;
+        const uint16_t idx_from_row = (y - 1) * WIDTH;
+
+        for (uint8_t x = 0U; x < WIDTH; x++) {
+          ledsbuff[idx_to_row + x] = ledsbuff[idx_from_row + x];
+        }
+      }
+
+      // Очищаем только самую верхнюю строку матрицы, которая освободилась на этом кадре
+      fill_solid(ledsbuff, WIDTH, CRGB::Black);
+
+      // Анимация завершена
+      if (pcnt >= SAND_COLLAPSE_MAX_PAD) {
+        memset(ledsbuff, 0, NUM_LEDS * sizeof(CRGB));
+        memset(shiftValue, 0, HEIGHT * sizeof(uint8_t));
+        ff_x       = 0U;                                     // Выключаем режим финала, запуская новый раунд
+      }
+    }
+
+    // ВЫВОД КАДРА НА ЭКРАН ДЛЯ АНИМАЦИИ ФИНАЛА
+    fillAll(CRGB::Black);
+    for (uint8_t y = 0U; y < HEIGHT; y++) {
+      const uint16_t row_offset = y * WIDTH;
+      for (uint8_t x = 0U; x < WIDTH; x++) {
+        const uint16_t idx_led = XY(x, (uint8_t)(MAX_Y - y));
+        if (idx_led < NUM_LEDS) {
+          leds[idx_led] = ledsbuff[row_offset + x];
+        }
+      }
+    }
+    return;
+  }
+
+  // =========================================================================
+  // --- Game
+  // =========================================================================
+
+  // Register Cache: запираем маску текущей детали
+  uint16_t cur_piece_mask = ff_z;
+
+  // Кэшируем флаги состояния
+  bool melt_animation = (deltaHue == 1U);
+  bool spawn_next     = (deltaHue2 == 1U);
+  uint8_t game_mode   = deltaValue;
+
+  // Инкрементируем счетчики кадров для логики движений и падения ИИ-бота
+  hue2++;                                                    // move_timer++
+  step++;                                                    // drop_timer++
+
+  // --- РЕЖИМ АНИМАЦИИ: ПЛАВНОЕ РАСТВОРЕНИЕ СГОРАЮЩИХ ЛИНИЙ ---
+  if (melt_animation) {
+    hue++;                                                   // melt_step++
+
+    float alpha_f = (float)hue * (1.0f / (float)TETRIS_MELT_MAX_STEPS);
+    if (alpha_f > 1.0f) alpha_f = 1.0f;
+    const uint8_t alpha = (uint8_t)(alpha_f * 255.0f);
+
+    for (int16_t y = (int16_t)MAX_Y; y >= 0; y--) {
+      if (shiftValue[y]) {                                   // Если строка y помечена на сжигание
+        const uint16_t row_offset = y * WIDTH;
+
+        for (uint8_t x = 0U; x < WIDTH; x++) {
+          const uint16_t idx_current = row_offset + x;
+
+          CRGB top_color = CRGB::Black;
+          if (y > 0) {
+            const uint16_t idx_top = idx_current - WIDTH;    // Предыдущая строка в линейной памяти
+            if (idx_top < NUM_LEDS) top_color = ledsbuff[idx_top];
+          }
+
+          if (idx_current < NUM_LEDS) {
+            ledsbuff[idx_current] = blend(ledsbuff[idx_current], top_color, alpha);
+          }
+        }
+      }
+    }
+
+    if (hue >= TETRIS_MELT_MAX_STEPS) {
+      hue = 0U;                                              // melt_step = 0
+      melt_animation = false;
+
+      // Физический каскадный сдвиг стакана вниз после завершения растворения рядов
+      // Каскадный сдвиг стакана снизу вверх
+      for (int16_t y = (int16_t)MAX_Y; y >= 0; y--) {
+        if (shiftValue[y]) {
+          // Смещаем всё, что выше сгоревшей строки y, строго на один уровень вниз
+          for (int16_t ty = y; ty > 0; ty--) {
+            const uint16_t idx_to_row = ty * WIDTH;
+            const uint16_t idx_from_row = (ty - 1) * WIDTH;
+            for (uint8_t x = 0U; x < WIDTH; x++) {
+              ledsbuff[idx_to_row + x] = ledsbuff[idx_from_row + x];
+            }
+          }
+          // Зануляем самую верхнюю строчку стакана, которая освободилась
+          for (uint8_t x = 0U; x < WIDTH; x++) {
+            ledsbuff[x] = CRGB::Black;
+          }
+
+          shiftValue[y] = 0U;                                // Сбрасываем флаг сгоревшей строки
+          y++;                                               // Возвращаем индекс y на шаг назад, так как на это место упала новая строка сверху!
+        }
+      }
+      spawn_next = true; // Разрешаем спавн новой детали
+    }
+  }
+  // --- РЕЖИМ: ОСНОВНАЯ ИГРА ---
+  else {
+    hue2++;                                                  // move_timer++
+    step++;                                                  // drop_timer++
+
+    // 1. Спавн новой детали
+    if (spawn_next) {
+      const uint8_t type = random8(0U, 8U);                  // Быстрый случайный выбор фигуры
+      cur_piece_mask = T_PIECES_MASK[type];
+
+      // Выбираем случайный яркий цвет из палитры
+      const CRGB cur_color = ColorFromPalette(RainbowColors_p, random8(), 255, LINEARBLEND);
+      // Пакуем 24-битный цвет во float-переменную speedfactor
+      const uint32_t packedColor = ((uint32_t)cur_color.r << 16U) | ((uint32_t)cur_color.g << 8U) | cur_color.b;
+      speedfactor = *(float*)&packedColor;
+
+      emitterX = (float)(CENTER_X_MINOR - 1);                // px = WIDTH / 2 - 2
+      emitterY = -2.0f;                                      // py = -2
+      spawn_next = false;
+
+      // Проверка на Game Over сразу при появлении новой фигуры
+      if (check_tetris_collision((int16_t)emitterX, 0, cur_piece_mask)) {
+        // Случайно выбираем финальную анимацию: 10 - затухание, 20 - осыпание
+        ff_x = (random8() & 1U) ? 10U : 20U;
+        pcnt = 0U;                                           // Сбрасываем счетчик кадров финала
+
+        deltaValue = (game_mode == 0U) ? 1U : 0U;            // Переключаем игровой режим: 0 <-> 1
+        deltaHue   = 0U;                                     // melt_animation = false
+        deltaHue2  = 1U;                                     // spawn_next = true
+        ff_z       = cur_piece_mask;                         // Сохраняем состояние регистра перед выходом
+        return;
+      }
+    }
+
+    // Распаковываем цвет летящей фигуры обратно из float-контейнера speedfactor
+    const uint32_t packedColorOut = *(uint32_t*)&speedfactor;
+    const CRGB cur_color((packedColorOut >> 16U) & 0xFFU, (packedColorOut >> 8U) & 0xFFU, packedColorOut & 0xFFU);
+
+    // 2. Движения фигуры в полете (ИИ-Бот)
+    if (hue2 >= 6U) {                                        // move_timer
+      hue2 = 0U;
+      const uint8_t action = random8(0U, 4U);
+      const int16_t ipx = (int16_t)emitterX;
+      const int16_t ipy = (int16_t)emitterY;
+
+      if (action == 0U && !check_tetris_collision(ipx - 1, ipy, cur_piece_mask)) emitterX -= 1.0f;
+      else if (action == 1U && !check_tetris_collision(ipx + 1, ipy, cur_piece_mask)) emitterX += 1.0f;
+      else if (action == 2U) {
+        // Поворот битовой маски 4х4 на 90 градусов прямо в регистрах процессора
+        uint16_t rotatedMask = 0U;
+        for (uint8_t r = 0U; r < 4U; r++) {
+          for (uint8_t c = 0U; c < 4U; c++) {
+            if (getPieceCell(cur_piece_mask, r, c)) {
+              rotatedMask |= (0x8000U >> ((c << 2U) + (3U - r)));
+            }
+          }
+        }
+        if (!check_tetris_collision(ipx, ipy, rotatedMask)) {
+          cur_piece_mask = rotatedMask;                      // Обновляем локальную маску в регистре
+        }
+      }
+    }
+
+    // 3. Шаг падения вниз
+    if (step >= 8U) {                                        // drop_timer
+      step = 0U;
+      const int16_t ipx = (int16_t)emitterX;
+      const int16_t ipy = (int16_t)emitterY;
+
+      if (!check_tetris_collision(ipx, ipy + 1, cur_piece_mask)) {
+        emitterY += 1.0f;
+      } else {
+        // --- ПРИЗЕМЛЕНИЕ ФИГУРЫ В СТАКАН ---
+        for (uint8_t r = 0U; r < 4U; r++) {
+          for (uint8_t c = 0U; c < 4U; c++) {
+            if (getPieceCell(cur_piece_mask, r, c)) {
+              const int16_t gx = ipx + c;
+              const int16_t gy = ipy + r;
+              if (gx >= 0 && gx < (int16_t)WIDTH && gy >= 0 && gy < (int16_t)HEIGHT) {
+                const uint16_t idx = gy * WIDTH + gx;
+                if (idx < NUM_LEDS) ledsbuff[idx] = cur_color;
+              }
+            }
+          }
+        }
+
+        // --- ПЕСОЧНАЯ ГРАВИТАЦИЯ (Режим 1) ---
+        if (game_mode == 1U) {
+          for (uint8_t x = 0U; x < WIDTH; x++) {
+            int16_t writeY = MAX_Y;
+            // Сканируем строго снизу вверх и пересобираем колонку без воздушных пустот
+            for (int16_t y = (int16_t)MAX_Y; y >= 0; y--) {
+              const uint16_t idx_read = y * WIDTH + x;
+              if (idx_read < NUM_LEDS && (ledsbuff[idx_read].r || ledsbuff[idx_read].g || ledsbuff[idx_read].b)) {
+                CRGB tempColor = ledsbuff[idx_read];
+                ledsbuff[idx_read] = CRGB::Black;
+
+                const uint16_t idx_write = writeY * WIDTH + x;
+                if (idx_write < NUM_LEDS) ledsbuff[idx_write] = tempColor;
+                writeY--;
+              }
+            }
+          }
+        }
+
+        // Проверка заполненных рядов на сжигание
+        bool found_full_line = false;
+        for (int16_t y = (int16_t)MAX_Y; y >= 0; y--) {
+          bool line_full = true;
+          const uint16_t row_offset = y * WIDTH;
+
+          for (uint8_t x = 0U; x < WIDTH; x++) {
+            const uint16_t idx = row_offset + x;
+            if (idx < NUM_LEDS && !(ledsbuff[idx].r || ledsbuff[idx].g || ledsbuff[idx].b)) {
+              line_full = false;
+              break;
+            }
+          }
+          if (line_full) {
+            shiftValue[y] = 1U;                              // Помечаем строку y на растворение в массиве shiftValue
+            found_full_line = true;
+          }
+        }
+
+        if (found_full_line) {
+          melt_animation = true;
+          hue = 0U;                                          // melt_step = 0
+        } else {
+          spawn_next = true;
+        }
+      }
+    }
+  }
+
+  // --- ИТОГОВАЯ ОТРИСОВКА И ВЫВОД КАДРА НА ЭКРАН ---
+  // Полностью очищаем буфер вывода leds напрямую
+  fillAll(CRGB::Black);
+
+  // 1. Копируем стакан из линейной памяти игры в физическую память матрицы
+  for (uint8_t y = 0U; y < HEIGHT; y++) {
+    const uint16_t row_offset = y * WIDTH;
+
+    for (uint8_t x = 0U; x < WIDTH; x++) {
+      const uint16_t idx_buf = row_offset + x;
+
+      const uint16_t idx_led = XY(x, (uint8_t)(MAX_Y - y));
+
+      if (idx_led < NUM_LEDS) {
+        leds[idx_led] = ledsbuff[idx_buf];
+      }
+    }
+  }
+
+  // 2. Накладываем летящую фигуру поверх стакана (если нет активных анимаций)
+  if (!melt_animation && !spawn_next) {
+    const uint32_t packedColorOut = *(uint32_t*)&speedfactor;
+    const CRGB flyingColor((packedColorOut >> 16U) & 0xFFU, (packedColorOut >> 8U) & 0xFFU, packedColorOut & 0xFFU);
+
+    const int16_t ipx = (int16_t)emitterX;
+    const int16_t ipy = (int16_t)emitterY;
+
+    for (uint8_t r = 0U; r < 4U; r++) {
+      for (uint8_t c = 0U; c < 4U; c++) {
+        if (getPieceCell(cur_piece_mask, r, c)) {
+          const int16_t gx = ipx + c;
+          const int16_t gy = ipy + r;
+
+          // Жесткие Guard Checks геометрии и защиты памяти leds
+          if (gx >= 0 && gx < (int16_t)WIDTH && gy >= 0 && gy < (int16_t)HEIGHT) {
+            const uint16_t idx_led = XY((uint8_t)gx, (uint8_t)(MAX_Y - gy));
+            if (idx_led < NUM_LEDS) {
+              leds[idx_led] = flyingColor;                   // Накладываем пиксель фигуры в физическую память матрицы
+            }
+          }
+        }
+      }
+    }
+  }
+
+  ff_z = cur_piece_mask;                                     // Сохраняем маску фигуры
+  deltaHue   = melt_animation ? 1U : 0U;                     // Конвертируем bool обратно
+  deltaHue2  = spawn_next ? 1U : 0U;                         // Конвертируем bool обратно
+}
+#endif
+
 }  // namespace esphome::matrix_lamp

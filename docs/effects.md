@@ -146,6 +146,8 @@
 |Rainbow Rings|RAINBOW_RINGS|Веселкові кільця|
 |Vyshyvanka|VYSHYVANKA|Вишиванка|
 |Incremental Drift|INCREMENTAL_DRIFT|Инкрементальный дрейф|
+|Tetrix|TETRIX|Тетрикс|
+|Tetris / Sand Tetris|TETRIS|Тетрис / Песочный тетрис|
 |White light|WHITE_COLOR|Бeлый cвeт|
 |Colors|COLORS|Cмeнa цвeтa|
 |Ukraine|UKRAINE|Україна|
@@ -159,3 +161,15 @@
         name: Peacock
         mode: RAINBOW_STRIPE
     ```
+
+## Adding a New Effect
+
+!!! tip "Adding a New Effect"
+
+    To add a new effect or duplicate an existing one for different presets, modify **5 locations**:
+
+    1. **[constants.h](https://github.com/andrewjswan/matrix-lamp/blob/main/components/matrix_lamp/constants.h)** — Define a unique `EFF_......` constant with a sequential ID. Update the total `MODE_AMOUNT` at the end.
+    2. **[constants.h](https://github.com/andrewjswan/matrix-lamp/blob/main/components/matrix_lamp/constants.h)** (lower section) — Add a new configuration row to the default settings array at the corresponding position.
+    3. **[effect_ticker.h](https://github.com/andrewjswan/matrix-lamp/blob/main/components/matrix_lamp/effect_ticker.h)** — Add a `case` statement to hook the `EFF_......` constant into the execution switch.
+    4. **[effects.h](https://github.com/andrewjswan/matrix-lamp/blob/main/components/matrix_lamp/effects.h]** or **[noise_effects.h](https://github.com/andrewjswan/matrix-lamp/blob/main/components/matrix_lamp/noise_effects.h)** — Add the effect routine code wrapped inside `#ifdef EFF_.....` and `#endif`. *(You can map multiple IDs like `EFF_FIRE`, `EFF_FIRE2` for different presets).*
+    5. **[const.py](https://github.com/andrewjswan/matrix-lamp/blob/main/components/matrix_lamp/const.py)** & **[packages/matrix_lamp_light_effects.yaml](https://github.com/andrewjswan/matrix-lamp/blob/main/packages/matrix_lamp_light_effects.yaml)** — Add the constant to `const.py` (global array) and register the effect in the `YAML` automation package.
