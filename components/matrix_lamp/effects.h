@@ -12750,6 +12750,7 @@ static void HandFan() {
 #ifdef DEF_LIGHTFILTER
 // ============ Light Filter ============
 //             © SlingMaster
+//        rework by andrewjswan
 //              Cвітлофільтр
 // --------------------------------------
 static void LightFilter() {
@@ -12904,15 +12905,23 @@ static void RainbowSpot() {
     hue = 96U;
     emitterY = 0.0f;
     pcnt = 0U;
+    speedfactor = 0.0f;
 
     ledsClear(); // esphome: FastLED.clear();
 
     loadingFlag = false;
   }
 
+  const uint8_t current_speed = modes[currentMode].Speed;
+  const float dt = 0.05f + (1.5f - 0.05f) * ((float)current_speed * inv255);
+
+  speedfactor += 1.0f * dt;
+  if (speedfactor >= 256.0f) speedfactor -= 256.0f;
+  const float spot_phase = speedfactor;
+
   // Calculate the radius based on the sound value --
   // Заменили деление на 127.0f быстрым умножением на инвариант (1.0f / 127.0f ≈ 0.007874f)
-  const float radius = std::abs(128 - (int16_t)step) * inv127 * (float)max(CENTER_X_MINOR, CENTER_Y_MINOR);
+  const float radius = std::abs(128.0f - spot_phase) * inv127 * (float)max(CENTER_X_MINOR, CENTER_Y_MINOR);
   const float radiusSq = radius * radius;
 
   const uint8_t scale_val = modes[currentMode].Scale;
@@ -12961,10 +12970,10 @@ static void RainbowSpot() {
 
   if (scale_gt50) {
     if (emitterY > (float)pcnt) {
-      emitterY -= 0.25f;
+      emitterY -= 0.25f * dt;
     } else {
       if (emitterY < (float)pcnt) {
-        emitterY += 0.25f;
+        emitterY += 0.25f * dt;
       } else {
         pcnt = random8(CENTER_Y_MINOR);
       }
@@ -12974,7 +12983,6 @@ static void RainbowSpot() {
   }
 
   blurScreen(48U);
-  step++;
 }
 #endif
 
