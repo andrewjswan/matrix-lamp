@@ -1,4 +1,6 @@
-#include "esphome.h"
+#include "matrix_lamp.h"
+
+#include "esphome/core/defines.h"
 
 namespace esphome::matrix_lamp {
 

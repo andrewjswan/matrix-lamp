@@ -5,12 +5,14 @@
 #include "noise_effects.h"
 
 // Если вы хотите добавить эффекты или сделать им копии для демонстрации на разных настройках, нужно делать это в 5 местах:
-// 1. в файле effects.ino - добавляется программный код самого эффекта.
-// 2. в файле Constants.h - придумываются названия "EFF_......" и задаются порядковые номера эффектам. В конце указывается общее количество MODE_AMOUNT.
-// 3. там же в файле Constants.h ещё ниже - задаётся Массив настроек эффектов по умолчанию.
-//    Просто добавьте строчку для своего нового эффекта в нужное место. Это тоже не обязательно.
-// 5. здесь в файле effectTicker.ino - подключается процедура вызова эффекта на соответствующий ей "EFF_......"
+// 1. в файле constants.h - придумываются названия "EFF_......" и задаются порядковые номера эффектам. В конце указывается общее количество MODE_AMOUNT.
+// 2. там же в файле constants.h ещё ниже - задаётся Массив настроек эффектов по умолчанию.
+//    Просто добавьте строчку для своего нового эффекта в нужное место.
+// 3. здесь в файле effect_ticker.h - подключается процедура вызова эффекта на соответствующий ей "EFF_......".
+// 4. в файле effects.h или в noise_effects.h - добавляется программный код самого эффекта. Не забіваем его обернуть в "#ifdef EFF_....." ... "#endif".
 //    Можно подключать один и тот же эффект под разными номерами. Например: EFF_FIRE (24U), EFF_FIRE2 (25U), EFF_FIRE3 (26U). Будет три огня для разных цветов.
+// 5. в файле const.py добавляем константу и помещаем ее в общий массив по аналогии с другими.
+//    Подключаем эффект в общий пакет эффектов (packages/matrix_lamp_light_effects.yaml) для проверки.
 
 namespace esphome::matrix_lamp {
 
@@ -428,8 +430,14 @@ static void effectsTick()
     #ifdef DEF_STARS_NIGHT
     case EFF_STARS_NIGHT:         LOW_DELAY_TICK { effTimer = millis(); StarsEffect();                         }  break;  // (135U) Звездная ночь
     #endif
+    #ifdef DEF_TETRIX
+    case EFF_TETRIX:              LOW_DELAY_TICK { effTimer = millis(); tetrixRoutine();                       }  break;  // (136U) Tetrix
+    #endif
+    #ifdef DEF_TETRIS
+    case EFF_TETRIS:              HIGH_DELAY_TICK { effTimer = millis(); tetrisRoutine();                      }  break;  // (137U) Tetris
+    #endif
     #ifdef DEF_UKRAINE
-    case EFF_UKRAINE:             DYNAMIC_DELAY_TICK { effTimer = millis(); Ukraine();                         }  break;  // (136U) Україна
+    case EFF_UKRAINE:             DYNAMIC_DELAY_TICK { effTimer = millis(); Ukraine();                         }  break;  // (138U) Україна
     #endif
   }
 }

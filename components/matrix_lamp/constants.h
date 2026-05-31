@@ -1,6 +1,8 @@
 #pragma once
 
-#include "esphome.h"
+#include <algorithm>
+
+#include "esphome/core/defines.h"
 
 // --- Common -------------------------------------------------------------------------------------------------------------------------------------------
 // #define RANDOM_SETTINGS_IN_CYCLE_MODE     (1U)           // с этой строчкой в режиме Цикл эффекты будут включаться на случайных (но удачных) настройках Скорости и Масштаба
@@ -10,7 +12,64 @@
 // #define WIDTH                 (16U)                      // ширина матрицы
 // #define HEIGHT                (16U)                      // высота матрицы
 
-#define NUM_LEDS              (uint16_t)(WIDTH * HEIGHT)
+inline constexpr uint16_t NUM_LEDS = WIDTH * HEIGHT;
+
+inline constexpr uint8_t MIN_SIDE  = static_cast<uint8_t>(std::min(WIDTH, HEIGHT));
+inline constexpr uint8_t MAX_SIDE  = static_cast<uint8_t>(std::max(WIDTH, HEIGHT));
+
+inline constexpr uint8_t MAX_X = WIDTH - 1U;
+inline constexpr uint8_t MAX_Y = HEIGHT - 1U;
+
+// Константы размера матрицы вычисляется только здесь и не меняется в эффектах
+inline constexpr uint8_t CENTER_X = WIDTH / 2;
+inline constexpr uint8_t CENTER_Y = HEIGHT / 2;
+
+inline constexpr float CENTER_X_F = WIDTH / 2.0f;
+inline constexpr float CENTER_Y_F = HEIGHT / 2.0f;
+
+inline constexpr uint8_t THIRD_X = WIDTH / 3;
+inline constexpr uint8_t THIRD_Y = HEIGHT / 3;
+
+inline constexpr uint8_t QUARTER_X = WIDTH / 4;
+inline constexpr uint8_t QUARTER_Y = HEIGHT / 4;
+
+inline constexpr uint8_t OCTANT_X = WIDTH / 8;
+inline constexpr uint8_t OCTANT_Y = HEIGHT / 8;
+
+// Центр со сдвигом в меньшую сторону, если ширина чётная
+inline constexpr uint8_t CENTER_X_MINOR = CENTER_X - ((WIDTH - 1) & 0x01);
+inline constexpr uint8_t CENTER_Y_MINOR = CENTER_Y - ((HEIGHT - 1) & 0x01);
+
+// Центр со сдвигом в большую сторону, если ширина чётная
+inline constexpr uint8_t CENTER_X_MAJOR = CENTER_X + (WIDTH % 2);
+inline constexpr uint8_t CENTER_Y_MAJOR = CENTER_Y + (HEIGHT % 2);
+
+// Инварианты
+inline constexpr float inv2     = 1.0f /    2.0f;  // 0.5f
+inline constexpr float inv3     = 1.0f /    3.0f;  // ~0.33333334f
+inline constexpr float inv4     = 1.0f /    4.0f;  // 0.25f
+inline constexpr float inv5     = 1.0f /    5.0f;  // 0.2f
+inline constexpr float inv6     = 1.0f /    6.0f;  // ~0.16666667f
+inline constexpr float inv8     = 1.0f /    8.0f;  // 0.125f
+inline constexpr float inv10    = 1.0f /   10.0f;  // 0.1f
+inline constexpr float inv16    = 1.0f /   16.0f;  // 0.0625f
+inline constexpr float inv20    = 1.0f /   20.0f;  // 0.05f
+inline constexpr float inv30    = 1.0f /   30.0f;  // ~0.0333333f
+inline constexpr float inv99    = 1.0f /   99.0f;  // ~0.010101f
+inline constexpr float inv100   = 1.0f /  100.0f;  // 0.01f
+inline constexpr float inv127   = 1.0f /  127.0f;  // ~0.007874f
+inline constexpr float inv128   = 1.0f /  128.0f;  // 0.0078125f
+inline constexpr float inv200   = 1.0f /  200.0f;  // 0.005f
+inline constexpr float inv255   = 1.0f /  255.0f;  // ~0.00392157f
+inline constexpr float inv256   = 1.0f /  256.0f;  // 0.00390625f
+inline constexpr float inv380   = 1.0f /  380.0f;  // ~0.00263158f
+inline constexpr float inv500   = 1.0f /  500.0f;  // 0.002f
+inline constexpr float inv1000  = 1.0f / 1000.0f;  // 0.001f
+inline constexpr float inv2040  = 1.0f / 2040.0f;  // ~0.000490196f
+inline constexpr float inv4080  = 1.0f / 4080.0f;  // ~0.000245098f
+inline constexpr float inv32768 = 1.0f / 32768.0f; // ~0.000030518f
+inline constexpr float invPI    = 1.0f /  M_PI;    // ~0.31830988f
+inline constexpr float inv2PI   = 2.0f /  M_PI;    // ~0.63661975f
 
 // --- ЭФФЕКТЫ ------------------------------------------------------------------------------------------------------------------------------------------
 #define DYNAMIC               ( 0U)                         // динамическая задержка для кадров ( будет использоваться бегунок Скорость )
@@ -163,9 +222,11 @@
 #define EFF_INCREMENTALDRIFT    (133U)   // Инкрементальный дрейф
 #define EFF_BUTTERFLY           (134U)   // Бабочка
 #define EFF_STARS_NIGHT         (135U)   // Звездная ночь
-#define EFF_UKRAINE             (136U)   // Україна
+#define EFF_TETRIX              (136U)   // Tetrix
+#define EFF_TETRIS              (137U)   // Tetris
+#define EFF_UKRAINE             (138U)   // Україна
 
-#define MODE_AMOUNT             (137U)   // Количество режимов
+#define MODE_AMOUNT             (139U)   // Количество режимов
 
 namespace esphome::matrix_lamp {
 
@@ -203,12 +264,12 @@ static const uint8_t defaultSettings[][3] PROGMEM = {
   {  19,  60,  20}, // Nexus
   {   9,  85,  85}, // Шapы
   {   7,  89,  83}, // Cинycoид
-  {   7,  85,   3}, // Meтaбoлз
+  {   7,  70,   3}, // Meтaбoлз
   {  12,  73,  38}, // Ceвepнoe cияниe
   {   8,  59,  18}, // Плaзмeннaя лaмпa
   {  23, 203,   1}, // Лaвoвaя лaмпa
-  {  11,  63,   1}, // Жидкaя лaмпa
-  {  11, 124,  39}, // Жидкaя лaмпa (auto)
+  {  11,  50,   1}, // Жидкaя лaмпa
+  {  11,  60,  39}, // Жидкaя лaмпa (auto)
   {  23,  71,  59}, // Kaпли нa cтeклe
   {  27, 186,  23}, // Maтpицa
   {   9, 225,  59}, // Oгoнь 2012
@@ -293,24 +354,27 @@ static const uint8_t defaultSettings[][3] PROGMEM = {
   { 175, 165,  40}, // Стрелки
   {  35,  90,  50}, // Аврора
   {  15, 150,  45}, // Квітка лотоса
-  {  40, 202,  75}, // Фонтан
+  {  40, 150,  75}, // Фонтан
   {  35,  50,  25}, // Ночной Город
   {  15, 205,   1}, // Разноцветный дождь
   {  50, 230,   0}, // Сканер
   {  10, 255,  30}, // Міраж
   {  11, 250,  65}, // Опахало
   {  12, 160,  95}, // Cвітлофільтр
-  {  12, 215,  15}, // Смак Меду
+  {  12, 150,  15}, // Смак Меду
   {  16, 215,  35}, // Веретено
   {   8, 128,  20}, // Попурі
-  {  40, 200,  40}, // Веселкова Пляма
+  {  40, 230,  40}, // Веселкова Пляма
   {  20, 128,  25}, // Веселкові кільця
   { 150, 200,  85}, // Вишиванка
   { 200, 170,  30}, // Инкрементальный дрейф
   {  20,  11,   3}, // Бабочка
   {  25,  18,  26}, // Звездная ночь
+  {  25, 150,   1}, // Tetrix
+  {  25, 200,   1}, // Tetris
   {  15, 240,  50}  // Україна
 }; //             ^-- проверьте, чтобы у предыдущей строки не было запятой после скобки
+// { Яркость, Скорость, Масштаб},
 
 // ============= КОНЕЦ МАССИВА =====
 

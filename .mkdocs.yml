@@ -63,19 +63,36 @@ theme:
       accent: indigo
 
 markdown_extensions:
+  - abbr
   - admonition
   - attr_list
   - codehilite
-  - footnotes
   - md_in_html
+  - sane_lists
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
       pygments_lang_class: true
   - pymdownx.inlinehilite
+  - pymdownx.magiclink:
+      hide_protocol: true
+      repo_url_shortener: true
+      repo_url_shorthand: true
+      normalize_issue_symbols: true
+      user: andrewjswan
+      repo: matrix-lamp
+  - pymdownx.smartsymbols
   - pymdownx.snippets
-  - pymdownx.details
   - pymdownx.superfences
+  - pymdownx.tasklist
+  - toc:
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
 
 nav:
   - Home: index.md
@@ -91,6 +108,7 @@ nav:
   - Additionals: additionals.md
   - Firmware:
       - MatrixLamp: firmware.md
+  - Changelog: CHANGELOG.md
 
 extra:
   analytics:
@@ -103,6 +121,7 @@ extra:
 extra_css:
   - stylesheets/table.css
   - stylesheets/installer.css
+  - stylesheets/github.css
 
 plugins:
   - social:
