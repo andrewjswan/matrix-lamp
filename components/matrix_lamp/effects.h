@@ -12210,7 +12210,7 @@ static void Fountain() {
   }
 
   // 2. РАСЧЕТ СКОРОСТИ И ФИЗИКИ ДВИЖЕНИЯ СТРУИ (Плавный шаг времени)
-  const uint8_t current_speed = modes[currentMode].Speed; 
+  const uint8_t current_speed = modes[currentMode].Speed;
   const float dt = 0.05f + (2.0f - 0.05f) * ((float)current_speed * inv255);
 
   // Плавное скольжение высоты эмиттера (Правило 1)
@@ -12229,7 +12229,7 @@ static void Fountain() {
   }
 
   // Накапливаем шаг пульсации во float-переменной speedfactor
-  speedfactor += 4.0f * dt; 
+  speedfactor += 4.0f * dt;
   if (speedfactor >= 256.0f) {
     speedfactor -= 256.0f;
   }
@@ -12238,7 +12238,7 @@ static void Fountain() {
   // 3. МАТЕМАТИЧЕСКИЙ РАСЧЕТ ГЕОМЕТРИИ КАДРА (Чистый float с литералами 'f')
   const float radius = std::abs(128.0f - fontain_phase) * inv127 * (float)CENTER_Y_MINOR;
   const float br_div_f = 255.0f / (emitterY + 1.0f); // Вынос инварианта строки (Правило 4)
-  
+
   const float boundaryLow = emitterY - radius + 0.99f;
   const float boundaryMid = emitterY - (radius * inv2) + 0.99f;
   const float delta_val_f = (emitterY * 7.0f + radius * 10.0f + 9.0f) * inv10;
@@ -12255,7 +12255,7 @@ static void Fountain() {
   for (uint8_t y = 0U; y < HEIGHT; y++) {
     const float fy_plus  = (float)y + 0.5f;
     const float fy_minus = (float)y - 0.5f;
-    
+
     const float calc_br_f = br_div_f * (float)y;
     const uint8_t br = (calc_br_f < 48.0f) ? 48U : ((calc_br_f > 255.0f) ? 255U : (uint8_t)calc_br_f);
 
@@ -12274,7 +12274,7 @@ static void Fountain() {
           // Заменили грубый random8() на плавную волну wave_spray
           if (y == (uint8_t)(boundaryLow + wave_spray)) {
             if ((step_byte & 0x01U) == 0U) {
-              drawPixelXYF((float)x, fy_plus, CHSV(hue, 200U, 255U)); 
+              drawPixelXYF((float)x, fy_plus, CHSV(hue, 200U, 255U));
             } else {
               drawPixelXY(x, y, CHSV(hue, 200U, 255U));
             }
@@ -12292,7 +12292,7 @@ static void Fountain() {
         }
       } else { // --- НЕЧЕТНЫЕ СТОЛБЦЫ: ГАШЕНИЕ СЛЕДОВ ---
         if (pcnt > (uint8_t)(PADDING + 2U)) {
-          drawPixelXY(x, y, CRGB::Black); 
+          drawPixelXY(x, y, CRGB::Black);
         }
       }
     }
@@ -12787,7 +12787,7 @@ static void LightFilter() {
   bool direct            = (hue == 1U);
 
   // Шаг времени плазмы
-  speedfactor += 1.0f; 
+  speedfactor += 1.0f;
   const float frame_time = speedfactor;
 
   // Рассчитываем плавный временной шаг
@@ -12796,7 +12796,7 @@ static void LightFilter() {
 
   if (pcnt > 0U) {
     pcnt++;
-    
+
     if (pcnt >= 50U) {
       pcnt = 0U;
     }
@@ -12843,7 +12843,7 @@ static void LightFilter() {
   const uint8_t t3_shifted = t3 >> 2U;
 
   for (uint16_t y = 0U; y < HEIGHT; y++) {
-    const uint8_t y_scaled = y << 3U; 
+    const uint8_t y_scaled = y << 3U;
     const uint8_t r_base   = y_scaled + t1_shifted;
     const uint8_t g_base   = y_scaled + t1;
     const uint8_t b_base   = y_scaled + t2;
@@ -12854,7 +12854,7 @@ static void LightFilter() {
       if (x != line_gold_x) {
         uint8_t r = cos8(r_base + cos8(t2 + x_scaled));
         uint8_t g = cos8(g_base + cos8(t3_shifted + x_scaled));
-        uint8_t b = cos8(b_base + cos8(t1 + x_scaled)); 
+        uint8_t b = cos8(b_base + cos8(t1 + x_scaled));
 
         // Применяем цветовые фильтры луча со встроенным Guard-порогом (16U)
         switch (current_filter) {
@@ -13931,7 +13931,7 @@ static bool check_tetris_collision(int16_t nx, int16_t ny, uint16_t pieceMask) {
       if (getPieceCell(pieceMask, r, c)) {
         const int16_t gx = nx + c;
         const int16_t gy = ny + r;
-        
+
         if (gx < 0 || gx >= (int16_t)WIDTH || gy >= (int16_t)HEIGHT) return true;
         if (gy >= 0) {
           const uint16_t idx = gy * WIDTH + gx;
@@ -14004,7 +14004,7 @@ static void tetrisRoutine() {
       for (int16_t y = (int16_t)MAX_Y; y > 0; y--) {
         const uint16_t idx_to_row = y * WIDTH;
         const uint16_t idx_from_row = (y - 1) * WIDTH;
-                
+
         for (uint8_t x = 0U; x < WIDTH; x++) {
           ledsbuff[idx_to_row + x] = ledsbuff[idx_from_row + x];
         }
@@ -14014,7 +14014,7 @@ static void tetrisRoutine() {
       fill_solid(ledsbuff, WIDTH, CRGB::Black);
 
       // Анимация завершена
-      if (pcnt >= SAND_COLLAPSE_MAX_PAD) { 
+      if (pcnt >= SAND_COLLAPSE_MAX_PAD) {
         memset(ledsbuff, 0, NUM_LEDS * sizeof(CRGB));
         memset(shiftValue, 0, HEIGHT * sizeof(uint8_t));
         ff_x       = 0U;                                     // Выключаем режим финала, запуская новый раунд
@@ -14036,7 +14036,7 @@ static void tetrisRoutine() {
   }
 
   // =========================================================================
-  // --- Game 
+  // --- Game
   // =========================================================================
 
   // Register Cache: запираем маску текущей детали
@@ -14099,7 +14099,7 @@ static void tetrisRoutine() {
           for (uint8_t x = 0U; x < WIDTH; x++) {
             ledsbuff[x] = CRGB::Black;
           }
-          
+
           shiftValue[y] = 0U;                                // Сбрасываем флаг сгоревшей строки
           y++;                                               // Возвращаем индекс y на шаг назад, так как на это место упала новая строка сверху!
         }
@@ -14137,7 +14137,7 @@ static void tetrisRoutine() {
       // Проверка на Game Over сразу при появлении новой фигуры
       if (check_tetris_collision((int16_t)emitterX, 0, cur_piece_mask)) {
         // Случайно выбираем финальную анимацию: 10 - затухание, 20 - осыпание
-        ff_x = (random8() & 1U) ? 10U : 20U; 
+        ff_x = (random8() & 1U) ? 10U : 20U;
         pcnt = 0U;                                           // Сбрасываем счетчик кадров финала
 
         deltaValue = (game_mode == 0U) ? 1U : 0U;            // Переключаем игровой режим: 0 <-> 1
@@ -14254,15 +14254,15 @@ static void tetrisRoutine() {
 
   // 1. Копируем стакан из линейной памяти игры в физическую память матрицы
   for (uint8_t y = 0U; y < HEIGHT; y++) {
-    const uint16_t row_offset = y * WIDTH; 
+    const uint16_t row_offset = y * WIDTH;
 
     for (uint8_t x = 0U; x < WIDTH; x++) {
-      const uint16_t idx_buf = row_offset + x; 
-      
-      const uint16_t idx_led = XY(x, (uint8_t)(MAX_Y - y)); 
-      
+      const uint16_t idx_buf = row_offset + x;
+
+      const uint16_t idx_led = XY(x, (uint8_t)(MAX_Y - y));
+
       if (idx_led < NUM_LEDS) {
-        leds[idx_led] = ledsbuff[idx_buf]; 
+        leds[idx_led] = ledsbuff[idx_buf];
       }
     }
   }
