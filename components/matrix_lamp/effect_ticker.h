@@ -434,7 +434,7 @@ static void effectsTick()
     case EFF_TETRIX:              LOW_DELAY_TICK { effTimer = millis(); tetrixRoutine();                       }  break;  // (136U) Tetrix
     #endif
     #ifdef DEF_TETRIS
-    case EFF_TETRIS:              LOW_DELAY_TICK { effTimer = millis(); tetrisRoutine();                       }  break;  // (137U) Tetris
+    case EFF_TETRIS:              HIGH_DELAY_TICK { effTimer = millis(); tetrisRoutine();                      }  break;  // (137U) Tetris
     #endif
     #ifdef DEF_UKRAINE
     case EFF_UKRAINE:             DYNAMIC_DELAY_TICK { effTimer = millis(); Ukraine();                         }  break;  // (138U) Україна

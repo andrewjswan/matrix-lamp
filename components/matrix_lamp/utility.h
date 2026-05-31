@@ -57,9 +57,7 @@ static void drawPixelXY(coord_t x, coord_t y, const CRGB& color) {
 static uint32_t getPixColor(uint16_t thisPixel)
 {
   if (thisPixel >= NUM_LEDS) return 0U;
-
-  // return (((uint32_t)leds[thisPixel].r << 16) | ((uint32_t)leds[thisPixel].g << 8 ) | (uint32_t)leds[thisPixel].b);
-  return (uint32_t)leds[thisPixel];
+  return (((uint32_t)leds[thisPixel].r << 16U) | ((uint32_t)leds[thisPixel].g << 8U) | (uint32_t)leds[thisPixel].b);
 }
 
 
@@ -123,58 +121,66 @@ static void blur1d(uint16_t numLeds, fract8 blur_amount) {
     }
 }
 
+// blurRows: blur rows same as columns, for irregular matrix
 static void blurRows(uint8_t width, uint8_t height, fract8 blur_amount) {
-    // blur rows same as columns, for irregular matrix
-    uint8_t keep = 255 - blur_amount;
-    uint8_t seep = blur_amount >> 1;
+  uint8_t keep = 255 - blur_amount;
+  uint8_t seep = blur_amount >> 1;
 
-    for (uint8_t row = 0; row < height; row++) {
-        CRGB carryover = CRGB::Black;
-        for (uint8_t i = 0; i < width; i++) {
-            uint16_t index = XY(i, row);
+  for (uint8_t row = 0; row < height; row++) {
+    CRGB carryover = CRGB::Black;
+    for (uint8_t i = 0; i < width; i++) {
+      uint16_t index = XY(i, row);
+      if (index > NUM_LEDS) continue;
 
-            CRGB cur = leds[index];
-            CRGB part = cur;
+      CRGB cur = leds[index];
+      CRGB part = cur;
 
-            part.nscale8(seep);
-            cur.nscale8(keep);
-            cur += carryover;
+      part.nscale8(seep);
+      cur.nscale8(keep);
+      cur += carryover;
 
-            if (i > 0) {
-                leds[XY(i - 1, row)] += part;
-            }
-
-            leds[index] = cur;
-            carryover = part;
+      if (i > 0) {
+        uint16_t prev_index = XY(i - 1, row);
+        if (prev_index < NUM_LEDS) {
+          leds[prev_index] += part;
         }
+      }
+
+      leds[index] = cur;
+      carryover = part;
     }
+  }
 }
 
 // blurColumns: perform a blur1d on each column of a rectangular matrix
 static void blurColumns(uint8_t width, uint8_t height, fract8 blur_amount) {
-    uint8_t keep = 255 - blur_amount;
-    uint8_t seep = blur_amount >> 1;
+  uint8_t keep = 255 - blur_amount;
+  uint8_t seep = blur_amount >> 1;
 
-    for (uint8_t col = 0; col < width; ++col) {
-        CRGB carryover = CRGB::Black;
-        for (uint8_t i = 0; i < height; ++i) {
-            uint16_t index = XY(col, i);
+  for (uint8_t col = 0; col < width; ++col) {
+    CRGB carryover = CRGB::Black;
+    for (uint8_t i = 0; i < height; ++i) {
+      uint16_t index = XY(col, i);
+      if (index > NUM_LEDS) continue;
 
-            CRGB cur = leds[index];
-            CRGB part = cur;
+      CRGB cur = leds[index];
+      CRGB part = cur;
 
-            part.nscale8(seep);
-            cur.nscale8(keep);
-            cur += carryover;
+      part.nscale8(seep);
+      cur.nscale8(keep);
+      cur += carryover;
 
-            if (i > 0) {
-                leds[XY(col, i - 1U)] += part;
-            }
-
-            leds[index] = cur;
-            carryover = part;
+      if (i > 0) {
+        uint16_t prev_index = XY(col, i - 1U);
+        if (prev_index < NUM_LEDS) {
+          leds[prev_index] += part;
         }
+      }
+
+      leds[index] = cur;
+      carryover = part;
     }
+  }
 }
 
 static void blur2d(uint8_t width, uint8_t height, fract8 blur_amount)
@@ -532,32 +538,45 @@ static uint8_t validMinMax(float val, uint8_t minV, uint8_t maxV) {
 // ------------------------------------------------
 // альтернативный градиент для ламп собраных из лент с вертикальной компоновкой
 // gradientHorizontal | gradientVertical менее производительный но работает на всех видах ламп
+// ------------------------------------------------
+// ------------------------------------------------
+// альтернативный градиент для ламп собраных из лент с вертикальной компоновкой
 static void gradientHorizontal(uint8_t startX, uint8_t startY, uint8_t endX, uint8_t endY,
                                uint8_t start_color, uint8_t end_color,
                                uint8_t start_br, uint8_t end_br, uint8_t saturate) {
+  if (startX == endX) {
+    endX++;
+  }
+  if (startY == endY) {
+    endY++;
+  }
 
-  // Определяем фактические границы для циклов (всегда от меньшего к большему)
-  uint8_t xMin = startX < endX ? startX : endX;
-  uint8_t xMax = startX < endX ? endX : startX;
-  uint8_t yMin = startY < endY ? startY : endY;
-  uint8_t yMax = startY < endY ? endY : startY;
+  const float abs_dx = std::abs((float)startX - (float)endX);
+  const float inv_dx = 1.0f / abs_dx;
 
-  // Количество шагов (знаковое!)
-  int16_t dx = (int16_t)endX - (int16_t)startX;
-  if (dx == 0) dx = 1; // Защита от деления на 0
+  float step_color = (float)((int16_t)end_color - (int16_t)start_color) * inv_dx;
+  if (start_color > end_color) {
+    step_color -= 1.2f;
+  } else {
+    step_color += 1.2f;
+  }
 
-  for (uint8_t x = xMin; x < xMax; x++) {
-    // Вычисляем положение текущего X относительно НАЧАЛЬНОЙ точки startX
-    int16_t offset = (int16_t)x - (int16_t)startX;
+  float step_br = (float)((int16_t)end_br - (int16_t)start_br) * inv_dx;
+  if (start_br > end_color) {
+    step_br -= 1.2f;
+  } else {
+    step_br += 1.2f;
+  }
 
-    // Формула сохраняет направление: если dx отрицательный, градиент пойдет вспять
-    uint8_t this_hue = start_color + (int32_t)(end_color - start_color) * offset / dx;
-    uint8_t this_br  = start_br + (int32_t)(end_br - start_br) * offset / dx;
+  for (uint8_t x = startX; x < endX; x++) {
+    // Инварианты шага по оси X — выносим расчет цвета из внутреннего цикла Y
+    const float x_offset = (float)(x - startX);
+    const uint8_t this_hue = (uint8_t)validMinMax(start_color + x_offset * step_color, 1, 254);
+    const uint8_t this_br  = (uint8_t)validMinMax(start_br + x_offset * step_br, 0, 255);
+    const CHSV thisColor = CHSV(this_hue, saturate, this_br);
 
-    CHSV col = CHSV(this_hue, saturate, this_br);
-
-    for (uint8_t y = yMin; y < yMax; y++) {
-      drawPixelXY(x, y, col);
+    for (uint8_t y = startY; y < endY; y++) {
+      drawPixelXY(x, y, thisColor);
     }
   }
 }
@@ -567,30 +586,38 @@ static void gradientHorizontal(uint8_t startX, uint8_t startY, uint8_t endX, uin
 static void gradientVertical(uint8_t startX, uint8_t startY, uint8_t endX, uint8_t endY,
                              uint8_t start_color, uint8_t end_color,
                              uint8_t start_br, uint8_t end_br, uint8_t saturate) {
+  if (startX == endX) {
+    endX++;
+  }
+  if (startY == endY) {
+    endY++;
+  }
 
-  // Определяем физические границы для циклов
-  uint8_t xMin = startX < endX ? startX : endX;
-  uint8_t xMax = startX < endX ? endX : startX;
-  uint8_t yMin = startY < endY ? startY : endY;
-  uint8_t yMax = startY < endY ? endY : startY;
+  const float abs_dy = std::abs((float)startY - (float)endY);
+  const float inv_dy = 1.0f / abs_dy;
 
-  // Дистанция по вертикали (знаковая, чтобы сохранить направление)
-  int16_t dy = (int16_t)endY - (int16_t)startY;
-  if (dy == 0) dy = 1; // Защита от деления на 0
+  float step_color = (float)((int16_t)end_color - (int16_t)start_color) * inv_dy;
+  if (start_color > end_color) {
+    step_color -= 1.2f;
+  } else {
+    step_color += 1.2f;
+  }
 
-  for (uint8_t y = yMin; y < yMax; y++) {
-    // Вычисляем смещение текущего Y относительно начального startY
-    int16_t offset = (int16_t)y - (int16_t)startY;
+  float step_br = (float)((int16_t)end_br - (int16_t)start_br) * inv_dy;
+  if (start_br > end_color) {
+    step_br -= 1.2f;
+  } else {
+    step_br += 1.2f;
+  }
 
-    // Целочисленный расчет цвета и яркости (сохраняет направление)
-    uint8_t this_hue = start_color + (int32_t)(end_color - start_color) * offset / dy;
-    uint8_t this_br  = start_br + (int32_t)(end_br - start_br) * offset / dy;
+  for (uint8_t y = startY; y < endY; y++) {
+    const float y_offset = (float)(y - startY);
+    const uint8_t this_hue = (uint8_t)validMinMax(start_color + y_offset * step_color, 0, 255);
+    const uint8_t this_br  = (uint8_t)validMinMax(start_br + y_offset * step_br, 0, 255);
+    const CHSV thisColor = CHSV(this_hue, saturate, this_br);
 
-    CHSV col = CHSV(this_hue, saturate, this_br);
-
-    // Заполняем горизонтальную линию этим цветом
-    for (uint8_t x = xMin; x < xMax; x++) {
-      drawPixelXY(x, y, col);
+    for (uint8_t x = startX; x < endX; x++) {
+      drawPixelXY(x, y, thisColor);
     }
   }
 }
@@ -598,26 +625,33 @@ static void gradientVertical(uint8_t startX, uint8_t startY, uint8_t endX, uint8
 
 // ------------------------------------------------
 // gradientDownTop • более плавный градиент в отличие от gradientVertical
+// но может некоректно работать на лампах собранных на ленточных светодиодах
 static void gradientDownTop(uint8_t bottom, CHSV bottom_color, uint8_t top, const CHSV& top_color) {
-  // 1. Рассчитываем реальные индексы строк (с учетом возможных смещений)
-  uint8_t yStart = bottom;
-  uint8_t yEnd = top;
-  if (yStart > yEnd) std::swap(yStart, yEnd);
-  if (yEnd > HEIGHT) yEnd = HEIGHT;
+  //  FORWARD_HUES:  hue always goes clockwise
+  //  BACKWARD_HUES: hue always goes counter-clockwise
+  //  SHORTEST_HUES: hue goes whichever way is shortest
+  //  LONGEST_HUES:  hue goes whichever way is longest
 
-  // 2. Идем по строкам. Построчный fill_gradient — это идеальный баланс скорости и корректности.
-  for (uint8_t y = yStart; y < yEnd; y++) {
-    // Вычисляем цвет для текущей строки (интерполяция между bottom и top)
-    // blend — очень быстрая функция FastLED
-    CHSV rowColor = blend(bottom_color, top_color, map(y, yStart, yEnd - 1, 0, 255), fl::SHORTEST_HUES);
+  const uint32_t bottom_row_idx = (uint32_t)bottom * WIDTH;
+  const uint32_t top_row_idx    = (uint32_t)top * WIDTH;
 
-    // Получаем индекс первого и последнего пикселя в этой строке
-    uint16_t firstPixel = XY(0, y);
-    uint16_t lastPixel  = XY(WIDTH - 1, y);
+  if (ORIENTATION < 3U || ORIENTATION == 7U)
+  {
+    // STRIP_DIRECTION to UP ========
+    // Вычисляем индексы и жестко срезаем их под размер NUM_LEDS
+    uint16_t start_p = (top_row_idx >= NUM_LEDS)    ? (NUM_LEDS - 1U) : (uint16_t)top_row_idx;
+    uint16_t end_p   = (bottom_row_idx >= NUM_LEDS) ? (NUM_LEDS - 1U) : (uint16_t)bottom_row_idx;
 
-    // 3. Используем fill_gradient для всей строки целиком.
-    // FastLED сам поймет направление, если firstPixel > lastPixel (для зигзага)
-    fill_gradient(leds, firstPixel, rowColor, lastPixel, rowColor, fl::SHORTEST_HUES);
+    fill_gradient(leds, start_p, top_color, end_p, bottom_color, fl::SHORTEST_HUES);
+  }
+  else
+  {
+    // STRIP_DIRECTION to DOWN ======
+    // Защита от переполнения: если bottom_row_idx или top_row_idx больше NUM_LEDS,
+    uint16_t start_p = (NUM_LEDS > bottom_row_idx) ? (NUM_LEDS - bottom_row_idx - 1U) : 0U;
+    uint16_t end_p   = (NUM_LEDS > top_row_idx)    ? (NUM_LEDS - top_row_idx) : 0U;
+
+    fill_gradient(leds, start_p, bottom_color, end_p, top_color, fl::SHORTEST_HUES);
   }
 }
 

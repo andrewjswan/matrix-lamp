@@ -2,6 +2,7 @@
 
 #include "esphome/core/defines.h"
 #include "esphome/core/color.h"
+#include "esphome/core/component.h"
 #ifdef MATRIX_LAMP_USE_DISPLAY
 #include "esphome/components/addressable_light/addressable_light_display.h"
 #endif
