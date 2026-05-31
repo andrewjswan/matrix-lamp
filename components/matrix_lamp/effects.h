@@ -12181,6 +12181,7 @@ static void LotusFlower() {
 #ifdef DEF_FONTAN
 // ============== Fountain =============
 //             © SlingMaster
+//         rework by andrewjswan
 //                Фонтан
 // =====================================
 static void Fountain() {
@@ -12196,86 +12197,111 @@ static void Fountain() {
     #endif
 
     const uint8_t idx = constrain((uint8_t)(modes[currentMode].Scale / 20U), 0U, 4U);
-    hue = gamma[idx];        // hue — базовый цвет
-    hue2 = gamma[idx + 1U];  // hue2 — соседний цвет
+    hue = gamma[idx];        // hue — базовый цвет левой струи
+    hue2 = gamma[idx + 1U];  // hue2 — соседний цвет правой струи
 
-    emitterY = 0.0f;
-    pcnt = 0U;
-    step = 0U;
+    emitterY    = 0.0f;      // Текущая высота струй фонтана
+    speedfactor = 0.0f;      // Фаза пульсации брызг
+    pcnt        = 0U;        // Целевая высота (куда стремится фонтан)
 
     ledsClear(); // esphome: FastLED.clear();
 
     loadingFlag = false;
   }
 
-  const float radius = std::abs(128 - (int16_t)step) * inv127 * (float)CENTER_Y_MINOR;  // / 127.0f
+  // 2. РАСЧЕТ СКОРОСТИ И ФИЗИКИ ДВИЖЕНИЯ СТРУИ (Плавный шаг времени)
+  const uint8_t current_speed = modes[currentMode].Speed; 
+  const float dt = 0.05f + (2.0f - 0.05f) * ((float)current_speed * inv255);
 
-  // Предрасчет шага базовой яркости
-  const uint8_t br_div = 255U / ((uint8_t)emitterY + 1U);
+  // Плавное скольжение высоты эмиттера (Правило 1)
+  if (emitterY > (float)pcnt) {
+    float fallStep = 0.5f * dt;
+    if (std::abs((float)pcnt - emitterY) < (float)PADDING) {
+      fallStep *= 0.5f; // Мягкое торможение на пике
+    }
+    emitterY -= fallStep;
+    if (emitterY < (float)pcnt) emitterY = (float)pcnt;
+  } else if (emitterY < (float)pcnt) {
+    emitterY += 1.5f * dt; // Плавный взлет
+    if (emitterY > (float)pcnt) emitterY = (float)pcnt;
+  } else {
+    pcnt = random8(2U, (uint8_t)(HEIGHT - PADDING - 1U));
+  }
 
-  const uint8_t ceilRadius = (uint8_t)radius + (radius > (float)((uint8_t)radius) ? 1U : 0U);
-  const uint8_t delta_val = (uint8_t)(((uint16_t)emitterY * 7U + (uint16_t)radius * 10U + 9U) / 10U);
+  // Накапливаем шаг пульсации во float-переменной speedfactor
+  speedfactor += 4.0f * dt; 
+  if (speedfactor >= 256.0f) {
+    speedfactor -= 256.0f;
+  }
+  const float fontain_phase = speedfactor;
 
-  const uint8_t right_target_hue = hue2 - ceilRadius;
+  // 3. МАТЕМАТИЧЕСКИЙ РАСЧЕТ ГЕОМЕТРИИ КАДРА (Чистый float с литералами 'f')
+  const float radius = std::abs(128.0f - fontain_phase) * inv127 * (float)CENTER_Y_MINOR;
+  const float br_div_f = 255.0f / (emitterY + 1.0f); // Вынос инварианта строки (Правило 4)
+  
+  const float boundaryLow = emitterY - radius + 0.99f;
+  const float boundaryMid = emitterY - (radius * inv2) + 0.99f;
+  const float delta_val_f = (emitterY * 7.0f + radius * 10.0f + 9.0f) * inv10;
 
+  // Быстрый табличный расчет волнового субпиксельного смещения для вершин брызг (Замена random8)
+  // Используем тригонометрический шаг на основе фазы, чтобы вершины «дышали» непрерывно
+  const float wave_spray = 1.0f + (sin8((uint8_t)fontain_phase) * inv255 * 2.0f); // Плавное смещение от 1.0f до 3.0f
+
+  const uint8_t step_byte = (uint8_t)fontain_phase;
+  const uint16_t ceilRadius = (uint16_t)radius + (radius > (float)((uint16_t)radius) ? 1U : 0U);
+  const uint8_t color_index_right = (uint8_t)(step_byte - ceilRadius);
+
+  // 4. ОСНОВНОЙ ЦИКЛ ОТРИСОВКИ МАТРИЦЫ С АНТИАЛИАСИНГОМ ЯРКОСТИ
   for (uint8_t y = 0U; y < HEIGHT; y++) {
-    const int16_t calc_br = br_div * y;
-    const uint8_t br = (calc_br < 48) ? 48U : ((calc_br > 255) ? 255U : (uint8_t)calc_br);
-
-    const int16_t boundaryLow = (int16_t)(emitterY - radius + 0.99f);
-    const int16_t boundaryMid = (int16_t)(emitterY - (radius * inv2) + 0.99f);
-
-    const float fy_plus = (float)y + 0.5f;
+    const float fy_plus  = (float)y + 0.5f;
     const float fy_minus = (float)y - 0.5f;
+    
+    const float calc_br_f = br_div_f * (float)y;
+    const uint8_t br = (calc_br_f < 48.0f) ? 48U : ((calc_br_f > 255.0f) ? 255U : (uint8_t)calc_br_f);
+
+    // Субпиксельное покадровое смягчение краев струи (Антиалиасинг)
+    float edge_fade_left = 1.0f - ((float)y - boundaryMid);
+    if (edge_fade_left < 0.0f) edge_fade_left = 0.0f;
+    if (edge_fade_left > 1.0f) edge_fade_left = 1.0f;
+
+    float edge_fade_right = 1.0f - ((float)y - delta_val_f);
+    if (edge_fade_right < 0.0f) edge_fade_right = 0.0f;
+    if (edge_fade_right > 1.0f) edge_fade_right = 1.0f;
 
     for (uint8_t x = 0U; x < WIDTH; x++) {
-      if ((x & 0x01U) == 0U) { // Четные столбцы (активные струи фонтана)
-        if ((x % 4U) == 0U) {
-          if (y == (uint8_t)(boundaryLow + random8(1U, 4U))) {
-            if ((step & 0x01U) == 0U) {
-              drawPixelXYF((float)x, fy_plus, CHSV(hue, 200U, 255U));
+      if ((x & 0x01U) == 0U) { // --- ЧЕТНЫЕ СТОЛБЦЫ: АКТИВНЫЕ СТРУИ ---
+        if ((x & 0x02U) == 0U) { // Левая под-струя (0, 4, 8, 12)
+          // Заменили грубый random8() на плавную волну wave_spray
+          if (y == (uint8_t)(boundaryLow + wave_spray)) {
+            if ((step_byte & 0x01U) == 0U) {
+              drawPixelXYF((float)x, fy_plus, CHSV(hue, 200U, 255U)); 
             } else {
               drawPixelXY(x, y, CHSV(hue, 200U, 255U));
             }
           } else {
-            drawPixelXY(x, y, CHSV(hue, 255U, (y > boundaryMid) ? 0U : br));
+            const uint8_t final_br = (uint8_t)((float)br * edge_fade_left);
+            drawPixelXY(x, y, CHSV(hue, 255U, final_br));
           }
-        } else {
-          if (y == (uint8_t)(delta_val + random8(3U))) {
-            drawPixelXYF((float)x, fy_minus, CHSV(right_target_hue, 160U, 255U));
+        } else { // Правая под-струя (2, 6, 10, 14)
+          if (y == (uint8_t)(delta_val_f + wave_spray)) {
+            drawPixelXYF((float)x, fy_minus, CHSV(color_index_right, 160U, 255U));
           } else {
-            drawPixelXY(x, y, CHSV(right_target_hue, 255U, (y > delta_val) ? 0U : br));
+            const uint8_t final_br = (uint8_t)((float)br * edge_fade_right);
+            drawPixelXY(x, y, CHSV(color_index_right, 255U, final_br));
           }
         }
-      } else { // Нечетные столбцы (зона размытия и гашения)
+      } else { // --- НЕЧЕТНЫЕ СТОЛБЦЫ: ГАШЕНИЕ СЛЕДОВ ---
         if (pcnt > (uint8_t)(PADDING + 2U)) {
-          drawPixelXY(x, y, 0x000000);
+          drawPixelXY(x, y, CRGB::Black); 
         }
       }
     }
   }
 
-  // Обсчет физики плавного движения оригинального float эмиттера
-  if ((emitterY <= (float)(PADDING * 2U)) || (emitterY > (float)(HEIGHT - PADDING - 1U))) {
+  // 5. ПОСТ-ОБРАБОТКА КАДРА (ВСПЛЕСК ТУМАНА)
+  if ((emitterY <= (float)(PADDING * 2U)) || (emitterY > (float)(MAX_Y - PADDING))) {
     blurScreen(32U);
   }
-
-  if (emitterY > (float)pcnt) {
-    emitterY -= 0.5f;
-    if (std::abs((float)pcnt - emitterY) < (float)PADDING) {
-      if (emitterY > (float)pcnt) {
-        emitterY -= 0.5f;
-      }
-    }
-  } else {
-    if (emitterY < (float)pcnt) {
-      emitterY += 3.0f;
-    } else {
-      pcnt = random8(2U, (uint8_t)(HEIGHT - PADDING - 1U));
-    }
-  }
-
-  step++;
 }
 #endif
 
@@ -12735,13 +12761,6 @@ static void LightFilter() {
   // static uint8_t divider;
   // static uint8_t deltaValue = 0;
 
-  // step                 => Используется напрямую как 8-битный frameCount!
-  // hue2                 => Координата dX разделительной линии
-  // deltaHue             => Значение divider масштаба
-  // deltaHue2            => Текущий режим цветового фильтра (deltaValue)
-  // hue                  => Направление движения линии direct (1U - вперед, 0U - назад)
-  // pcnt                 => Внутренний таймер изменения направления
-
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
@@ -12750,94 +12769,118 @@ static void LightFilter() {
     }
     #endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-    deltaHue = modes[currentMode].Scale / 25U; // divider
-    hue = 1U;                                  // direct = true
-    hue2 = 1U;                                 // dX = 1
-    pcnt = 0U;
-    deltaHue2 = 0U;                            // deltaValue = 0
-    step = 0U;                                 // Наш 8-битный frameCount
-
-    clearNoiseArr();
+    deltaHue    = modes[currentMode].Scale / 25U; // Делитель масштаба (divider)
+    hue         = 1U;                             // Флаг направления direct (1U - вперед, 0U - назад)
+    emitterX    = 0.0f;                           // Плавная float-координата dX светового луча
+    deltaHue2   = 0U;                             // Режим цветового фильтра (current_filter)
+    pcnt        = 0U;                             // Внутренний таймер кадров/режимов
+    speedfactor = 0.0f;                           // Покадровый таймер плазмы (frame_time)
 
     ledsClear(); // esphome: FastLED.clear();
 
     loadingFlag = false;
   }
 
-  pcnt++;
-
-  const uint8_t t1 = cos8((uint16_t)((42U * step) * inv30));
-  const uint8_t t2 = cos8((uint16_t)((35U * step) * inv30));
-  const uint8_t t3 = cos8((uint16_t)((38U * step) * inv30));
-
-  uint8_t dX = hue2;
-  uint8_t divider = deltaHue;
+  uint8_t divider        = deltaHue;
   uint8_t current_filter = deltaHue2;
+  bool direct            = (hue == 1U);
 
-  bool direct = (hue == 1U);
-  if (direct) {
-    if (dX < END) dX++;
+  // Шаг времени плазмы
+  speedfactor += 1.0f; 
+  const float frame_time = speedfactor;
+
+  // Рассчитываем плавный временной шаг
+  const uint8_t current_speed = modes[currentMode].Speed;
+  const float dt = 0.05f + (1.5f - 0.05f) * ((float)current_speed * inv255);
+
+  if (pcnt > 0U) {
+    pcnt++;
+    
+    if (pcnt >= 50U) {
+      pcnt = 0U;
+    }
   } else {
-    if (dX > 0U) dX--;
-  }
-
-  if (pcnt > 128U) {
-    pcnt = 0U;
-    direct = !direct;
-    if (divider > 2U) {
-      if (dX == 0U) {
-        current_filter++;
-        if (current_filter > 2U) {
-          current_filter = 0U;
-        }
+    if (direct) {
+      emitterX += 1.0f * dt;
+      if (emitterX >= (float)END) {
+        emitterX = (float)END;
+        direct = false; // Дошли до правого края — разворачиваемся назад
+        pcnt = 1U;      // Включаем таймер паузы
       }
     } else {
-      current_filter = divider;
+      emitterX -= 1.0f * dt;
+      if (emitterX <= 0.0f) {
+        emitterX = 0.0f;
+        direct = true;  // Дошли до левого края — разворачиваемся вперед
+        pcnt = 1U;      // Включаем таймер паузы
+
+        if (divider > 2U) {
+          current_filter++;
+          if (current_filter > 2U) {
+            current_filter = 0U;
+          }
+        } else {
+          current_filter = divider;
+        }
+      }
     }
   }
 
-  hue2 = dX;
-  deltaHue2 = current_filter;
-  hue = direct ? 1U : 0U;
+  // Округляем плавную координату эмиттера луча до целого пикселя только для расчетов отсечения
+  const uint8_t dX = (uint8_t)emitterX;
 
-  const uint8_t val = dX << 3U;      // dX * 8
-  const uint8_t val_div2 = dX << 2U; // val / 2 эквивалентно dX * 4
-  const uint8_t line_gold_x = END - dX;
+  const uint8_t val      = dX << 3U;      // dX * 8
+  const uint8_t val_div2 = dX << 2U;      // dX * 4
+  const uint8_t line_gold_x = END - dX;   // Золотая разделительная линия сканера
 
-  const uint8_t t1_div2 = t1 >> 1U;
-  const uint8_t t3_div2 = t3 >> 2U;
+  // Динамические осцилляторы плазмы.
+  const uint8_t t1 = cos8((uint16_t)((42.0f * frame_time) / 30.0f));
+  const uint8_t t2 = cos8((uint16_t)((35.0f * frame_time) / 30.0f));
+  const uint8_t t3 = cos8((uint16_t)((38.0f * frame_time) / 30.0f));
+
+  const uint8_t t1_shifted = t1 >> 1U;
+  const uint8_t t3_shifted = t3 >> 2U;
 
   for (uint16_t y = 0U; y < HEIGHT; y++) {
-    for (uint16_t x = 0U; x < WIDTH; x++) {
-      if (x != line_gold_x) {
-        // Базовая плазма
-        uint8_t r = cos8((y << 3) + (t1 >> 1) + cos8(t2 + (x << 3)));
-        uint8_t g = cos8((y << 3) + t1 + cos8((t3 >> 2) + (x << 3)));
-        uint8_t b = cos8((y << 3) + t2 + cos8(t1 + x + (g >> 2)));
+    const uint8_t y_scaled = y << 3U; 
+    const uint8_t r_base   = y_scaled + t1_shifted;
+    const uint8_t g_base   = y_scaled + t1;
+    const uint8_t b_base   = y_scaled + t2;
 
+    for (uint16_t x = 0U; x < WIDTH; x++) {
+      const uint8_t x_scaled = x << 3U;
+
+      if (x != line_gold_x) {
+        uint8_t r = cos8(r_base + cos8(t2 + x_scaled));
+        uint8_t g = cos8(g_base + cos8(t3_shifted + x_scaled));
+        uint8_t b = cos8(b_base + cos8(t1 + x_scaled)); 
+
+        // Применяем цветовые фильтры луча со встроенным Guard-порогом (16U)
         switch (current_filter) {
           case 0U:
-            r = (r > val) ? (uint8_t)(r - val) : 0U;
-            g = (g > val_div2) ? (uint8_t)(g - val_div2) : 0U;
+            r = (r > val) ? (uint8_t)(r - val) : 16U;
+            g = (g > val_div2) ? (uint8_t)(g - val_div2) : 16U;
             break;
           case 1U:
-            g = (g > val) ? (uint8_t)(g - val) : 0U;
-            b = (b > val_div2) ? (uint8_t)(b - val_div2) : 0U;
+            g = (g > val) ? (uint8_t)(g - val) : 16U;
+            b = (b > val_div2) ? (uint8_t)(b - val_div2) : 16U;
             break;
           case 2U:
-            b = (b > val) ? (uint8_t)(b - val) : 0U;
-            r = (r > val_div2) ? (uint8_t)(r - val_div2) : 0U;
+            b = (b > val) ? (uint8_t)(b - val) : 16U;
+            r = (r > val_div2) ? (uint8_t)(r - val_div2) : 16U;
             break;
         }
 
         leds[XY(x, y)] = CRGB(exp_gamma[r], exp_gamma[g], exp_gamma[b]);
       } else {
-        // Золотая разделительная линия
+        // Золотая разделительная линия сканера
         leds[XY(x, y)] = CRGB(255U, 255U, 255U);
       }
     }
   }
-  hue++;
+
+  deltaHue2 = current_filter;          // Сохраняем текущий цветовой режим фильтра
+  hue       = direct ? 1U : 0U;        // Сохраняем актуальное направление движения луча
 }
 #endif
 
@@ -13880,7 +13923,7 @@ static bool check_tetris_collision(int16_t nx, int16_t ny, uint16_t pieceMask) {
       if (getPieceCell(pieceMask, r, c)) {
         const int16_t gx = nx + c;
         const int16_t gy = ny + r;
-
+        
         if (gx < 0 || gx >= (int16_t)WIDTH || gy >= (int16_t)HEIGHT) return true;
         if (gy >= 0) {
           const uint16_t idx = gy * WIDTH + gx;
@@ -13898,6 +13941,7 @@ static bool check_tetris_collision(int16_t nx, int16_t ny, uint16_t pieceMask) {
 
 static void tetrisRoutine() {
   const uint32_t currentMillis = millis();
+  const uint8_t current_scale = modes[currentMode].Scale;
 
   if (loadingFlag) {
     deltaValue          = 0U;  // game_mode = 0 (Классика)
@@ -13908,11 +13952,25 @@ static void tetrisRoutine() {
     step                = 0U;  // drop_timer = 0
     ff_z                = 0U;  // Полностью зачищаем маску от мусора старых эффектов в RAM
     ff_x                = 0U;  // Режим анимации Game Over (0 - нет, 10 - Fade, 20 - Sand)
+    ff_y                = 0U;  // Режим HSV Спектра
     pcnt                = 0U;  // Счетчик кадров анимации Game Over
 
     fillAll(CRGB::Black);                            // Системная очистка физической матрицы leds
     memset(ledsbuff, 0, NUM_LEDS * sizeof(CRGB));    // Очищаем внутренний линейный игровой стакан
     memset(shiftValue, 0, HEIGHT * sizeof(uint8_t));
+
+    // Выбор цветовой схемы на основе ползунка Масштаб (Scale)
+    if (current_scale <= 42U) {
+      currentPalette = RainbowColors_p;
+    } else if (current_scale <= 84U) {
+      currentPalette = PartyColors_p;
+    } else if (current_scale <= 126U) {
+      currentPalette = OceanColors_p;
+    } else if (current_scale <= 168U) {
+      currentPalette = CloudColors_p;
+    } else if (current_scale <= 210U) {
+      currentPalette = ForestColors_p;
+    } // else (211 - 255) - HSV спектр
 
     loadingFlag = false;
   }
@@ -13938,7 +13996,7 @@ static void tetrisRoutine() {
       for (int16_t y = (int16_t)MAX_Y; y > 0; y--) {
         const uint16_t idx_to_row = y * WIDTH;
         const uint16_t idx_from_row = (y - 1) * WIDTH;
-
+                
         for (uint8_t x = 0U; x < WIDTH; x++) {
           ledsbuff[idx_to_row + x] = ledsbuff[idx_from_row + x];
         }
@@ -13948,7 +14006,7 @@ static void tetrisRoutine() {
       fill_solid(ledsbuff, WIDTH, CRGB::Black);
 
       // Анимация завершена
-      if (pcnt >= SAND_COLLAPSE_MAX_PAD) {
+      if (pcnt >= SAND_COLLAPSE_MAX_PAD) { 
         memset(ledsbuff, 0, NUM_LEDS * sizeof(CRGB));
         memset(shiftValue, 0, HEIGHT * sizeof(uint8_t));
         ff_x       = 0U;                                     // Выключаем режим финала, запуская новый раунд
@@ -13970,7 +14028,7 @@ static void tetrisRoutine() {
   }
 
   // =========================================================================
-  // --- Game
+  // --- Game 
   // =========================================================================
 
   // Register Cache: запираем маску текущей детали
@@ -14033,7 +14091,7 @@ static void tetrisRoutine() {
           for (uint8_t x = 0U; x < WIDTH; x++) {
             ledsbuff[x] = CRGB::Black;
           }
-
+          
           shiftValue[y] = 0U;                                // Сбрасываем флаг сгоревшей строки
           y++;                                               // Возвращаем индекс y на шаг назад, так как на это место упала новая строка сверху!
         }
@@ -14051,8 +14109,15 @@ static void tetrisRoutine() {
       const uint8_t type = random8(0U, 8U);                  // Быстрый случайный выбор фигуры
       cur_piece_mask = T_PIECES_MASK[type];
 
-      // Выбираем случайный яркий цвет из палитры
-      const CRGB cur_color = ColorFromPalette(RainbowColors_p, random8(), 255, LINEARBLEND);
+      // Выбираем случайный яркий цвет
+      CRGB cur_color;
+      if (current_scale <= 210U) {
+        cur_color = CHSV(random8(), 255U, 255U);
+      } else {
+        // Для остальных диапазонов берем оригинальный цвет из выбранной палитры
+        cur_color = ColorFromPalette(currentPalette, random8(), 255U, LINEARBLEND);
+      }
+
       // Пакуем 24-битный цвет во float-переменную speedfactor
       const uint32_t packedColor = ((uint32_t)cur_color.r << 16U) | ((uint32_t)cur_color.g << 8U) | cur_color.b;
       speedfactor = *(float*)&packedColor;
@@ -14064,7 +14129,7 @@ static void tetrisRoutine() {
       // Проверка на Game Over сразу при появлении новой фигуры
       if (check_tetris_collision((int16_t)emitterX, 0, cur_piece_mask)) {
         // Случайно выбираем финальную анимацию: 10 - затухание, 20 - осыпание
-        ff_x = (random8() & 1U) ? 10U : 20U;
+        ff_x = (random8() & 1U) ? 10U : 20U; 
         pcnt = 0U;                                           // Сбрасываем счетчик кадров финала
 
         deltaValue = (game_mode == 0U) ? 1U : 0U;            // Переключаем игровой режим: 0 <-> 1
@@ -14181,15 +14246,15 @@ static void tetrisRoutine() {
 
   // 1. Копируем стакан из линейной памяти игры в физическую память матрицы
   for (uint8_t y = 0U; y < HEIGHT; y++) {
-    const uint16_t row_offset = y * WIDTH;
+    const uint16_t row_offset = y * WIDTH; 
 
     for (uint8_t x = 0U; x < WIDTH; x++) {
-      const uint16_t idx_buf = row_offset + x;
-
-      const uint16_t idx_led = XY(x, (uint8_t)(MAX_Y - y));
-
+      const uint16_t idx_buf = row_offset + x; 
+      
+      const uint16_t idx_led = XY(x, (uint8_t)(MAX_Y - y)); 
+      
       if (idx_led < NUM_LEDS) {
-        leds[idx_led] = ledsbuff[idx_buf];
+        leds[idx_led] = ledsbuff[idx_buf]; 
       }
     }
   }
