@@ -1,6 +1,6 @@
 substitutions:
   project_name: "ajs.Light - Matrix Lamp"
-  project_version: "1.5.13"
+  project_version: "1.5.15"
   comment: "ESPHome Matrix Lamp"
 
 esphome:
