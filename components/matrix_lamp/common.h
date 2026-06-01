@@ -7,7 +7,9 @@
 
 #include "esphome/core/defines.h"
 
-class StubSPIOutput {};
+namespace fl {
+  class StubSPIOutput {};
+}
 
 #include <FastLED.h>
 
