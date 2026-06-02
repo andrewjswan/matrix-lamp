@@ -16,40 +16,40 @@ switch:
 interval:
   - interval: 15min
     then:
-      - lambda: |-
-          if (!id(random_mode).state) {
-            return;
-          }
+      - if:
+          condition:
+            light.is_on: neopixel_led
+          then:
+            - lambda: |-
+                if (!id(random_mode).state) {
+                  return;
+                }
 
-          const auto &effects = id(neopixel_led)->get_effects();
-          uint8_t total = effects.size();
-          StringRef curr_effect = id(neopixel_led)->get_effect_name();
+                const auto &effects = id(neopixel_led)->get_effects();
+                uint8_t total = effects.size();
+                StringRef curr_effect = id(neopixel_led)->get_effect_name();
 
-          uint8_t rand;
-          do
-          {
-            rand = random(total) + 1;
-          } while (
-                    (effects[rand]->get_name() == "None") ||
-                    (effects[rand]->get_name() == "Magic Lantern") ||
-                    (effects[rand]->get_name() == "Cloud in a Jar") ||
-                    (effects[rand]->get_name() == "Thunderstorm in a Jar") ||
-                    (effects[rand]->get_name() == "Snowfall") ||
-                    (effects[rand]->get_name() == "Arrows") ||
-                    (effects[rand]->get_name() == "Lotus Flower") ||
-                    (effects[rand]->get_name() == "Fountain") ||
-                    (effects[rand]->get_name() == "Scanner") ||
-                    (effects[rand]->get_name() == "Colors") ||
-                    (effects[rand]->get_name() == "Strobe") ||
-                    (effects[rand]->get_name() == "Strobe Police") ||
-                    (effects[rand]->get_name() == "White light") ||
-                    (effects[rand]->get_name() == "Sunrise") ||
-                    (effects[rand]->get_name() == "Clock Full") ||
-                    (effects[rand]->get_name() == "WLED / DDP") ||
-                    (effects[rand]->get_name() == curr_effect)
-                  );
+                uint8_t rand;
+                do
+                {
+                  rand = random(total) + 1;
+                } while (
+                          (effects[rand]->get_name() == "None") ||
+                          (effects[rand]->get_name() == "Cloud in a Jar") ||
+                          (effects[rand]->get_name() == "Thunderstorm in a Jar") ||
+                          (effects[rand]->get_name() == "Snowfall") ||
+                          (effects[rand]->get_name() == "Scanner") ||
+                          (effects[rand]->get_name() == "Colors") ||
+                          (effects[rand]->get_name() == "Strobe") ||
+                          (effects[rand]->get_name() == "Strobe Police") ||
+                          (effects[rand]->get_name() == "White light") ||
+                          (effects[rand]->get_name() == "Sunrise") ||
+                          (effects[rand]->get_name() == "Clock Full") ||
+                          (effects[rand]->get_name() == "WLED / DDP") ||
+                          (effects[rand]->get_name() == curr_effect)
+                        );
 
-          // Set random effect
-          auto call = id(neopixel_led)->turn_on();
-          call.set_effect(rand);
-          call.perform();
+                // Set random effect
+                auto call = id(neopixel_led)->turn_on();
+                call.set_effect(rand);
+                call.perform();
