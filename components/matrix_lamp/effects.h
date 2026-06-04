@@ -14321,7 +14321,7 @@ static void meteorRoutine() {
       setModeSettings(40U + random8(80U), 70U + random8(120U));
     }
     #endif // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
-    
+
     ff_z = 0U;
     hue = random8(0U, 9U) * 28U + random8(0U, 40U);  // Стартовый цвет ядра
 
@@ -14352,16 +14352,16 @@ static void meteorRoutine() {
 
   // Отскоки и переливание цвета от левой/правой границы матрицы
   if (emitterX <= 0.0f || emitterX >= (float)MAX_X) {
-    ff_x = (uint16_t)((int16_t)(-s_x)); 
+    ff_x = (uint16_t)((int16_t)(-s_x));
     emitterX = constrain(emitterX, 0.0f, (float)MAX_X);
     if (random8(4U) == 0U) {
       hue = random8(0U, 9U) * 28U + random8(0U, 40U);
     }
   }
-  
+
   // Отскоки от нижней/верхней границы матрицы
   if (emitterY <= 0.0f || emitterY >= (float)MAX_Y) {
-    ff_y = (uint16_t)((int16_t)(-s_y)); 
+    ff_y = (uint16_t)((int16_t)(-s_y));
     emitterY = constrain(emitterY, 0.0f, (float)MAX_Y);
   }
 
@@ -14374,7 +14374,7 @@ static void meteorRoutine() {
 
   // Цвет ядра и свечения кометы
   const CRGB ballColor = CHSV(hue, 255U, 255U);
-  leds[core_xy] = CRGB::White; 
+  leds[core_xy] = CRGB::White;
 
   // Отрисовка мягкого свечения вокруг ядра
   if (x > 0U)    leds[XY((uint8_t)(x - 1U), y)] = ballColor;
@@ -14402,14 +14402,14 @@ static void meteorRoutine() {
   }
 
   const uint32_t current_ms = millis();
-  
+
   // Генерация случайных искр от летящей кометы
   if ((uint16_t)(current_ms - ff_z) > 40U && random8(100U) < 60U) {
-    ff_z = (uint16_t)current_ms; 
-    
-    const uint8_t sx = (uint8_t)(x + random8(7U) - 3); 
+    ff_z = (uint16_t)current_ms;
+
+    const uint8_t sx = (uint8_t)(x + random8(7U) - 3);
     const uint8_t sy = (uint8_t)(y + random8(7U) - 3);
-    
+
     if (sx < WIDTH && sy < HEIGHT) {
       leds[XY(sx, sy)] = CRGB(255U, 220U, 100U);
     }
