@@ -14299,4 +14299,122 @@ static void tetrisRoutine() {
 }
 #endif
 
+#ifdef DEF_METEOR
+// =============== Meteor ===============
+//             (c) andrewjswan
+//                 Метеор
+// ======================================
+static void meteorRoutine() {
+  // emitterX            => Координата X ядра
+  // emitterY            => Координата Y ядра
+  // ff_x                => Скорость по X * 100
+  // ff_y                => Скорость по Y * 100
+  // pcnt                => Длина хвоста кометы
+  // ff_z                => Счетчик времени сброса искр в мс
+  // hue                 => Оттенок цвета ядра кометы
+  // speedfactor         => Регулятор скорости кадра
+
+  if (loadingFlag) {
+    #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+    if (selectedSettings) {
+      //                          scale | speed
+      setModeSettings(40U + random8(80U), 70U + random8(120U));
+    }
+    #endif // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+    
+    ff_z = 0U;
+    hue = random8(0U, 9U) * 28U + random8(0U, 40U);  // Стартовый цвет ядра
+
+    emitterX = (float)random8(WIDTH);
+    emitterY = (float)random8(HEIGHT);
+
+    // Генерируем скорости и упаковываем в 16-битный пул
+    const int16_t r_speed_x = (int16_t)(random8(12U, 29U) * (random8(2U) ? 1 : -1));
+    const int16_t r_speed_y = (int16_t)(random8(12U, 29U) * (random8(2U) ? 1 : -1));
+    ff_x = (uint16_t)r_speed_x;
+    ff_y = (uint16_t)r_speed_y;
+
+    // Расчет длины хвоста и скорости кадра
+    pcnt = map(modes[currentMode].Scale, 1U, 100U, 7U, (uint8_t)((MAX_SIDE >> 1U) + 6U));
+    speedfactor = (float)map(modes[currentMode].Speed, 1U, 255U, 8U, 45U) * inv10;
+
+    dimAll(0U);
+
+    loadingFlag = false;
+  }
+
+  const float s_x = (float)((int16_t)ff_x);
+  const float s_y = (float)((int16_t)ff_y);
+
+  // Смещение ядра метеора во времени
+  emitterX += s_x * speedfactor * 0.08f;
+  emitterY += s_y * speedfactor * 0.08f;
+
+  // Отскоки и переливание цвета от левой/правой границы матрицы
+  if (emitterX <= 0.0f || emitterX >= (float)MAX_X) {
+    ff_x = (uint16_t)((int16_t)(-s_x)); 
+    emitterX = constrain(emitterX, 0.0f, (float)MAX_X);
+    if (random8(4U) == 0U) {
+      hue = random8(0U, 9U) * 28U + random8(0U, 40U);
+    }
+  }
+  
+  // Отскоки от нижней/верхней границы матрицы
+  if (emitterY <= 0.0f || emitterY >= (float)MAX_Y) {
+    ff_y = (uint16_t)((int16_t)(-s_y)); 
+    emitterY = constrain(emitterY, 0.0f, (float)MAX_Y);
+  }
+
+  // Мягкое угасание кадра (хвост за кометой)
+  dimAll(205U);
+
+  const uint8_t x = (uint8_t)emitterX;
+  const uint8_t y = (uint8_t)emitterY;
+  const uint16_t core_xy = XY(x, y);
+
+  // Цвет ядра и свечения кометы
+  const CRGB ballColor = CHSV(hue, 255U, 255U);
+  leds[core_xy] = CRGB::White; 
+
+  // Отрисовка мягкого свечения вокруг ядра
+  if (x > 0U)    leds[XY((uint8_t)(x - 1U), y)] = ballColor;
+  if (x < MAX_X) leds[XY((uint8_t)(x + 1U), y)] = ballColor;
+  if (y > 0U)    leds[XY(x, (uint8_t)(y - 1U))] = ballColor;
+  if (y < MAX_Y) leds[XY(x, (uint8_t)(y + 1U))] = ballColor;
+
+  // Расчет направления шлейфа хвоста
+  const float trailStepX = -s_x * 0.35f;
+  const float trailStepY = -s_y * 0.35f;
+
+  // Отрисовка затухающего хвоста WU-кометы
+  for (uint8_t i = 1U; i < pcnt; i++) {
+    const uint8_t tx = (uint8_t)(emitterX + trailStepX * (float)i);
+    const uint8_t ty = (uint8_t)(emitterY + trailStepY * (float)i);
+
+    if (tx >= WIDTH || ty >= HEIGHT) {
+      break;
+    }
+
+    const uint8_t bright = map(i, 1U, pcnt, 220U, 30U);
+    CRGB color = ballColor;
+    color.nscale8(bright);
+    leds[XY(tx, ty)] = color;
+  }
+
+  const uint32_t current_ms = millis();
+  
+  // Генерация случайных искр от летящей кометы
+  if ((uint16_t)(current_ms - ff_z) > 40U && random8(100U) < 60U) {
+    ff_z = (uint16_t)current_ms; 
+    
+    const uint8_t sx = (uint8_t)(x + random8(7U) - 3); 
+    const uint8_t sy = (uint8_t)(y + random8(7U) - 3);
+    
+    if (sx < WIDTH && sy < HEIGHT) {
+      leds[XY(sx, sy)] = CRGB(255U, 220U, 100U);
+    }
+  }
+}
+#endif
+
 }  // namespace esphome::matrix_lamp
