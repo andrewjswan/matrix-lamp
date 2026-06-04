@@ -547,6 +547,10 @@ light:
           mode: TETRIS
 
       - matrix_lamp_effect:
+          name: Meteor  # Метеор
+          mode: METEOR
+
+      - matrix_lamp_effect:
           name: White light  # Бeлый cвeт
           mode: WHITE_COLOR
 
