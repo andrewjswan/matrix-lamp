@@ -149,6 +149,7 @@
 |Tetrix|TETRIX|Тетрикс|
 |Tetris / Sand Tetris|TETRIS|Тетрис / Песочный тетрис|
 |Meteor|METEOR|Метеор|
+|Hourglass II|HOURGLASS_II|Пісочний годинник II|
 |White light|WHITE_COLOR|Бeлый cвeт|
 |Colors|COLORS|Cмeнa цвeтa|
 |Ukraine|UKRAINE|Україна|
