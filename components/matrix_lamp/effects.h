@@ -14335,7 +14335,7 @@ static void meteorRoutine() {
 
     uint8_t constrainedScale = (modes[currentMode].Scale > 100U) ? 100U : modes[currentMode].Scale;
     pcnt = map(constrainedScale, 1U, 100U, 5U, (uint8_t)((MAX_SIDE >> 1U) + 5U));
-    
+
     speedfactor = (float)map(modes[currentMode].Speed, 1U, 255U, 5U, 35U) * 0.1f;
 
     dimAll(0U);
@@ -14367,7 +14367,7 @@ static void meteorRoutine() {
   dimAll(240U);
 
   const CRGB ballColor = CHSV(hue, 255U, 255U);
-  
+
   for (uint8_t i = pcnt - 1; i > 0; i--) {
     const int16_t tx = (int16_t)(emitterX + trailStepX * (float)i * 2.5f);
     const int16_t ty = (int16_t)(emitterY + trailStepY * (float)i * 2.5f);
@@ -14382,13 +14382,13 @@ static void meteorRoutine() {
 
   const uint8_t x = (uint8_t)emitterX;
   const uint8_t y = (uint8_t)emitterY;
-  
+
   if (x < WIDTH && y < HEIGHT) {
     if (x > 0U)    leds[XY((uint8_t)(x - 1U), y)] = ballColor;
     if (x < MAX_X) leds[XY((uint8_t)(x + 1U), y)] = ballColor;
     if (y > 0U)    leds[XY(x, (uint8_t)(y - 1U))] = ballColor;
     if (y < MAX_Y) leds[XY(x, (uint8_t)(y + 1U))] = ballColor;
-    
+
     leds[XY(x, y)] = CRGB::White;
   }
 
