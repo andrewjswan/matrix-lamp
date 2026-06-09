@@ -439,8 +439,11 @@ static void effectsTick()
     #ifdef DEF_METEOR
     case EFF_METEOR:              LOW_DELAY_TICK { effTimer = millis(); meteorRoutine();                       }  break;  // (138U) Метеор
     #endif
+    #ifdef DEF_HOURGLASS
+    case EFF_HOURGLASS_II:        DYNAMIC_DELAY_TICK { effTimer = millis(); HourGlassRoutine();                }  break;  // (139U) Пісочний годинник II
+    #endif    
     #ifdef DEF_UKRAINE
-    case EFF_UKRAINE:             DYNAMIC_DELAY_TICK { effTimer = millis(); Ukraine();                         }  break;  // (139U) Україна
+    case EFF_UKRAINE:             DYNAMIC_DELAY_TICK { effTimer = millis(); Ukraine();                         }  break;  // (140U) Україна
     #endif
   }
 }
