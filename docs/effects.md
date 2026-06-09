@@ -148,6 +148,7 @@
 |Incremental Drift|INCREMENTAL_DRIFT|Инкрементальный дрейф|
 |Tetrix|TETRIX|Тетрикс|
 |Tetris / Sand Tetris|TETRIS|Тетрис / Песочный тетрис|
+|Meteor|METEOR|Метеор|
 |White light|WHITE_COLOR|Бeлый cвeт|
 |Colors|COLORS|Cмeнa цвeтa|
 |Ukraine|UKRAINE|Україна|
