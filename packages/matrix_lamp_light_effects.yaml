@@ -551,6 +551,10 @@ light:
           mode: METEOR
 
       - matrix_lamp_effect:
+          name: Hourglass II  # Пісочний годинник II
+          mode: HOURGLASS_II
+
+      - matrix_lamp_effect:
           name: White light  # Бeлый cвeт
           mode: WHITE_COLOR
 

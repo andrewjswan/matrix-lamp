@@ -225,9 +225,10 @@ inline constexpr float inv2PI   = 2.0f /  M_PI;    // ~0.63661975f
 #define EFF_TETRIX              (136U)   // Тетрикс
 #define EFF_TETRIS              (137U)   // Тетрис / Песочный тетрис
 #define EFF_METEOR              (138U)   // Метеор
-#define EFF_UKRAINE             (139U)   // Україна
+#define EFF_HOURGLASS_II        (139U)   // Пісочний годинник II
+#define EFF_UKRAINE             (140U)   // Україна
 
-#define MODE_AMOUNT             (140U)   // Количество режимов
+#define MODE_AMOUNT             (141U)   // Количество режимов
 
 namespace esphome::matrix_lamp {
 
@@ -374,6 +375,7 @@ static const uint8_t defaultSettings[][3] PROGMEM = {
   {  25, 150,   1}, // Тетрикс
   {  25, 200,   1}, // Тетрис / Песочный тетрис
   {  20, 150,  50}, // Метеор
+  {  30,  20, 100}, // Пісочний годинник II
   {  15, 240,  50}  // Україна
 }; //             ^-- проверьте, чтобы у предыдущей строки не было запятой после скобки
 // { Яркость, Скорость, Масштаб},
