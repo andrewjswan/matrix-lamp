@@ -14404,4 +14404,347 @@ static void meteorRoutine() {
 }
 #endif
 
+#ifdef DEF_HOURGLASS_II
+// ============= HourGlass II ==============
+//             © andrewjswan
+//            EFF_HOURGLASS_II
+//             Песочные Часы
+//==========================================
+static void HourGlassRoutine() {
+  if (loadingFlag) {
+    #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+    if (selectedSettings) {
+      //                     scale | speed
+      setModeSettings(random8(100U), random8(120U, 220U));
+    }
+    #endif
+    
+    step = 1U;       
+    pcnt = 0U;
+    deltaValue = 0U;
+    deltaHue2 = 0U;
+
+    // Нарезка геометрии колбы от краев к центру
+    for (uint8_t y = 0U; y < HEIGHT; ++y) {
+      uint8_t dist_to_edge = (y > CENTER_Y) ? (MAX_Y - y) : y;
+      uint8_t wall_offset = (static_cast<uint32_t>(dist_to_edge) * CENTER_X_MAJOR) / CENTER_Y;
+
+      if (wall_offset > CENTER_X_MINOR) {
+        wall_offset = CENTER_X_MINOR;
+      }
+
+      uint8_t leftWall  = wall_offset;
+      uint8_t rightWall = MAX_X - wall_offset;
+
+      for (uint8_t x = 0U; x < WIDTH; ++x) {
+        if (x < leftWall || x > rightWall) {
+          noise2[0U][x][y] = 3U;     // CELL_WALL (Стекло колбы)
+        } else if (y >= CENTER_Y) {
+          noise2[0U][x][y] = 1U;     // CELL_SAND_STATIC (Засыпаем песком верхнюю чашу)
+        } else {
+          noise2[0U][x][y] = 0U;     // CELL_EMPTY (Нижняя чаша полностью пуста)
+        }
+        noise2[1U][x][y] = noise2[0U][x][y];
+      }
+    }
+
+    loadingFlag = false;
+  }
+
+  // Колба не вращается
+  if (deltaHue2 == 0U) {
+    // --------------------------------------------------------------------------
+    // ГРАВИТАЦИЯ И ФОРМИРОВАНИЯ ГОРЫ
+    // --------------------------------------------------------------------------
+    
+    // Инициализируем холст будущего кадра, полностью копируя текущее состояние
+    for (uint8_t y = 0U; y < HEIGHT; ++y) {
+      for (uint8_t x = 0U; x < WIDTH; ++x) {
+        noise2[1U][x][y] = noise2[0U][x][y];
+      }
+    }
+
+    // Случайное направление обхода по X, чтобы гору не косило набок
+    uint8_t xStart = 0U; uint8_t xEnd = WIDTH; int8_t xDir = 1;
+    if ((random8(2U)) == 1U) { xStart = MAX_X; xEnd = 255U; xDir = -1; }
+
+    // Сквозной цикл гравитации
+    for (uint8_t y = 1U; y < HEIGHT; ++y) {
+      for (uint8_t x = xStart; x != xEnd; x += xDir) {
+        
+        // Двигаем только то, что уже летело с прошлых кадров
+        if (noise2[0U][x][y] != 2U) continue;
+
+        const uint8_t target_y = y - 1U;
+        bool track_moved = false;
+
+        if (noise2[0U][x][target_y] == 0U) {
+          // А) Свободное вертикальное падение в пустой воздух
+          noise2[1U][x][target_y] = 2U; 
+          noise2[1U][x][y] = 0U; // Очищаем старое место в будущем кадре
+          track_moved = true;
+        } else {
+          // Б) Столкновение с опорой (дно или гора) — скатывание под 45 градусов
+          const uint8_t side_rand = random8(2U);
+          if (side_rand == 0U) {
+            if (x > 0U && noise2[0U][x - 1U][target_y] == 0U) {
+              noise2[1U][x - 1U][target_y] = 2U; noise2[1U][x][y] = 0U; track_moved = true;
+            } else if (x < MAX_X && noise2[0U][x + 1U][target_y] == 0U) {
+              noise2[1U][x + 1U][target_y] = 2U; noise2[1U][x][y] = 0U; track_moved = true;
+            }
+          } else {
+            if (x < MAX_X && noise2[0U][x + 1U][target_y] == 0U) {
+              noise2[1U][x + 1U][target_y] = 2U; noise2[1U][x][y] = 0U; track_moved = true;
+            } else if (x > 0U && noise2[0U][x - 1U][target_y] == 0U) {
+              noise2[1U][x - 1U][target_y] = 2U; noise2[1U][x][y] = 0U; track_moved = true;
+            }
+          }
+        }
+
+        // В) Кристаллизация в статику, если упёрлись и скатиться нельзя
+        if (!track_moved) { 
+          noise2[1U][x][y] = 1U; 
+        }
+      }
+    }
+
+    // Приземление на самый нижний физический край матрицы
+    for (uint8_t x = 0U; x < WIDTH; ++x) {
+      if (noise2[0U][x][0U] == 2U) {
+        noise2[1U][x][0U] = 1U;
+      }
+    }
+
+    // Перенос просчитанного кадра из фронт-буфера в рабочий буфер симуляции
+    for (uint8_t y = 0U; y < HEIGHT; ++y) {
+      for (uint8_t x = 0U; x < WIDTH; ++x) {
+        noise2[0U][x][y] = noise2[1U][x][y];
+      }
+    }
+
+    // --------------------------------------------------------------------------
+    // СИНХРОННЫЙ ВЫПУСК ПЕСЧИНКИ С РЕГУЛИРОВКОЙ ПЛОТНОСТИ
+    // --------------------------------------------------------------------------
+    {
+      uint16_t static_top_sand = 0U;
+      uint16_t total_active_drops = 0U;
+
+      // Собираем свежие метрики кадра строго после того, как отработала физика
+      for (uint8_t y = 0U; y < HEIGHT; ++y) {
+        for (uint8_t x = 0U; x < WIDTH; ++x) {
+          const uint8_t cell = noise2[0U][x][y];
+          if (y >= CENTER_Y && cell == 1U) static_top_sand++; 
+          if (cell == 2U) total_active_drops++; 
+        }
+      }
+
+      if (static_top_sand > 0U) {
+        bool ready_to_drop = false;
+        uint8_t scale = modes[currentMode].Scale;
+
+        // Регулировка плотности потока на базе количества одновременно летящих песчинок
+        if (scale == 255U) {
+          ready_to_drop = true;                        // Максимум: генерируем песчинку на каждом кадре без ограничений
+        } else if (scale == 0U) {
+          ready_to_drop = (total_active_drops == 0U);  // Минимум: строго поштучный выпуск (одна песчинка на поле)
+        } else {
+          // Промежуточные значения: scale задает лимит песчинок, ограниченный половиной высоты матрицы
+          uint8_t max_allowed_drops = 1U + ((static_cast<uint16_t>(scale) * ((HEIGHT / 2U) - 1U)) / 254U);
+          
+          if (total_active_drops < max_allowed_drops) {
+            ready_to_drop = true;
+          }
+        }
+
+        // Если лимит летящих песчинок позволяет — производим забор песка сверху
+        if (ready_to_drop) {
+          bool source_found = false;
+          uint8_t src_x = CENTER_X;
+          uint8_t src_y = CENTER_Y;
+          uint8_t gate_x = CENTER_X;
+
+          // Поиск самого ВЕРХНЕГО обитаемого ряда воронки (тает сверху вниз)
+          for (int16_t y = static_cast<int16_t>(MAX_Y); y >= static_cast<int16_t>(CENTER_Y); --y) {
+            bool layer_has_sand = false;
+            for (uint8_t x = 0U; x < WIDTH; ++x) {
+              if (noise2[0U][x][y] == 1U) { layer_has_sand = true; break; }
+            }
+            if (layer_has_sand) { 
+              src_y = static_cast<uint8_t>(y); 
+              break; 
+            }
+          }
+
+          // Если текущая рабочая строка изменилась, жестко сбрасываем счётчик на центр новой строки
+          if (deltaValue != src_y) {
+            deltaValue = src_y; 
+            pcnt = 0U;          
+          }
+
+          // Страховка от вылета счётчика за пределы ширины матрицы
+          if (pcnt >= WIDTH) {
+            pcnt = 0U; 
+          }
+
+          // Автоматический расчет координаты по чётности счётчика pcnt
+          if (WIDTH % 2 == 0) {
+            // --- МАТЕМАТИКА ДЛЯ ЧЁТНОЙ МАТРИЦЫ ---
+            uint8_t shift = pcnt / 2;
+            if (pcnt % 2 == 0) {
+              src_x = CENTER_X + shift;        // Чётный pcnt -> шагаем вправо
+              gate_x = CENTER_X;               // Падает в правый поток горлышка
+            } else {
+              src_x = (CENTER_X_MINOR >= shift) ? (CENTER_X_MINOR - shift) : 0U; // Нечётный pcnt -> влево
+              gate_x = CENTER_X_MINOR;         // Падает в левый поток горлышка
+            }
+          } else {
+            // --- МАТЕМАТИКА ДЛЯ НЕЧЁТНОЙ МАТРИЦЫ ---
+            uint8_t shift = (pcnt + 1) / 2;
+            if (pcnt % 2 == 0) {
+              src_x = CENTER_X + shift;        // Чётный pcnt -> шагаем вправо
+            } else {
+              src_x = (CENTER_X >= shift) ? (CENTER_X - shift) : 0U; // Нечётный pcnt -> влево
+            }
+            gate_x = CENTER_X;                 // На нечётной матрице проход строго по центру
+          }
+
+          // Проверяем вычисленную точку по факту
+          if (src_x < WIDTH && noise2[0U][src_x][src_y] == 1U) {
+            source_found = true;
+          }
+
+          // Всегда инкрементируем счетчик, мгновенно проскакивая пустоты и стены
+          pcnt++;
+
+          // Если песчинка найдена — отправляем её в полёт
+          if (source_found) {
+            noise2[0U][src_x][src_y] = 0U;    // Стираем вверху ровно там, где нашли
+            uint8_t gate_y = CENTER_Y - 1U;   // Строка под воронкой
+            
+            // ЗАЩИТА ШЛЮЗА ДЛЯ ПЛОТНОГО ПОТОКА:
+            if (noise2[0U][gate_x][gate_y] == 2U) {
+              gate_y = CENTER_Y - 2U;
+            }
+
+            noise2[0U][gate_x][gate_y] = 2U;  // Зажимаем летящую песчинку
+          }
+        }
+      }
+      // ФИНАЛ: Сверху песка нет, все песчинки легли на дно. Взводим триггер вращения!
+      else if (total_active_drops == 0U) {
+        deltaHue2 = 1U;          // Запускаем первый кадр анимации плавного переворота
+        deltaHue = random8(2U);  // Выбираем направление (0 - по часовой, 1 - против)
+        pcnt = 0U;               // Обнуляем прогресс засыпки
+      }
+    }
+  } // if (deltaHue2 == 0U)
+
+  // --------------------------------------------------------------------------
+  // ВЫВОД НА МАТРИЦУ
+  // --------------------------------------------------------------------------
+
+  ledsClear();
+
+  // Плавно продвигаем базовый оттенок по спектру радуги на каждом кадре.
+  // Скорость перелива можно регулировать: hue += 1U (медленно), hue += 2U (быстрее)
+  if (deltaHue2 == 0U) {
+    hue += 2U; 
+  }
+
+  float center_x = (WIDTH - 1) / 2.0f;
+  float center_y = (HEIGHT - 1) / 2.0f;
+
+  // === АНИМАЦИЯ ПЛАВНОГО ПЕРЕВОРОТА ЧАСОВ ===
+  if (deltaHue2 > 0U) {
+    uint8_t max_rotation_frames = HEIGHT / 2U;  // Длительность анимации в кадрах
+    
+    // Вычисляем текущий угол поворота в радианах (от 0 до PI)
+    float angle = (static_cast<float>(deltaHue2) * PI) / static_cast<float>(max_rotation_frames);
+
+    float cos_a = cos(angle);
+    float sin_a = sin(angle);
+
+    // Попиксельный аффинный рендер повёрнутого кадра
+    for (uint8_t y = 0U; y < HEIGHT; ++y) {
+      for (uint8_t x = 0U; x < WIDTH; ++x) {
+        float dx = static_cast<float>(x) - center_x;
+        float dy = static_cast<float>(y) - center_y;
+
+        // Вращаем координаты назад, чтобы найти исходный пиксель в буфере песка
+        int16_t src_x = 0;
+        int16_t src_y = 0;
+
+        if (deltaHue == 0U) {
+          src_x = static_cast<int16_t>(round(center_x + dx * cos_a + dy * sin_a));
+          src_y = static_cast<int16_t>(round(center_y - dx * sin_a + dy * cos_a));
+        } else {
+          src_x = static_cast<int16_t>(round(center_x + dx * cos_a - dy * sin_a));
+          src_y = static_cast<int16_t>(round(center_y + dx * sin_a + dy * cos_a));
+        }
+
+        // Если повёрнутая координата находится в границах матрицы
+        if (src_x >= 0 && src_x < WIDTH && src_y >= 0 && src_y < HEIGHT) {
+          const uint8_t cell = noise2[0U][src_x][src_y];
+          
+          if (cell == 1U) {
+            // Статичный песок: смотрим, в какой чаше он НАХОДИЛСЯ изначально (src_y)
+            if (src_y >= CENTER_Y) {
+              drawPixelXY(x, y, CHSV(hue, 255, 255));         // Верхняя чаша — базовый цвет
+            } else {
+              drawPixelXY(x, y, CHSV(hue + 120U, 255, 255));  // Нижняя чаша — контрастный сдвиг
+            }
+          } else if (cell == 2U) {
+            drawPixelXY(x, y, CHSV(hue + 40U, 200, 255));     // Летящие капли — яркий неоновый шлейф
+          } else if (cell == 3U) {
+            drawPixelXY(x, y, CRGB(10, 20, 25));              // Стенки колбы
+          }
+        }
+      }
+    }
+
+    deltaHue2++; // Переходим к следующему кадру анимации
+
+    // ПРОВЕРКА ЗАВЕРШЕНИЯ АНИМАЦИИ
+    if (deltaHue2 > max_rotation_frames) {
+      // Аппаратный зеркальный переворот буфера по оси Y
+      for (uint8_t y = 0U; y < (HEIGHT >> 1U); ++y) {
+        const uint8_t target_y = MAX_Y - y;
+        for (uint8_t x = 0U; x < WIDTH; ++x) {
+          const uint8_t cell_bottom = noise2[0U][x][y];
+          const uint8_t cell_top    = noise2[0U][x][target_y];
+          if (cell_bottom != 3U) noise2[0U][x][y] = (cell_top == 3U) ? 0U : cell_top;
+          if (cell_top != 3U)    noise2[0U][x][target_y] = (cell_bottom == 3U) ? 0U : cell_bottom;
+        }
+      }
+
+      // Полностью сбрасываем статусы для запуска нового цикла падения
+      deltaHue2 = 0U; 
+      deltaHue = 0U; 
+      pcnt = 0U;
+      deltaValue = 0U;
+    }
+  } else {
+    // === ВАРИАНТ Б: КЛАССИЧЕСКИЙ РЕНДЕР ПРИ СИМУЛЯЦИИ ПАДЕНИЯ ===
+      for (uint8_t y = 0U; y < HEIGHT; ++y) {
+      for (uint8_t x = 0U; x < WIDTH; ++x) {
+        const uint8_t cell = noise2[0U][x][y];
+
+        if (cell == 1U) {
+          // Статичный песок разделяем по линии горлышка CENTER_Y
+          if (y >= CENTER_Y) {
+            drawPixelXY(x, y, CHSV(hue, 255, 255));         // Верх чаши
+          } else {
+            drawPixelXY(x, y, CHSV(hue + 120U, 255, 255));  // Низ чаши
+          }
+        } else if (cell == 2U) {
+          drawPixelXY(x, y, CHSV(hue + 40U, 200, 255));     // Летящие песчинки
+        } else if (cell == 3U) {
+          drawPixelXY(x, y, CRGB(10, 20, 25));              // Стенки колбы
+        }
+      }
+    }
+  }
+}
+#endif
+
 }  // namespace esphome::matrix_lamp
