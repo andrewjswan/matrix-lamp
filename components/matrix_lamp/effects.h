@@ -14418,8 +14418,8 @@ static void HourGlassRoutine() {
       setModeSettings(random8(100U), random8(120U, 220U));
     }
     #endif
-    
-    step = 1U;       
+
+    step = 1U;
     pcnt = 0U;
     deltaValue = 0U;
     deltaHue2 = 0U;
@@ -14456,7 +14456,7 @@ static void HourGlassRoutine() {
     // --------------------------------------------------------------------------
     // ГРАВИТАЦИЯ И ФОРМИРОВАНИЯ ГОРЫ
     // --------------------------------------------------------------------------
-    
+
     // Инициализируем холст будущего кадра, полностью копируя текущее состояние
     for (uint8_t y = 0U; y < HEIGHT; ++y) {
       for (uint8_t x = 0U; x < WIDTH; ++x) {
@@ -14471,7 +14471,7 @@ static void HourGlassRoutine() {
     // Сквозной цикл гравитации
     for (uint8_t y = 1U; y < HEIGHT; ++y) {
       for (uint8_t x = xStart; x != xEnd; x += xDir) {
-        
+
         // Двигаем только то, что уже летело с прошлых кадров
         if (noise2[0U][x][y] != 2U) continue;
 
@@ -14480,7 +14480,7 @@ static void HourGlassRoutine() {
 
         if (noise2[0U][x][target_y] == 0U) {
           // А) Свободное вертикальное падение в пустой воздух
-          noise2[1U][x][target_y] = 2U; 
+          noise2[1U][x][target_y] = 2U;
           noise2[1U][x][y] = 0U; // Очищаем старое место в будущем кадре
           track_moved = true;
         } else {
@@ -14502,8 +14502,8 @@ static void HourGlassRoutine() {
         }
 
         // В) Кристаллизация в статику, если упёрлись и скатиться нельзя
-        if (!track_moved) { 
-          noise2[1U][x][y] = 1U; 
+        if (!track_moved) {
+          noise2[1U][x][y] = 1U;
         }
       }
     }
@@ -14533,8 +14533,8 @@ static void HourGlassRoutine() {
       for (uint8_t y = 0U; y < HEIGHT; ++y) {
         for (uint8_t x = 0U; x < WIDTH; ++x) {
           const uint8_t cell = noise2[0U][x][y];
-          if (y >= CENTER_Y && cell == 1U) static_top_sand++; 
-          if (cell == 2U) total_active_drops++; 
+          if (y >= CENTER_Y && cell == 1U) static_top_sand++;
+          if (cell == 2U) total_active_drops++;
         }
       }
 
@@ -14550,7 +14550,7 @@ static void HourGlassRoutine() {
         } else {
           // Промежуточные значения: scale задает лимит песчинок, ограниченный половиной высоты матрицы
           uint8_t max_allowed_drops = 1U + ((static_cast<uint16_t>(scale) * ((HEIGHT / 2U) - 1U)) / 254U);
-          
+
           if (total_active_drops < max_allowed_drops) {
             ready_to_drop = true;
           }
@@ -14569,21 +14569,21 @@ static void HourGlassRoutine() {
             for (uint8_t x = 0U; x < WIDTH; ++x) {
               if (noise2[0U][x][y] == 1U) { layer_has_sand = true; break; }
             }
-            if (layer_has_sand) { 
-              src_y = static_cast<uint8_t>(y); 
-              break; 
+            if (layer_has_sand) {
+              src_y = static_cast<uint8_t>(y);
+              break;
             }
           }
 
           // Если текущая рабочая строка изменилась, жестко сбрасываем счётчик на центр новой строки
           if (deltaValue != src_y) {
-            deltaValue = src_y; 
-            pcnt = 0U;          
+            deltaValue = src_y;
+            pcnt = 0U;
           }
 
           // Страховка от вылета счётчика за пределы ширины матрицы
           if (pcnt >= WIDTH) {
-            pcnt = 0U; 
+            pcnt = 0U;
           }
 
           // Автоматический расчет координаты по чётности счётчика pcnt
@@ -14620,7 +14620,7 @@ static void HourGlassRoutine() {
           if (source_found) {
             noise2[0U][src_x][src_y] = 0U;    // Стираем вверху ровно там, где нашли
             uint8_t gate_y = CENTER_Y - 1U;   // Строка под воронкой
-            
+
             // ЗАЩИТА ШЛЮЗА ДЛЯ ПЛОТНОГО ПОТОКА:
             if (noise2[0U][gate_x][gate_y] == 2U) {
               gate_y = CENTER_Y - 2U;
@@ -14648,7 +14648,7 @@ static void HourGlassRoutine() {
   // Плавно продвигаем базовый оттенок по спектру радуги на каждом кадре.
   // Скорость перелива можно регулировать: hue += 1U (медленно), hue += 2U (быстрее)
   if (deltaHue2 == 0U) {
-    hue += 2U; 
+    hue += 2U;
   }
 
   float center_x = (WIDTH - 1) / 2.0f;
@@ -14657,7 +14657,7 @@ static void HourGlassRoutine() {
   // === АНИМАЦИЯ ПЛАВНОГО ПЕРЕВОРОТА ЧАСОВ ===
   if (deltaHue2 > 0U) {
     uint8_t max_rotation_frames = HEIGHT / 2U;  // Длительность анимации в кадрах
-    
+
     // Вычисляем текущий угол поворота в радианах (от 0 до PI)
     float angle = (static_cast<float>(deltaHue2) * PI) / static_cast<float>(max_rotation_frames);
 
@@ -14685,7 +14685,7 @@ static void HourGlassRoutine() {
         // Если повёрнутая координата находится в границах матрицы
         if (src_x >= 0 && src_x < WIDTH && src_y >= 0 && src_y < HEIGHT) {
           const uint8_t cell = noise2[0U][src_x][src_y];
-          
+
           if (cell == 1U) {
             // Статичный песок: смотрим, в какой чаше он НАХОДИЛСЯ изначально (src_y)
             if (src_y >= CENTER_Y) {
@@ -14718,8 +14718,8 @@ static void HourGlassRoutine() {
       }
 
       // Полностью сбрасываем статусы для запуска нового цикла падения
-      deltaHue2 = 0U; 
-      deltaHue = 0U; 
+      deltaHue2 = 0U;
+      deltaHue = 0U;
       pcnt = 0U;
       deltaValue = 0U;
     }
