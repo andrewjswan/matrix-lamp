@@ -437,7 +437,7 @@ static void effectsTick()
     case EFF_TETRIS:              HIGH_DELAY_TICK { effTimer = millis(); tetrisRoutine();                      }  break;  // (137U) Тетрис / Песочный тетрис
     #endif
     #ifdef DEF_METEOR
-    case EFF_METEOR:              DYNAMIC_DELAY_TICK { effTimer = millis(); meteorRoutine();                  }  break;   // (138U) Метеор
+    case EFF_METEOR:              LOW_DELAY_TICK { effTimer = millis(); meteorRoutine();                       }  break;  // (138U) Метеор
     #endif
     #ifdef DEF_UKRAINE
     case EFF_UKRAINE:             DYNAMIC_DELAY_TICK { effTimer = millis(); Ukraine();                         }  break;  // (139U) Україна
