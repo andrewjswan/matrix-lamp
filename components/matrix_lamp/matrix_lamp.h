@@ -16,7 +16,7 @@
 namespace esphome::matrix_lamp {
 
 static const char *const TAG = "matrix_lamp";
-static const char *const MATRIX_LAMP_VERSION = "2026.5.1";
+static const char *const MATRIX_LAMP_VERSION = "2026.7.1";
 
 #if defined(MATRIX_LAMP_TRIGGERS)
 class MatrixLampEffectStartTrigger;
@@ -31,9 +31,9 @@ class MatrixLamp_Icon;
 #endif
 
 #if defined(USE_API)
-class MatrixLamp : public Component, public api::CustomAPIDevice {
+class MatrixLamp final : public Component, public api::CustomAPIDevice {
 #else
-class MatrixLamp : public Component {
+class MatrixLamp final : public Component {
 #endif
   public:
     float get_setup_priority() const override { return esphome::setup_priority::LATE; }
@@ -149,16 +149,18 @@ class MatrixLamp : public Component {
 }; // class MatrixLamp
 
 #if defined(MATRIX_LAMP_USE_DISPLAY)
-class MatrixLamp_Icon : public animation::Animation
-{
+class MatrixLamp_Icon {
   protected:
     bool counting_up;
+    esphome::animation::Animation *animation_{nullptr};
 
   public:
     MatrixLamp_Icon(const uint8_t *data_start, uint32_t width, uint32_t height,
                     uint32_t animation_frame_count,
                     esphome::image::ImageType type, std::string icon_name,
                     bool revers, uint16_t frame_duration, esphome::image::Transparency transparency);
+    ~MatrixLamp_Icon() { if (this->animation_ != nullptr) delete this->animation_; }
+    esphome::animation::Animation* get_animation() { return this->animation_; }
     PROGMEM std::string name;
     uint16_t frame_duration;
     void next_frame();
