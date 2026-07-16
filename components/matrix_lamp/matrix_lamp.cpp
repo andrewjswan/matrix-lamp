@@ -425,7 +425,7 @@ void MatrixLamp::show_icon_by_index(int32_t icon)
   if (icon < this->icon_count)
   {
     this->current_icon = icon;
-    this->icons[icon]->set_frame(0);
+    this->icons[icon]->get_animation()->set_frame(0);
     this->last_anim_time = millis();
     this->display->set_enabled(true);
     return;
@@ -528,7 +528,7 @@ void MatrixLamp::Display()
   else
   {
 #endif
-    this->display->image(4, 4, this->icons[this->current_icon]);
+    this->display->image(4, 4, this->icons[this->current_icon]->get_animation());
 #ifdef MATRIX_LAMP_BITMAP_MODE
   }
 #endif
