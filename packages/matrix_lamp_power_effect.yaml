@@ -5,17 +5,17 @@ sensor:
   # Grid Power Sensor
   - platform: homeassistant
     id: grid_power
-    entity_id: sensor.grid_power
+    entity_id: sensor.overall_power
 
   # Solar Generation Sensor
   - platform: homeassistant
     id: solar_power
-    entity_id: sensor.solar_power
+    entity_id: sensor.ecoflow_stream_pro_solar_power
 
   # Battery Discharge / Power Sensor
   - platform: homeassistant
     id: battery_power
-    entity_id: sensor.battery_power
+    entity_id: sensor.ecoflow_stream_pro_battery_power_difference
 
 light:
   # Power Effects
@@ -47,12 +47,12 @@ light:
 
             for (uint8_t r = 0; r < MAX_Y; r++) {
               for (uint8_t c = 0; c < WIDTH; c++) {
-                uint32_t raw_color = getPixColorXY(c, r + 1);
-                drawPixelXY(c, r, CRGB(raw_color));
+                uint32_t raw_color = esphome::matrix_lamp::getPixColorXY(c, r + 1);
+                esphome::matrix_lamp::drawPixelXY(c, r, CRGB(raw_color));
               }
             }
             for (uint8_t c = 0; c < WIDTH; c++) {
-              drawPixelXY(c, MAX_Y, CRGB::Black);
+              esphome::matrix_lamp::drawPixelXY(c, MAX_Y, CRGB::Black);
             }
 
             // Generate brand new bubbles straight
@@ -62,7 +62,7 @@ light:
               uint8_t r_val = int(255 * density);
               uint8_t g_val = int(255 * (1.0f - density));
 
-              drawPixelXY(col, MAX_Y, CRGB(r_val, g_val, 0));
+              esphome::matrix_lamp::drawPixelXY(col, MAX_Y, CRGB(r_val, g_val, 0));
             }
 
             for (uint16_t i = 0; i < it.size(); i++) {
@@ -97,13 +97,13 @@ light:
 
             for (uint8_t r = 0; r < MAX_Y; r++) {
               for (uint8_t c = 0; c < WIDTH; c++) {
-                uint32_t raw_color = getPixColorXY(c, r + 1);
-                drawPixelXY(c, r, CRGB(raw_color));
+                uint32_t raw_color = esphome::matrix_lamp::getPixColorXY(c, r + 1);
+                esphome::matrix_lamp::drawPixelXY(c, r, CRGB(raw_color));
               }
             }
 
             for (uint8_t c = 0; c < WIDTH; c++) {
-              drawPixelXY(c, MAX_Y, CRGB::Black);
+              esphome::matrix_lamp::drawPixelXY(c, MAX_Y, CRGB::Black);
             }
 
             if (new_bubbles > 0 && total_instant_power > 10.0f) {
@@ -128,7 +128,7 @@ light:
                 } else {
                   bubble_color = CRGB(0, battery_br, 0);                         // Green scales with battery load
                 }
-                drawPixelXY(col, MAX_Y, bubble_color);
+                esphome::matrix_lamp::drawPixelXY(col, MAX_Y, bubble_color);
               }
             }
 
