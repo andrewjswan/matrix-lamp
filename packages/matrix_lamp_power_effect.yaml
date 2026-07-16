@@ -101,7 +101,7 @@ light:
                 drawPixelXY(c, r, CRGB(raw_color));
               }
             }
-            
+
             for (uint8_t c = 0; c < WIDTH; c++) {
               drawPixelXY(c, MAX_Y, CRGB::Black);
             }
@@ -118,9 +118,9 @@ light:
               for (uint8_t i = 0; i < new_bubbles; i++) {
                 uint8_t col = (uint8_t)(rand() % WIDTH);
                 CRGB bubble_color = CRGB::Black;
-                
+
                 uint16_t roll = (uint16_t)(rand() % 100);
-                
+
                 if (roll < grid_weight) {
                   bubble_color = CRGB(grid_br, 0, 0);                            // Red scales with grid load
                 } else if (roll < (grid_weight + solar_weight)) {
