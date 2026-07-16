@@ -7,6 +7,16 @@ sensor:
     id: grid_power
     entity_id: sensor.grid_power
 
+  # Solar Generation Sensor
+  - platform: homeassistant
+    id: solar_power
+    entity_id: sensor.solar_power
+
+  # Battery Discharge / Power Sensor
+  - platform: homeassistant
+    id: battery_power
+    entity_id: sensor.battery_power
+
 light:
   # Power Effects
   - id: !extend neopixel_led
@@ -23,12 +33,9 @@ light:
             }
 
             // Smooth out grid power readings using a low-pass filter
-            static float filtered_power = 0;
-            float grid_power_value = 0;
+            float grid_power_value = id(grid_power).has_state() ? std::max(0.0f, id(grid_power).state) : 0.0f;
 
-            if (id(grid_power).has_state()) {
-              grid_power_value = id(grid_power).state;
-            }
+            static float filtered_power = 0;
             filtered_power = 0.9f * filtered_power + 0.1f * grid_power_value;
 
             // Calculate effect density based on the maximum threshold
@@ -36,31 +43,95 @@ light:
             if (density > 1.0f) density = 1.0f;
             if (density < 0.0f) density = 0.0f;
 
-            int new_bubbles = int(density * WIDTH);
+            uint8_t new_bubbles = (uint8_t)(density * WIDTH);
 
-            for (int r = 0; r < MAX_Y; r++) {
-              for (int c = 0; c < WIDTH; c++) {
+            for (uint8_t r = 0; r < MAX_Y; r++) {
+              for (uint8_t c = 0; c < WIDTH; c++) {
                 uint32_t raw_color = getPixColorXY(c, r + 1);
                 drawPixelXY(c, r, CRGB(raw_color));
               }
             }
-            for (int c = 0; c < WIDTH; c++) {
+            for (uint8_t c = 0; c < WIDTH; c++) {
               drawPixelXY(c, MAX_Y, CRGB::Black);
             }
 
             // Generate brand new bubbles straight
-            for (int i = 0; i < new_bubbles; i++) {
-              int col = rand() % WIDTH;
+            for (uint8_t i = 0; i < new_bubbles; i++) {
+              uint8_t col = rand() % WIDTH;
 
-              int r_val = int(255 * density);
-              int g_val = int(255 * (1.0f - density));
+              uint8_t r_val = int(255 * density);
+              uint8_t g_val = int(255 * (1.0f - density));
 
-              CRGB bubble_color;
-              bubble_color = CRGB(r_val, g_val, 0);
-
-              drawPixelXY(col, MAX_Y, bubble_color);
+              drawPixelXY(col, MAX_Y, CRGB(r_val, g_val, 0));
             }
 
-            for (unsigned i = 0; i < it.size(); i++) {
+            for (uint16_t i = 0; i < it.size(); i++) {
+              it[i] = Color(fastled_helper::leds[i].r, fastled_helper::leds[i].g, fastled_helper::leds[i].b);
+            }
+
+      - addressable_lambda:
+          name: Power Mix Bubbles
+          update_interval: 16ms
+          lambda: |-
+            if (initial_run) {
+              ESP_LOGD("effect", "Power Mix Bubbles");
+
+              it.all() = Color::BLACK;
+              fastled_helper::InitLeds(it.size());
+            }
+
+            float p_grid = id(grid_power).has_state() ? std::max(0.0f, id(grid_power).state) : 0.0f;
+            float p_solar = id(solar_power).has_state() ? std::max(0.0f, id(solar_power).state) : 0.0f;
+            float p_battery = id(battery_power).has_state() ? std::max(0.0f, id(battery_power).state) : 0.0f;
+            float total_instant_power = p_grid + p_solar + p_battery;
+
+            static float filtered_total = 0;
+            filtered_total = 0.9f * filtered_total + 0.1f * total_instant_power;
+
+            // Calculate effect density based on the maximum threshold
+            float density = filtered_total / ${max_threshold}.0f;
+            if (density > 1.0f) density = 1.0f;
+            if (density < 0.0f) density = 0.0f;
+
+            uint8_t new_bubbles = (uint8_t)(density * WIDTH);
+
+            for (uint8_t r = 0; r < MAX_Y; r++) {
+              for (uint8_t c = 0; c < WIDTH; c++) {
+                uint32_t raw_color = getPixColorXY(c, r + 1);
+                drawPixelXY(c, r, CRGB(raw_color));
+              }
+            }
+            
+            for (uint8_t c = 0; c < WIDTH; c++) {
+              drawPixelXY(c, MAX_Y, CRGB::Black);
+            }
+
+            if (new_bubbles > 0 && total_instant_power > 10.0f) {
+              uint16_t grid_weight = (uint16_t)((p_grid / total_instant_power) * 100);
+              uint16_t solar_weight = (uint16_t)((p_solar / total_instant_power) * 100);
+
+              // Calculate dynamic brightness factors based on how close each source is to the threshold
+              uint8_t grid_br    = (uint8_t)remap(p_grid, 0.0f, ${max_threshold}.0f, 70.0f, 255.0f);
+              uint8_t solar_br   = (uint8_t)remap(p_solar, 0.0f, ${max_threshold}.0f, 70.0f, 255.0f);
+              uint8_t battery_br = (uint8_t)remap(p_battery, 0.0f, ${max_threshold}.0f, 70.0f, 255.0f);
+
+              for (uint8_t i = 0; i < new_bubbles; i++) {
+                uint8_t col = (uint8_t)(rand() % WIDTH);
+                CRGB bubble_color = CRGB::Black;
+                
+                uint16_t roll = (uint16_t)(rand() % 100);
+                
+                if (roll < grid_weight) {
+                  bubble_color = CRGB(grid_br, 0, 0);                            // Red scales with grid load
+                } else if (roll < (grid_weight + solar_weight)) {
+                  bubble_color = CRGB(solar_br, (uint8_t)(solar_br * 0.8f), 0);  // Yellow / Amber scales with solar
+                } else {
+                  bubble_color = CRGB(0, battery_br, 0);                         // Green scales with battery load
+                }
+                drawPixelXY(col, MAX_Y, bubble_color);
+              }
+            }
+
+            for (uint16_t i = 0; i < it.size(); i++) {
               it[i] = Color(fastled_helper::leds[i].r, fastled_helper::leds[i].g, fastled_helper::leds[i].b);
             }
