@@ -258,9 +258,7 @@ async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
                 r = list(json.loads(conf[CONF_RGB565ARRAY]))
                 if len(r) == IS_8X8:
                     image = Image.new("RGB", [8, 8])
-                    for y in range(8):
-                        for x in range(8):
-                            image.putpixel((x, y), rgb565_888(r[x + y * 8]))
+                    image.putdata([rgb565_888(v) for v in r])
 
             width, height = image.size
 
