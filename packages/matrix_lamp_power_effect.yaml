@@ -124,7 +124,7 @@ light:
             if (num_to_spawn > 0 && total_instant_power > 10.0f) {
               uint16_t grid_weight = (uint16_t)((p_grid / total_instant_power) * 100);
               uint16_t solar_weight = (uint16_t)((p_solar / total_instant_power) * 100);
-              
+
               // Scale bubble glow according to individual load intensities with explicit clamping
               uint8_t grid_br    = (uint8_t)esphome::clamp(remap(p_grid, 0.0f, ${max_threshold}.0f, 70.0f, 255.0f), 70.0f, 255.0f);
               uint8_t solar_br   = (uint8_t)esphome::clamp(remap(p_solar, 0.0f, ${max_threshold}.0f, 70.0f, 255.0f), 70.0f, 255.0f);
@@ -133,7 +133,7 @@ light:
               for (uint8_t i = 0; i < num_to_spawn; i++) {
                 uint8_t col = (uint8_t)(rand() % WIDTH);
                 uint16_t roll = (uint16_t)(rand() % 100);
-                
+
                 if (roll < grid_weight) {
                   esphome::matrix_lamp::drawPixelXY(col, 0, CRGB(grid_br, 0, 0));                            // Red
                 } else if (roll < (grid_weight + solar_weight)) {
