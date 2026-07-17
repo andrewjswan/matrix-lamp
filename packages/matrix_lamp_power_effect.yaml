@@ -1,137 +1,149 @@
 substitutions:
-  max_threshold: "5000"
+  max_threshold: "5000"  # Maximum power threshold in Watts (e.g., 5kW inverter limit)
 
 sensor:
-  # Grid Power Sensor
+  # 1. Grid Power Import Sensor
   - platform: homeassistant
     id: grid_power
-    entity_id: sensor.overall_power
+    entity_id: sensor.grid_power
 
-  # Solar Generation Sensor
+  # 2. Solar PV Production Sensor
   - platform: homeassistant
     id: solar_power
-    entity_id: sensor.ecoflow_stream_pro_solar_power
+    entity_id: sensor.solar_power
 
-  # Battery Discharge / Power Sensor
+  # 3. Battery Discharge Power Sensor
   - platform: homeassistant
     id: battery_power
-    entity_id: sensor.ecoflow_stream_pro_battery_power_difference
+    entity_id: sensor.battery_power
 
 light:
-  # Power Effects
   - id: !extend neopixel_led
     effects:
+      # STANDARD POWER GRADIENT (Grid Power only)
       - addressable_lambda:
-          name: Power Bubbles
+          name: "Power Bubbles"
           update_interval: 16ms  # ~60 FPS
           lambda: |-
             if (initial_run) {
               ESP_LOGD("effect", "Power Bubbles");
-
               it.all() = Color::BLACK;
-              fastled_helper::InitLeds(it.size());
+              esphome::fastled_helper::InitLeds(it.size());
             }
 
-            // Smooth out grid power readings using a low-pass filter
-            float grid_power_value = id(grid_power).has_state() ? std::max(0.0f, id(grid_power).state) : 0.0f;
-
+            // Fetch and filter grid power readings to smooth transitions
             static float filtered_power = 0;
+            float grid_power_value = 0;
+
+            if (id(grid_power).has_state()) {
+              grid_power_value = id(grid_power).state;
+            }
             filtered_power = 0.9f * filtered_power + 0.1f * grid_power_value;
+            float density = esphome::clamp(remap(filtered_power, 0.0f, ${max_threshold}.0f, 0.0f, 1.0f), 0.0f, 1.0f);
 
-            // Calculate effect density based on the maximum threshold
-            float density = filtered_power / ${max_threshold}.0f;
-            if (density > 1.0f) density = 1.0f;
-            if (density < 0.0f) density = 0.0f;
-
-            uint8_t new_bubbles = (uint8_t)(density * WIDTH);
-
-            for (uint8_t r = 0; r < MAX_Y; r++) {
+            for (uint8_t r = MAX_Y; r > 0; r--) {
               for (uint8_t c = 0; c < WIDTH; c++) {
-                uint32_t raw_color = esphome::matrix_lamp::getPixColorXY(c, r + 1);
+                uint32_t raw_color = esphome::matrix_lamp::getPixColorXY(c, r - 1);
                 esphome::matrix_lamp::drawPixelXY(c, r, CRGB(raw_color));
               }
             }
             for (uint8_t c = 0; c < WIDTH; c++) {
-              esphome::matrix_lamp::drawPixelXY(c, MAX_Y, CRGB::Black);
+              esphome::matrix_lamp::drawPixelXY(c, 0, CRGB::Black);
             }
 
-            // Generate brand new bubbles straight
-            for (uint8_t i = 0; i < new_bubbles; i++) {
-              uint8_t col = rand() % WIDTH;
+            // Run inverted quadratic remap to ensure active visibility at 100W-500W
+            float target_dots = esphome::clamp(remap(filtered_power, 0.0f, ${max_threshold}.0f, 1.0f, (float)(WIDTH / 2)), 1.0f, (float)(WIDTH / 2));
+            float inv = 1.0f - density;
+            float exact_spawn_count = target_dots * (1.0f - inv * inv);
 
-              uint8_t r_val = int(255 * density);
-              uint8_t g_val = int(255 * (1.0f - density));
+            uint8_t num_to_spawn = (uint8_t)exact_spawn_count;
+            float fraction = exact_spawn_count - num_to_spawn;
 
-              esphome::matrix_lamp::drawPixelXY(col, MAX_Y, CRGB(r_val, g_val, 0));
+            if (((float)(rand() % 100) / 100.0f) < fraction) {
+              num_to_spawn++;
             }
 
-            for (uint16_t i = 0; i < it.size(); i++) {
-              it[i] = Color(fastled_helper::leds[i].r, fastled_helper::leds[i].g, fastled_helper::leds[i].b);
+            // Inject newly rolled bubbles directly on the top row
+            for (uint8_t i = 0; i < num_to_spawn; i++) {
+              uint8_t col = (uint8_t)(rand() % WIDTH);
+              uint8_t r_val = (uint8_t)(255 * density);
+              uint8_t g_val = (uint8_t)(255 * (1.0f - density));
+
+              esphome::matrix_lamp::drawPixelXY(col, 0, CRGB(r_val, g_val, 0));
             }
 
+            for (uint16_t i = 0; i < (uint16_t)it.size(); i++) {
+              it[i] = Color(esphome::fastled_helper::leds[i].r, esphome::fastled_helper::leds[i].g, esphome::fastled_helper::leds[i].b);
+            }
+
+      # MULTI-SOURCE ENERGY MIX (Grid, Solar, Battery)
       - addressable_lambda:
-          name: Power Mix Bubbles
-          update_interval: 16ms
+          name: "Power Mix Bubbles"
+          update_interval: 16ms  # ~60 FPS
           lambda: |-
             if (initial_run) {
               ESP_LOGD("effect", "Power Mix Bubbles");
-
               it.all() = Color::BLACK;
-              fastled_helper::InitLeds(it.size());
+              esphome::fastled_helper::InitLeds(it.size());
             }
 
+            // Gather all house tracking metrics securely
             float p_grid = id(grid_power).has_state() ? std::max(0.0f, id(grid_power).state) : 0.0f;
             float p_solar = id(solar_power).has_state() ? std::max(0.0f, id(solar_power).state) : 0.0f;
             float p_battery = id(battery_power).has_state() ? std::max(0.0f, id(battery_power).state) : 0.0f;
-            float total_instant_power = p_grid + p_solar + p_battery;
 
+            // Filter total power aggregation
+            float total_instant_power = p_grid + p_solar + p_battery;
             static float filtered_total = 0;
             filtered_total = 0.9f * filtered_total + 0.1f * total_instant_power;
+            float density = esphome::clamp(remap(filtered_total, 0.0f, ${max_threshold}.0f, 0.0f, 1.0f), 0.0f, 1.0f);
 
-            // Calculate effect density based on the maximum threshold
-            float density = filtered_total / ${max_threshold}.0f;
-            if (density > 1.0f) density = 1.0f;
-            if (density < 0.0f) density = 0.0f;
-
-            uint8_t new_bubbles = (uint8_t)(density * WIDTH);
-
-            for (uint8_t r = 0; r < MAX_Y; r++) {
+            for (uint8_t r = MAX_Y; r > 0; r--) {
               for (uint8_t c = 0; c < WIDTH; c++) {
-                uint32_t raw_color = esphome::matrix_lamp::getPixColorXY(c, r + 1);
+                uint32_t raw_color = esphome::matrix_lamp::getPixColorXY(c, r - 1);
                 esphome::matrix_lamp::drawPixelXY(c, r, CRGB(raw_color));
               }
             }
-
             for (uint8_t c = 0; c < WIDTH; c++) {
-              esphome::matrix_lamp::drawPixelXY(c, MAX_Y, CRGB::Black);
+              esphome::matrix_lamp::drawPixelXY(c, 0, CRGB::Black);
             }
 
-            if (new_bubbles > 0 && total_instant_power > 10.0f) {
+            // Run inverted quadratic remap to ensure active visibility at 100W-500W
+            float target_dots = esphome::clamp(remap(filtered_total, 0.0f, ${max_threshold}.0f, 1.0f, (float)(WIDTH / 2)), 1.0f, (float)(WIDTH / 2));
+            float inv_total = 1.0f - density;
+            float exact_spawn_count = target_dots * (1.0f - inv_total * inv_total);
+
+            uint8_t num_to_spawn = (uint8_t)exact_spawn_count;
+            float fraction = exact_spawn_count - num_to_spawn;
+
+            if (((float)(rand() % 100) / 100.0f) < fraction) {
+              num_to_spawn++;
+            }
+
+            // 5. Select bubble type based on math balancing weights
+            if (num_to_spawn > 0 && total_instant_power > 10.0f) {
               uint16_t grid_weight = (uint16_t)((p_grid / total_instant_power) * 100);
               uint16_t solar_weight = (uint16_t)((p_solar / total_instant_power) * 100);
+              
+              // Scale bubble glow according to individual load intensities with explicit clamping
+              uint8_t grid_br    = (uint8_t)esphome::clamp(remap(p_grid, 0.0f, ${max_threshold}.0f, 70.0f, 255.0f), 70.0f, 255.0f);
+              uint8_t solar_br   = (uint8_t)esphome::clamp(remap(p_solar, 0.0f, ${max_threshold}.0f, 70.0f, 255.0f), 70.0f, 255.0f);
+              uint8_t battery_br = (uint8_t)esphome::clamp(remap(p_battery, 0.0f, ${max_threshold}.0f, 70.0f, 255.0f), 70.0f, 255.0f);
 
-              // Calculate dynamic brightness factors based on how close each source is to the threshold
-              uint8_t grid_br    = (uint8_t)remap(p_grid, 0.0f, ${max_threshold}.0f, 70.0f, 255.0f);
-              uint8_t solar_br   = (uint8_t)remap(p_solar, 0.0f, ${max_threshold}.0f, 70.0f, 255.0f);
-              uint8_t battery_br = (uint8_t)remap(p_battery, 0.0f, ${max_threshold}.0f, 70.0f, 255.0f);
-
-              for (uint8_t i = 0; i < new_bubbles; i++) {
+              for (uint8_t i = 0; i < num_to_spawn; i++) {
                 uint8_t col = (uint8_t)(rand() % WIDTH);
-                CRGB bubble_color = CRGB::Black;
-
                 uint16_t roll = (uint16_t)(rand() % 100);
-
+                
                 if (roll < grid_weight) {
-                  bubble_color = CRGB(grid_br, 0, 0);                            // Red scales with grid load
+                  esphome::matrix_lamp::drawPixelXY(col, 0, CRGB(grid_br, 0, 0));                            // Red
                 } else if (roll < (grid_weight + solar_weight)) {
-                  bubble_color = CRGB(solar_br, (uint8_t)(solar_br * 0.8f), 0);  // Yellow / Amber scales with solar
+                  esphome::matrix_lamp::drawPixelXY(col, 0, CRGB(solar_br, (uint8_t)(solar_br * 0.8f), 0));  // Warm Yellow
                 } else {
-                  bubble_color = CRGB(0, battery_br, 0);                         // Green scales with battery load
+                  esphome::matrix_lamp::drawPixelXY(col, 0, CRGB(0, battery_br, 0));                         // Green
                 }
-                esphome::matrix_lamp::drawPixelXY(col, MAX_Y, bubble_color);
               }
             }
 
-            for (uint16_t i = 0; i < it.size(); i++) {
-              it[i] = Color(fastled_helper::leds[i].r, fastled_helper::leds[i].g, fastled_helper::leds[i].b);
+            for (uint16_t i = 0; i < (uint16_t)it.size(); i++) {
+              it[i] = Color(esphome::fastled_helper::leds[i].r, esphome::fastled_helper::leds[i].g, esphome::fastled_helper::leds[i].b);
             }
