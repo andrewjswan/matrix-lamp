@@ -2,28 +2,29 @@ substitutions:
   max_threshold: "5000"  # Maximum power threshold in Watts (e.g., 5kW inverter limit)
 
 sensor:
-  # 1. Grid Power Import Sensor
+  # Grid Power Import Sensor
   - platform: homeassistant
     id: grid_power
     entity_id: sensor.grid_power
 
-  # 2. Solar PV Production Sensor
+  # Solar PV Production Sensor
   - platform: homeassistant
     id: solar_power
     entity_id: sensor.solar_power
 
-  # 3. Battery Discharge Power Sensor
+  # Battery Discharge Power Sensor
   - platform: homeassistant
     id: battery_power
     entity_id: sensor.battery_power
 
 light:
+  # Power Effects
   - id: !extend neopixel_led
     effects:
-      # STANDARD POWER GRADIENT (Grid Power only)
+      # Standard Power Gradient (Grid Power only)
       - addressable_lambda:
           name: "Power Bubbles"
-          update_interval: 16ms  # ~60 FPS
+          update_interval: 40ms  # ~25 FPS
           lambda: |-
             if (initial_run) {
               ESP_LOGD("effect", "Power Bubbles");
@@ -76,10 +77,10 @@ light:
               it[i] = Color(esphome::fastled_helper::leds[i].r, esphome::fastled_helper::leds[i].g, esphome::fastled_helper::leds[i].b);
             }
 
-      # MULTI-SOURCE ENERGY MIX (Grid, Solar, Battery)
+      # Multi-Source Energy Mix (Grid, Solar, Battery)
       - addressable_lambda:
           name: "Power Mix Bubbles"
-          update_interval: 16ms  # ~60 FPS
+          update_interval: 40ms  # ~25 FPS
           lambda: |-
             if (initial_run) {
               ESP_LOGD("effect", "Power Mix Bubbles");
