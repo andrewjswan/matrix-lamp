@@ -65,7 +65,7 @@ CODEOWNERS = ["@andrewjswan"]
 
 DEPENDENCIES = ["fastled_helper", "light"]
 
-AUTO_LOAD = ["animation", "display", "image", "matrix_lamp"]
+AUTO_LOAD = ["animation", "display", "image"]
 
 logging.info("Load Matrix Lamp component https://github.com/andrewjswan/matrix-lamp")
 logging.info("If you like the Matrix Lamp, you can support it with a star ⭐ on GitHub.")
@@ -125,8 +125,6 @@ CONFIG_SCHEMA = cv.All(MATRIX_LAMP_SCHEMA)
 async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
     """Code generation entry point."""
     var = cg.new_Pvariable(config[CONF_ID])
-
-    cg.add_library("fastled/FastLED", "3.10.3")
 
     cg.add_define("WIDTH", config[CONF_WIDTH])
     cg.add_define("HEIGHT", config[CONF_HEIGHT])
