@@ -20,6 +20,8 @@ namespace esphome::matrix_lamp {
 
 using namespace esphome::fastled_helper;
 
+// clang-format off
+
 // ============= ЭФФЕКТЫ ===============
 // несколько общих переменных и буферов, которые могут использоваться в любом эффекте
 #define NUM_LAYERSMAX (2U)
@@ -14760,5 +14762,7 @@ static void HourGlassRoutine() {
   }
 }
 #endif
+
+// clang-format on
 
 }  // namespace esphome::matrix_lamp
