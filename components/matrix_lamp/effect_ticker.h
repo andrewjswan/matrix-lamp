@@ -4,6 +4,8 @@
 #include "effects.h"
 #include "noise_effects.h"
 
+// clang-format off
+
 // Если вы хотите добавить эффекты или сделать им копии для демонстрации на разных настройках, нужно делать это в 5 местах:
 // 1. в файле constants.h - придумываются названия "EFF_......" и задаются порядковые номера эффектам. В конце указывается общее количество MODE_AMOUNT.
 // 2. там же в файле constants.h ещё ниже - задаётся Массив настроек эффектов по умолчанию.
@@ -18,7 +20,7 @@ namespace esphome::matrix_lamp {
 
 static uint32_t effTimer;
 
-static void effectsTick()
+inline void effectsTick()
 {
   switch (currentMode)
   {
@@ -447,5 +449,7 @@ static void effectsTick()
     #endif
   }
 }
+
+// clang-format on
 
 }  // namespace esphome::matrix_lamp

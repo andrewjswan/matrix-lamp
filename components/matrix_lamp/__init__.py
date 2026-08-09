@@ -65,7 +65,7 @@ CODEOWNERS = ["@andrewjswan"]
 
 DEPENDENCIES = ["fastled_helper", "light"]
 
-AUTO_LOAD = ["animation", "display", "image", "matrix_lamp"]
+AUTO_LOAD = ["animation", "display", "image"]
 
 logging.info("Load Matrix Lamp component https://github.com/andrewjswan/matrix-lamp")
 logging.info("If you like the Matrix Lamp, you can support it with a star ⭐ on GitHub.")
@@ -125,8 +125,6 @@ CONFIG_SCHEMA = cv.All(MATRIX_LAMP_SCHEMA)
 async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
     """Code generation entry point."""
     var = cg.new_Pvariable(config[CONF_ID])
-
-    cg.add_library("fastled/FastLED", "3.10.3")
 
     cg.add_define("WIDTH", config[CONF_WIDTH])
     cg.add_define("HEIGHT", config[CONF_HEIGHT])
@@ -188,7 +186,7 @@ async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
 
             elif CONF_LAMEID in conf:
                 path = CORE.relative_config_path(".cache/icons/lameid/" + conf[CONF_LAMEID])
-                if config[CONF_CACHE] and Path(path).is_file():  # noqa: ASYNC240
+                if config[CONF_CACHE] and Path(path).is_file():
                     try:
                         image = Image.open(path)
                         logging.info(" Icons: Load %s from cache.", conf[CONF_LAMEID])
@@ -214,7 +212,7 @@ async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
                     image = Image.open(io.BytesIO(r.content))
 
                     if config[CONF_CACHE]:
-                        Path(Path(path).parent).mkdir(parents=True, exist_ok=True)  # noqa: ASYNC240
+                        Path(Path(path).parent).mkdir(parents=True, exist_ok=True)
                         with Path(path).open(mode="wb") as f:
                             f.write(r.content)
                             f.close()
@@ -223,7 +221,7 @@ async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
             elif CONF_URL in conf:
                 a = urlparse(conf[CONF_URL])
                 path = CORE.relative_config_path(".cache/icons/url/" + Path(a.path).name)
-                if config[CONF_CACHE] and Path(path).is_file():  # noqa: ASYNC240
+                if config[CONF_CACHE] and Path(path).is_file():
                     try:
                         image = Image.open(path)
                         logging.info(" Icons: Load %s from cache.", conf[CONF_URL])
@@ -248,7 +246,7 @@ async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
                     image = Image.open(io.BytesIO(r.content))
 
                     if config[CONF_CACHE]:
-                        Path(Path(path).parent).mkdir(parents=True, exist_ok=True)  # noqa: ASYNC240
+                        Path(Path(path).parent).mkdir(parents=True, exist_ok=True)
                         with Path(path).open(mode="wb") as f:
                             f.write(r.content)
                             f.close()

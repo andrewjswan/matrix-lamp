@@ -10,11 +10,13 @@ select = [
 
 ignore = [
     "ANN401", # Dynamically typed expressions (typing.Any) are disallowed
+    "ASYNC210", # Async functions should not call blocking HTTP methods
+    "ASYNC230", # Async functions should not open files with blocking methods
+    "ASYNC240", # Async functions should not use pathlib.Path methods, use trio.Path or anyio.path
+    "CPY001", # Missing copyright notice at top of file
     "D203", # no-blank-line-before-class (incompatible with formatter)
     "D212", # multi-line-summary-first-line (incompatible with formatter)
     "FIX002", # Line contains TODO, consider resolving an issue
     "TD003", # Missing issue link on the line following this TODO
-    "ASYNC230", # Async functions should not open files with blocking methods
-    "ASYNC210", # Async functions should not call blocking HTTP methods
     "LOG015" # info() call on root logger
 ]

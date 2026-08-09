@@ -8,8 +8,6 @@ jobs:
   validate:
     name: 👻 Validation
     uses: "andrewjswan/actions/.github/workflows/validate.yml@main"
-    with:
-      exclude: "['cpp']"
     permissions:
       contents: write
       issues: write

@@ -1,35 +1,19 @@
 #pragma once
 
-#define FASTLED_INTERNAL
-#define FASTLED_NOSPI
-#define FASTLED_NO_PIN_INTERRUPTS
-#define FASTLED_STUB_IMPL
-
 #include "esphome/core/defines.h"
-
-namespace fl {
-  class StubSPIOutput {};
-}
-
-#include <FastLED.h>
-
-#include <pixeltypes.h>     // Дает структуру CRGB и CHSV
-#include <lib8tion.h>       // Дает математику (beatsin8, random8, scale8 и т.д.)
-#include <colorutils.h>     // Дает функции работы с цветом и палитрами
-#include <noise.h>          // Дает генератор шума (inoise8)
-#include <colorpalettes.h>  // Дает стандартные палитры (Rainbow, Party и т.д.)
 
 #include "constants.h"
 
 namespace esphome::matrix_lamp {
 
-// --- МАТРИЦА ------------------------------------------------------------------------------------------------------------------------------------------
+// --- МАТРИЦА
+// ------------------------------------------------------------------------------------------------------------------------------------------
 
 #ifndef ORIENTATION
-static uint8_t ORIENTATION = 5;                                    // Ориентация матрицы
+static uint8_t ORIENTATION = 5;  // Ориентация матрицы
 #endif
 #ifndef MATRIX_TYPE
-static uint8_t MATRIX_TYPE = 0;                                    // Тип матрицы: 0 - зигзаг, 1 - параллельная
+static uint8_t MATRIX_TYPE = 0;  // Тип матрицы: 0 - зигзаг, 1 - параллельная
 #endif
 
 /*
@@ -44,19 +28,18 @@ static uint8_t MATRIX_TYPE = 0;                                    // Тип м�
 
   CONNECTION_ANGLE - Угол подключения: 0 - левый нижний, 1 - левый верхний, 2 - правый верхний, 3 - правый нижний
   STRIP_DIRECTION  - Направление ленты из угла: 0 - вправо, 1 - вверх, 2 - влево, 3 - вниз
-                     при неправильной настройке матрицы вы получите предупреждение "Wrong matrix parameters! Set to default"
-                     шпаргалка по настройке матрицы здесь! https://alexgyver.ru/matrix_guide/
+                     при неправильной настройке матрицы вы получите предупреждение "Wrong matrix parameters! Set to
+  default" шпаргалка по настройке матрицы здесь! https://alexgyver.ru/matrix_guide/
 */
 
-
-// --- Common -------------------------------------------------------------------------------------------------------------------------------------------
+// --- Common
+// -------------------------------------------------------------------------------------------------------------------------------------------
 static uint8_t FPSdelay = DYNAMIC;
 
 static uint8_t currentMode = MODE_AMOUNT;
 static bool loadingFlag = true;
 
-struct ModeType
-{
+struct ModeType {
   uint8_t Brightness = 50U;
   uint8_t Speed = 225U;
   uint8_t Scale = 40U;
@@ -66,10 +49,11 @@ static ModeType modes[MODE_AMOUNT];
 
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 static uint8_t selectedSettings = 0U;
-#endif //#if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+#endif  // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
-// --- Effects ------------------------------------------------------------------------------------------------------------------------------------------
-static uint16_t speed = 20; // speed is set dynamically once we've started up
-static uint16_t scale = 30; // scale is set dynamically once we've started up
+// --- Effects
+// ------------------------------------------------------------------------------------------------------------------------------------------
+static uint16_t speed = 20;  // speed is set dynamically once we've started up
+static uint16_t scale = 30;  // scale is set dynamically once we've started up
 
 }  // namespace esphome::matrix_lamp

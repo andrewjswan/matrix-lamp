@@ -2,24 +2,24 @@ addressable_lambda:
   name: "Fire Parus"
   update_interval: 60ms
   lambda: |-
-    const int W = ${width_leds};
-    const int H = ${height_leds};
+    constexpr uint16_t W = ${width_leds};
+    constexpr uint16_t H = ${height_leds};
 
     // Получаем значения со слайдеров (number)
-    const uint8_t COOLING_RAW = 255 - static_cast<uint8_t>(id(matrix_intensity).state);  // 0–255
-    const uint8_t COOLING = std::max(static_cast<uint8_t>(20), COOLING_RAW);             // минимум 20!
-    const uint8_t SPARKING = static_cast<uint8_t>(id(matrix_speed).state);               // 0–255
-    const uint8_t ORIENTATION = static_cast<uint8_t>(id(matrix_orientation).state);      // 1–8
-    const uint8_t FIRE_SPEED = static_cast<uint8_t>(id(matrix_scale).state);             // 0–100
+    constexpr uint8_t COOLING_RAW = 255 - static_cast<uint8_t>(id(matrix_intensity).state);  // 0–255
+    constexpr uint8_t COOLING = std::max(static_cast<uint8_t>(20), COOLING_RAW);             // минимум 20!
+    constexpr uint8_t SPARKING = static_cast<uint8_t>(id(matrix_speed).state);               // 0–255
+    constexpr uint8_t ORIENTATION = static_cast<uint8_t>(id(matrix_orientation).state);      // 1–8
+    constexpr uint8_t FIRE_SPEED = static_cast<uint8_t>(id(matrix_scale).state);             // 0–100
 
-    const uint8_t BASE_COOLING = 50;  // фиксированное остывание
+    constexpr uint8_t BASE_COOLING = 50;  // фиксированное остывание
     uint8_t FLAME_SPEED = COOLING_RAW;    // скорость распространения = matrix_speed
 
     // Фиксированные параметры, можно менять или привязать к слайдерам
-    const uint8_t COAL_ZONE_HEIGHT = 1; // Высота зоны углей (строк снизу)
-    const uint8_t SPARK_BRIGHT_MIN = 100; // Мин. яркость искр было 150
-    const uint8_t SPARK_BRIGHT_MAX = 225; // Макс. яркость искр было 255
-    const uint8_t spark_gap_probability = 20; // Вероятность промежутка между искрами (0–100 %)
+    constexpr uint8_t COAL_ZONE_HEIGHT = 1;        // Высота зоны углей (строк снизу)
+    constexpr uint8_t SPARK_BRIGHT_MIN = 100;      // Мин. яркость искр было 150
+    constexpr uint8_t SPARK_BRIGHT_MAX = 225;      // Макс. яркость искр было 255
+    constexpr uint8_t spark_gap_probability = 20;  // Вероятность промежутка между искрами (0–100 %)
 
     static uint8_t heat[W][H];
     static bool initialized = false;
@@ -27,22 +27,22 @@ addressable_lambda:
     // Инициализация
     if (!initialized) {
       initialized = true;
-      for (int x = 0; x < W; x++) {
-        for (int y = 0; y < H; y++) {
+      for (uint16_t x = 0; x < W; x++) {
+        for (uint16_t y = 0; y < H; y++) {
           heat[x][y] = 0;
         }
       }
     }
 
     // 1. Остывание
-    for (int x = 0; x < W; x++) {
-      for (int y = 0; y < H; y++) {
-        int extra_cooling = (FIRE_SPEED > 70) ? (FIRE_SPEED - 70) : 0;
-        // int cooling_factor = COOLING + (H - y) * 2;  // Остывание более плавное, чем выше, тем медленнее остывает
-        int cooling_factor = (y < H/2) ? COOLING/2 : COOLING; // Сделаем остывание нелинейным (сильнее остывает верх, слабее — низ) убрать, если это вызывает резкие перепады.
+    for (uint16_t x = 0; x < W; x++) {
+      for (uint16_t y = 0; y < H; y++) {
+        uint8_t extra_cooling = (FIRE_SPEED > 70) ? (FIRE_SPEED - 70) : 0;
+        // int cooling_factor = COOLING + (H - y) * 2;            // Остывание более плавное, чем выше, тем медленнее остывает
+        uint8_t cooling_factor = (y < H/2) ? COOLING/2 : COOLING; // Сделаем остывание нелинейным (сильнее остывает верх, слабее — низ) убрать, если это вызывает резкие перепады.
         heat[x][y] = qsub8(heat[x][y], random8(0, ((cooling_factor * 10) / H) + 2 + extra_cooling));
-        //heat[x][y] = qsub8(heat[x][y], random8(0, ((cooling_factor * 10) / H) + 2));
-        //heat[x][y] = qsub8(heat[x][y], random8(0, ((COOLING * 10) / H) + 2));
+        // heat[x][y] = qsub8(heat[x][y], random8(0, ((cooling_factor * 10) / H) + 2));
+        // heat[x][y] = qsub8(heat[x][y], random8(0, ((COOLING * 10) / H) + 2));
         uint8_t spark_value = map(SPARKING, 0, 255, 10, 40); //ставим зависимость от matrix_speed
         // Мягкое затухание кончиков языков (для плавности)
         if (y > H / 3 && heat[x][y] < 50) {  //порог тепла для затухания.Увеличьте → затухание начинается при более высокой температуре (например, heat[x][y] < 80).при более низкой температуре (например, heat[x][y] < 30).
@@ -52,38 +52,39 @@ addressable_lambda:
       }
     }
     // 2. Распространение тепла снизу вверх (с учётом FIRE_SPEED)
-    for (int x = 0; x < W; x++) {
-      for (int y = H - 1; y > 0; y--) {
-        int new_heat = (heat[x][y] + heat[x][y - 1]) / 2;
+    for (uint16_t x = 0; x < W; x++) {
+      for (uint16_t y = H - 1; y > 0; y--) {
+        uint8_t new_heat = (heat[x][y] + heat[x][y - 1]) / 2;
         if (FIRE_SPEED > 50) {
-          int boost = (FIRE_SPEED - 50) * 1;  // было *1.5 если *1 -меньше желтит
+          int8_t boost = (FIRE_SPEED - 50) * 1;                         // было *1.5 если *1 -меньше желтит
           new_heat = min(220, new_heat + (boost * (H - y)) / (H * 2));  // делитель увеличен до 2, можно убрать
         }
         heat[x][y] = static_cast<uint8_t>(new_heat);
       }
     }
     // 3. Искры в зоне углей
-    for (int x = 0; x < W; x++) {
-      for (int y = 0; y < H; y++) {
-       int natural_decay = (y * 10) / H;  // выше → больше остывание, было *10 меньше-слишком высокое пламя
+    for (uint16_t x = 0; x < W; x++) {
+      for (uint16_t y = 0; y < H; y++) {
+        uint16_t natural_decay = (y * 10) / H;  // выше → больше остывание, было *10 меньше-слишком высокое пламя
         heat[x][y] = qsub8(heat[x][y], natural_decay);
       }
       if (random8() < SPARKING * 0.95) { // Снизим вероятность появления искр SPARKING * 0.95 вместо SPARKIN
-        int y = random8(COAL_ZONE_HEIGHT + (SPARKING / 100));  // Чем выше SPARKING, тем выше могут лететь искры/Не очень хорошо выглядит, как конфетти
+        uint16_t y = random8(COAL_ZONE_HEIGHT + (SPARKING / 100));  // Чем выше SPARKING, тем выше могут лететь искры/Не очень хорошо выглядит, как конфетти
         if (random8() > spark_gap_probability) {
           heat[x][y] = qadd8(heat[x][y], random8(SPARK_BRIGHT_MIN, SPARK_BRIGHT_MAX));
         }
       }
       if (random8() < (SPARKING + (COOLING_RAW / 4))) {  // было /4 -больше искр при высоком COOLING_RAW (при matrix_intensity)
-        int y = random8(COAL_ZONE_HEIGHT);
+        uint16_t y = random8(COAL_ZONE_HEIGHT);
         heat[x][y] = qadd8(heat[x][y], random8(SPARK_BRIGHT_MIN, SPARK_BRIGHT_MAX));
       }
     }
     // 4. Вывод
     // 4.1 Учёт ориентации (1–8)
-    for (int y = 0; y < H; y++) {
-      for (int x = 0; x < W; x++) {
-        int px, py;
+    for (uint16_t y = 0; y < H; y++) {
+      for (uint16_t x = 0; x < W; x++) {
+        uint16_t px = 0;
+        uint16_t py = 0;
         // Логика ориентации 1–4 (змейка)
         if (ORIENTATION >= 1 && ORIENTATION <= 4) {
           switch (ORIENTATION) {
@@ -104,7 +105,7 @@ addressable_lambda:
           }
         }
         // 4.2
-        int index = py * W + px;
+        uint16_t index = py * W + px;
         // Цвет из тепловой карты
         uint8_t temp = heat[x][y];
         uint8_t colorindex = scale8(temp, 240);
@@ -143,7 +144,7 @@ addressable_lambda:
         }
         // 4.5 Красный ореол вверху (фиксированный, или динамический)
         float red_boost = 1.0 + 0.3 * (1.0 - (float)y / H) * (1.0 + (FIRE_SPEED * 2/ 100.0)); //красный ореол делаем динамическим  в (FIRE_SPEED * 2) можно убрать*2
-        r = static_cast<uint8_t>(min(static_cast<int>(255), static_cast<int>(r * red_boost)));
+        r = static_cast<uint8_t>(min(static_cast<uint16_t>(255), static_cast<uint16_t>(r * red_boost)));
 
         it[index] = esphome::Color(r, g, b);
       }
