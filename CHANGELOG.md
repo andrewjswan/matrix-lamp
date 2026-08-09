@@ -1,5 +1,36 @@
 # Changelog
 
+## [v1.5.17](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.15...v1.5.17) - 2026-08-09
+
+### What's Changed
+
+### 🚀 Features
+
+- Effect: `Power Bubbles` package @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/271)
+- Replaced nested putpixel() loops @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/273)
+- Effect: `Hour Glass II` added @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/269)
+- Effect: `Meteor` added @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/268)
+- Random mode, only when lamp turned on @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/267)
+
+### 🐛 Bug Fixes
+
+- Compatibility with ESPHome `2026.7.0` @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/272)
+
+### 🧰 Maintenance
+
+- Completely removed dependency on fastled library @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/275)
+- DEP: Bump actions/setup-python from 6 to 7 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/274)
+- Compatibility with ESPHome `2026.7.0` @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/272)
+- DEP: Bump actions/checkout from 6 to 7 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/270)
+
+### 🤝 Support
+
+If you like the project, you can support it with a star ⭐ on GitHub.
+
+### 📝 Changelog
+
+**Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.15...v1.5.17
+
 ## [v1.5.15](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.13.65...v1.5.15) - 2026-06-01
 
 ### What's Changed
