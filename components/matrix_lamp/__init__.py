@@ -186,7 +186,7 @@ async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
 
             elif CONF_LAMEID in conf:
                 path = CORE.relative_config_path(".cache/icons/lameid/" + conf[CONF_LAMEID])
-                if config[CONF_CACHE] and Path(path).is_file():  # noqa: ASYNC240
+                if config[CONF_CACHE] and Path(path).is_file():
                     try:
                         image = Image.open(path)
                         logging.info(" Icons: Load %s from cache.", conf[CONF_LAMEID])
@@ -212,7 +212,7 @@ async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
                     image = Image.open(io.BytesIO(r.content))
 
                     if config[CONF_CACHE]:
-                        Path(Path(path).parent).mkdir(parents=True, exist_ok=True)  # noqa: ASYNC240
+                        Path(Path(path).parent).mkdir(parents=True, exist_ok=True)
                         with Path(path).open(mode="wb") as f:
                             f.write(r.content)
                             f.close()
@@ -221,7 +221,7 @@ async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
             elif CONF_URL in conf:
                 a = urlparse(conf[CONF_URL])
                 path = CORE.relative_config_path(".cache/icons/url/" + Path(a.path).name)
-                if config[CONF_CACHE] and Path(path).is_file():  # noqa: ASYNC240
+                if config[CONF_CACHE] and Path(path).is_file():
                     try:
                         image = Image.open(path)
                         logging.info(" Icons: Load %s from cache.", conf[CONF_URL])
@@ -246,7 +246,7 @@ async def to_code(config) -> None:  # noqa: ANN001 C901 PLR0912 PLR0915
                     image = Image.open(io.BytesIO(r.content))
 
                     if config[CONF_CACHE]:
-                        Path(Path(path).parent).mkdir(parents=True, exist_ok=True)  # noqa: ASYNC240
+                        Path(Path(path).parent).mkdir(parents=True, exist_ok=True)
                         with Path(path).open(mode="wb") as f:
                             f.write(r.content)
                             f.close()
