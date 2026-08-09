@@ -14,7 +14,7 @@
 
 #include <cstring>
 
-#define SQRT_VARIANT sqrtf                                // выбор основной функции для вычисления квадратного корня sqrtf или sqrt3 для ускорения
+#define SQRT_VARIANT sqrtf  // выбор основной функции для вычисления квадратного корня sqrtf или sqrt3 для ускорения
 
 namespace esphome::matrix_lamp {
 
