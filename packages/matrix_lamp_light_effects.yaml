@@ -670,22 +670,22 @@ light:
             }
 
             // TODO: Tune
-            int _hue = 0;     // id(want_fireplace_hue);
-            int _ambient = 1; // id(want_fireplace_ambient);
-            int _steps = 10;  // id(want_fireplace_steps);
+            int _hue = 0;      // id(want_fireplace_hue);
+            int _ambient = 1;  // id(want_fireplace_ambient);
+            int _steps = 10;   // id(want_fireplace_steps);
 
             for (auto i = 0; i < it.size(); ++i)
             {
               if (!leds[i].steps)
               {
-                int v = random8() - leds[i].current / 100;
+                int v = fastled_helper::random8() - leds[i].current / 100;
                 if (v > 0)
                 {
-                  leds[i].steps = random(60 * _steps / 100, _steps);
+                  leds[i].steps = fastled_helper::random16(60 * _steps / 100, _steps);
                 }
                 else
                 {
-                  leds[i].steps = random(_steps, 140 * _steps / 100);
+                  leds[i].steps = fastled_helper::random16(_steps, 140 * _steps / 100);
                 }
                 leds[i].delta = 100 * v / leds[i].steps;
               }
