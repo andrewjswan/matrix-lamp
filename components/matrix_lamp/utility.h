@@ -12,9 +12,8 @@ namespace esphome::matrix_lamp {
 
 using namespace esphome::fastled_helper;
 
-template<typename T>
-__attribute__((always_inline)) inline constexpr uint8_t wu_weight(T a, T b) {
-    return static_cast<uint8_t>((static_cast<uint32_t>(a) * b + a + b) >> 8);
+template<typename T> __attribute__((always_inline)) inline constexpr uint8_t wu_weight(T a, T b) {
+  return static_cast<uint8_t>((static_cast<uint32_t>(a) * b + a + b) >> 8);
 }
 
 // ------------------------------------------------
