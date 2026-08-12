@@ -702,9 +702,10 @@ inline void restoreSettings() {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 static void setModeSettings(uint8_t Scale = 0U, uint8_t Speed = 0U) {
   selectedSettings = 0U;
+  if (currentMode >= MODE_AMOUNT) return;
 
-  modes[currentMode].Scale = Scale ? Scale : pgm_read_byte(&defaultSettings[currentMode][2]);
   modes[currentMode].Speed = Speed ? Speed : pgm_read_byte(&defaultSettings[currentMode][1]);
+  modes[currentMode].Scale = Scale ? Scale : pgm_read_byte(&defaultSettings[currentMode][2]);
 }
 #endif  // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 
