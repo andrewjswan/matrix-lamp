@@ -14794,7 +14794,7 @@ void snakeGameRoutine()
   if (loadingFlag) {
     #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
     if (selectedSettings) {
-      //                          scale | speed    
+      //                          scale | speed
       setModeSettings(1U + random8(100U), 150U + random8(90U));
     }
     #endif
@@ -14805,7 +14805,7 @@ void snakeGameRoutine()
 
   pcnt += 12U;                                             // Progress the food pulse cycle
   const uint8_t scale = (modes[currentMode].Scale > 100U) ? 100U : modes[currentMode].Scale;
-  
+
   // Optimized hue calculation using compile-time inverse constant instead of division
   const uint8_t hue = static_cast<uint8_t>((uint16_t)scale * 255U * inv100);
 
@@ -14820,16 +14820,16 @@ void snakeGameRoutine()
     {
       ff_x = 3U;                                             // Set starting length directly (guaranteed by matrix min size >= 8x8)
       memset(ledsbuff, 0, sizeof(ledsbuff));                 // Wipe global buffer clean (clears our collision map)
-      
+
       // Spawn initial snake segments right in the center using compile-time constants
       for (uint16_t i = 0U; i < ff_x; i++) {
         noise3d[i] = (CENTER_X + WIDTH - i) % WIDTH;   // Logical Segment X
         noise3d[i] = CENTER_Y;                         // Logical Segment Y
-        
+
         // Mark as occupied using the .r channel of global ledsbuff (Physical layout mapping)
         ledsbuff[XY(noise3d[i], CENTER_Y)].r = 1U;
       }
-      
+
       emitterX = 1.0f; emitterY = 0.0f;                     // Set default velocity moving Right
       ff_y = 0U; ff_z = 0U;                                 // Reset food coordinates
 
@@ -14845,12 +14845,12 @@ void snakeGameRoutine()
         }
         yield();
       }
-      
+
       if (!foodPlaced) {
-        step = STATE_INIT; 
-        return; 
+        step = STATE_INIT;
+        return;
       }
-      
+
       step = STATE_GAME;                                     // Shift into active gameplay state
       break;
     }
@@ -14863,7 +14863,7 @@ void snakeGameRoutine()
       // Read pure logical coordinates from the tracking pools
       const uint8_t headX = noise3d;
       const uint8_t headY = noise3d;
-      
+
       int8_t currentDirX = (int8_t)emitterX;
       int8_t currentDirY = (int8_t)emitterY;
 
@@ -14879,11 +14879,11 @@ void snakeGameRoutine()
         else if (nxRaw >= WIDTH) nxRaw -= WIDTH;
 
         int16_t nyRaw = (int16_t)headY + candY[c];
-        if (nyRaw < 0 || nyRaw >= HEIGHT) continue; 
+        if (nyRaw < 0 || nyRaw >= HEIGHT) continue;
 
         uint8_t nx = (uint8_t)nxRaw;
         uint8_t ny = (uint8_t)nyRaw;
-        
+
         // Map target preview with XY() function for physical map collision check
         uint16_t targetIndex = XY(nx, ny);
 
@@ -14909,13 +14909,13 @@ void snakeGameRoutine()
       if (bestDir < 0) {
         step = STATE_DEAD;
         deltaValue = 6U;                                     // Use global deltaValue as the blink frame counter
-        return; 
+        return;
       }
 
       // Apply elected movement values back to emitters
       emitterX = (float)candX[bestDir];
       emitterY = (float)candY[bestDir];
-      
+
       uint8_t newX = (uint8_t)((int16_t)headX + (int8_t)emitterX);
       if ((int16_t)headX + (int8_t)emitterX < 0) newX = MAX_X; // Using compile-time MAX_X constant
       else if (newX >= WIDTH) newX = 0;
@@ -14935,18 +14935,18 @@ void snakeGameRoutine()
         noise3d[i] = noise3d[i - 1U];
         noise3d[i] = noise3d[i - 1U];
       }
-      
+
       // Write new head location down and mark it busy inside mapped ledsbuff index
       noise3d = newX;
       noise3d = newY;
-      ledsbuff[XY(newX, newY)].r = 1U; 
+      ledsbuff[XY(newX, newY)].r = 1U;
 
       // Process food assimilation
       if (ate) {
         ff_x++;
         if (ff_x >= NUM_LEDS) {                              // Perfect Score / Victory
           step = STATE_DEAD;
-          deltaValue = 10U; 
+          deltaValue = 10U;
           return;
         }
 
@@ -14963,10 +14963,10 @@ void snakeGameRoutine()
           yield();
         }
 
-        if (!foodPlaced) { 
-          step = STATE_DEAD; 
-          deltaValue = 6U; 
-          return; 
+        if (!foodPlaced) {
+          step = STATE_DEAD;
+          deltaValue = 6U;
+          return;
         }
       }
       break;
@@ -14984,7 +14984,7 @@ void snakeGameRoutine()
         }
       } else {
         step = STATE_INIT;                                   // Cycle completed, schedule hard reset
-        return; 
+        return;
       }
       break;
     }
@@ -15001,7 +15001,7 @@ void snakeGameRoutine()
       uint8_t value = 255U - ((uint32_t)i * 165U / ff_x);
       drawPixelXY(noise3d[i], noise3d[i], CHSV(hue, 255U, value));
     }
-    
+
     // Draw breathing food object
     if (step == STATE_GAME) {
       drawPixelXY((uint8_t)ff_y, (uint8_t)ff_z, CHSV(hue + 128U, 255U, 120U + (sin8_t(pcnt) >> 1)));
