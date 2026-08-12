@@ -7233,8 +7233,8 @@ static void wu_pixel_maxV(int16_t item) {
   // Веса WU для четырех соседних пикселей
   // calculate the intensities for each affected pixel
   const uint8_t wu[4] = {
-    WU_WEIGHT(ix, iy), WU_WEIGHT(xx, iy),
-    WU_WEIGHT(ix, yy), WU_WEIGHT(xx, yy)
+    wu_weight(ix, iy), wu_weight(xx, iy),
+    wu_weight(ix, yy), wu_weight(xx, yy)
   };
 
   const uint8_t obj_shift = trackingObjectShift[item];
@@ -12640,10 +12640,10 @@ static void drawDot(float x, float y, uint8_t a) {
   const uint8_t iy = 255U - yy;
 
   const uint8_t wu[4] = {
-    (uint8_t)WU_WEIGHT(ix, iy),
-    (uint8_t)WU_WEIGHT(xx, iy),
-    (uint8_t)WU_WEIGHT(ix, yy),
-    (uint8_t)WU_WEIGHT(xx, yy)
+    (uint8_t)wu_weight(ix, iy),
+    (uint8_t)wu_weight(xx, iy),
+    (uint8_t)wu_weight(ix, yy),
+    (uint8_t)wu_weight(xx, yy)
   };
 
   // multiply the intensities by the colour, and saturating-add them to the pixels
