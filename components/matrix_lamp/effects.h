@@ -14770,7 +14770,7 @@ static void HourGlassRoutine() {
 #define STATE_GAME        1U
 #define STATE_DEAD        2U
 
-void snakeGameRoutine()
+static void snakeGameRoutine()
 {
   // -----------------------------------------------------------------------
   // VARIABLE MAPPING TO GLOBAL CONTEXT (Zero RAM overhead):
@@ -14792,14 +14792,13 @@ void snakeGameRoutine()
       setModeSettings(1U + random8(100U), 150U + random8(90U));
     }
     #endif
-    loadingFlag = false;
+
     step = STATE_INIT;                                     // Reset state machine to initialization
+    loadingFlag = false;
   }
 
   pcnt += 12U;                                             // Progress the food pulse cycle
   const uint8_t scale = (modes[currentMode].Scale > 100U) ? 100U : modes[currentMode].Scale;
-
-  // Optimized hue calculation using compile-time inverse constant instead of division
   const uint8_t hue = static_cast<uint8_t>((uint16_t)scale * 255U * inv100);
 
   bool shouldRender = true;                                // State toggle for the flashing animation
