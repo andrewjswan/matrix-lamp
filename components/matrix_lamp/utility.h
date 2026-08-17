@@ -8,11 +8,13 @@
 #include "esphome/components/fastled_helper/fill.h"
 #include "esphome/components/fastled_helper/utils.h"
 
-#define WU_WEIGHT(a, b) ((uint8_t) (((a) * (b) + (a) + (b)) >> 8))
-
 namespace esphome::matrix_lamp {
 
 using namespace esphome::fastled_helper;
+
+template<typename T> __attribute__((always_inline)) inline constexpr uint8_t wu_weight(T a, T b) {
+  return static_cast<uint8_t>((static_cast<uint32_t>(a) * b + a + b) >> 8);
+}
 
 // ------------------------------------------------
 // получить номер пикселя в ленте по координатам
@@ -245,7 +247,7 @@ static void drawPixelXYF(float x, float y, const CRGB &color) {
 
   // calculate the intensities for each affected pixel
   // Веса для 4-х соседних пикселей
-  uint8_t wu[4] = {WU_WEIGHT(ix, iy), WU_WEIGHT(xx, iy), WU_WEIGHT(ix, yy), WU_WEIGHT(xx, yy)};
+  uint8_t wu[4] = {wu_weight(ix, iy), wu_weight(xx, iy), wu_weight(ix, yy), wu_weight(xx, yy)};
 
   // Multiply the intensities by the colour, and saturating-add them to the pixels
   for (uint8_t i = 0; i < 4; i++) {
@@ -297,16 +299,16 @@ inline void drawPixelXYFseamless(float x, float y, const CRGB &color) {
     uint8_t weight;
     switch (i) {
       case 0U:
-        weight = WU_WEIGHT(ix, iy);
+        weight = wu_weight(ix, iy);
         break;
       case 1U:
-        weight = WU_WEIGHT(xx, iy);
+        weight = wu_weight(xx, iy);
         break;
       case 2U:
-        weight = WU_WEIGHT(ix, yy);
+        weight = wu_weight(ix, yy);
         break;
       default:
-        weight = WU_WEIGHT(xx, yy);
+        weight = wu_weight(xx, yy);
         break;
     }
 
@@ -670,7 +672,7 @@ static void wu_pixel(uint32_t x, uint32_t y, const CRGB *col) {  // awesome wu_p
   uint8_t xx = x & 0xff, yy = y & 0xff, ix = 255 - xx, iy = 255 - yy;
 
   // calculate the intensities for each affected pixel
-  uint8_t wu[4] = {WU_WEIGHT(ix, iy), WU_WEIGHT(xx, iy), WU_WEIGHT(ix, yy), WU_WEIGHT(xx, yy)};
+  uint8_t wu[4] = {wu_weight(ix, iy), wu_weight(xx, iy), wu_weight(ix, yy), wu_weight(xx, yy)};
 
   // Извлекаем базовые целые координаты пикселя (деление на 256 -> сдвиг >> 8)
   uint16_t base_x = x >> 8;
@@ -702,9 +704,11 @@ inline void restoreSettings() {
 #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 static void setModeSettings(uint8_t Scale = 0U, uint8_t Speed = 0U) {
   selectedSettings = 0U;
-
-  modes[currentMode].Scale = Scale ? Scale : pgm_read_byte(&defaultSettings[currentMode][2]);
+  if (currentMode >= MODE_AMOUNT) {
+    return;
+  }
   modes[currentMode].Speed = Speed ? Speed : pgm_read_byte(&defaultSettings[currentMode][1]);
+  modes[currentMode].Scale = Scale ? Scale : pgm_read_byte(&defaultSettings[currentMode][2]);
 }
 #endif  // #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
 

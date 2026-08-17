@@ -555,6 +555,10 @@ light:
           mode: HOURGLASS_II
 
       - matrix_lamp_effect:
+          name: Snake Game  # Гра Змійка
+          mode: SNAKE_GAME
+
+      - matrix_lamp_effect:
           name: White light  # Бeлый cвeт
           mode: WHITE_COLOR
 

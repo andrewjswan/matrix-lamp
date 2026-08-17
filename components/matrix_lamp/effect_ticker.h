@@ -444,8 +444,11 @@ inline void effectsTick()
     #ifdef DEF_HOURGLASS_II
     case EFF_HOURGLASS_II:        DYNAMIC_DELAY_TICK { effTimer = millis(); HourGlassRoutine();                }  break;  // (139U) Пісочний годинник II
     #endif
+    #ifdef DEF_SNAKE_GAME
+    case EFF_SNAKE_GAME:          DYNAMIC_DELAY_TICK { effTimer = millis(); snakeGameRoutine();                }  break;  // (140U) Гра Змійка
+    #endif
     #ifdef DEF_UKRAINE
-    case EFF_UKRAINE:             DYNAMIC_DELAY_TICK { effTimer = millis(); Ukraine();                         }  break;  // (140U) Україна
+    case EFF_UKRAINE:             DYNAMIC_DELAY_TICK { effTimer = millis(); Ukraine();                         }  break;  // (141U) Україна
     #endif
   }
 }

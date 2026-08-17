@@ -7233,8 +7233,8 @@ static void wu_pixel_maxV(int16_t item) {
   // Веса WU для четырех соседних пикселей
   // calculate the intensities for each affected pixel
   const uint8_t wu[4] = {
-    WU_WEIGHT(ix, iy), WU_WEIGHT(xx, iy),
-    WU_WEIGHT(ix, yy), WU_WEIGHT(xx, yy)
+    wu_weight(ix, iy), wu_weight(xx, iy),
+    wu_weight(ix, yy), wu_weight(xx, yy)
   };
 
   const uint8_t obj_shift = trackingObjectShift[item];
@@ -12640,10 +12640,10 @@ static void drawDot(float x, float y, uint8_t a) {
   const uint8_t iy = 255U - yy;
 
   const uint8_t wu[4] = {
-    (uint8_t)WU_WEIGHT(ix, iy),
-    (uint8_t)WU_WEIGHT(xx, iy),
-    (uint8_t)WU_WEIGHT(ix, yy),
-    (uint8_t)WU_WEIGHT(xx, yy)
+    (uint8_t)wu_weight(ix, iy),
+    (uint8_t)wu_weight(xx, iy),
+    (uint8_t)wu_weight(ix, yy),
+    (uint8_t)wu_weight(xx, yy)
   };
 
   // multiply the intensities by the colour, and saturating-add them to the pixels
@@ -14758,6 +14758,252 @@ static void HourGlassRoutine() {
           drawPixelXY(x, y, CRGB(10, 20, 25));              // Стенки колбы
         }
       }
+    }
+  }
+}
+#endif
+
+#ifdef DEF_SNAKE_GAME
+
+// Define states for our State Machine using clear names
+#define STATE_INIT        0U
+#define STATE_GAME        1U
+#define STATE_DEAD        2U
+
+static void snakeGameRoutine()
+{
+  // -----------------------------------------------------------------------
+  // VARIABLE MAPPING TO GLOBAL CONTEXT (Zero RAM overhead):
+  // ff_x        -> Current snake length (uint16_t)
+  // ff_y        -> Food X coordinate (uint16_t -> cast to uint8_t)
+  // ff_z        -> Food Y coordinate (uint16_t -> cast to uint8_t)
+  // step        -> Core state machine manager (uint8_t)
+  // pcnt        -> Food breathing/pulsing animation counter (uint8_t)
+  // deltaValue  -> Flash/blink counter during game over (uint8_t)
+  // emitterX    -> Current movement direction X vector (float)
+  // emitterY    -> Current movement direction Y vector (float)
+  // -----------------------------------------------------------------------
+
+  // Force initialization if the effect just loaded
+  if (loadingFlag) {
+    #if defined(RANDOM_SETTINGS_IN_CYCLE_MODE)
+    if (selectedSettings) {
+      //                          scale | speed
+      setModeSettings(1U + random8(100U), 150U + random8(90U));
+    }
+    #endif
+
+    step = STATE_INIT;                                     // Reset state machine to initialization
+    loadingFlag = false;
+  }
+
+  pcnt += 12U;                                             // Progress the food pulse cycle
+  const uint8_t scale = (modes[currentMode].Scale > 100U) ? 100U : modes[currentMode].Scale;
+  const uint8_t hue = static_cast<uint8_t>((uint16_t)scale * 255U * inv100);
+
+  bool shouldRender = true;                                // State toggle for the flashing animation
+
+  switch (step)
+  {
+    // =====================================================================
+    // STEP 1: INITIALIZATION
+    // =====================================================================
+    case STATE_INIT:
+    {
+      ff_x = 3U;                                             // Set starting length directly (guaranteed by matrix min size >= 8x8)
+      memset(ledsbuff, 0, sizeof(ledsbuff));                 // Wipe global buffer clean (clears coords and collision map)
+
+      // Spawn initial snake segments right in the center using compile-time constants
+      for (uint16_t i = 0U; i < ff_x; i++)
+      {
+        ledsbuff[i].g = (CENTER_X + WIDTH - i) % WIDTH;      // Store Segment X in .g channel
+        ledsbuff[i].b = CENTER_Y;                            // Store Segment Y in .b channel
+
+        // Mark as occupied using the .r channel of global ledsbuff via XY physical mapper
+        ledsbuff[XY(ledsbuff[i].g, CENTER_Y)].r = 1U;
+      }
+
+      emitterX = 1.0f; emitterY = 0.0f;                     // Set default velocity moving Right
+      ff_y = 0U; ff_z = 0U;                                 // Reset food coordinates
+
+      // Safe food spawn loop
+      bool foodPlaced = false;
+      for (uint16_t attempts = 0; attempts < NUM_LEDS; attempts++) {
+        uint8_t fx = random8(WIDTH);
+        uint8_t fy = random8(HEIGHT);
+        if (ledsbuff[XY(fx, fy)].r == 0U) {                // Check availability via proper XY() index in .r channel
+          ff_y = fx; ff_z = fy;                            // Save food coordinates globally
+          foodPlaced = true;
+          break;
+        }
+        yield();                                           // Standard background task processor to prevent WDT resets
+      }
+
+      if (!foodPlaced) {
+        step = STATE_INIT;
+        return;
+      }
+
+      step = STATE_GAME;                                     // Shift into active gameplay state
+      break;
+    }
+
+    // =====================================================================
+    // STEP 2: ACTIVE GAMEPLAY
+    // =====================================================================
+    case STATE_GAME:
+    {
+      // Read pure logical coordinates of the head from ledsbuff index 0 (.g and .b channels)
+      const uint8_t headX = ledsbuff[0].g;
+      const uint8_t headY = ledsbuff[0].b;
+
+      int8_t currentDirX = (int8_t)emitterX;
+      int8_t currentDirY = (int8_t)emitterY;
+
+      int8_t candX[3];
+      candX[0] = currentDirX;
+      candX[1] = (int8_t)-currentDirY;
+      candX[2] = currentDirY;
+
+      int8_t candY[3];
+      candY[0] = currentDirY;
+      candY[1] = currentDirX;
+      candY[2] = (int8_t)-currentDirX;
+
+      int8_t bestDir = -1;
+      uint16_t bestDist = 0xFFFFU;
+
+      for (uint8_t c = 0U; c < 3U; c++) {
+        int16_t nxRaw = (int16_t)headX + candX[c];
+        if (nxRaw < 0) nxRaw += WIDTH;
+        else if (nxRaw >= WIDTH) nxRaw -= WIDTH;
+
+        int16_t nyRaw = (int16_t)headY + candY[c];
+        if (nyRaw < 0 || nyRaw >= HEIGHT) continue;
+
+        uint8_t nx = (uint8_t)nxRaw;
+        uint8_t ny = (uint8_t)nyRaw;
+
+        // Map target preview with XY() function for physical map collision check
+        uint16_t targetIndex = XY(nx, ny);
+
+        // Collision check using ledsbuff .r channel aligned via XY()
+        if (ledsbuff[targetIndex].r == 1U) {
+          bool willEat = (nx == ff_y && ny == ff_z);
+          uint16_t tailIndex = XY(ledsbuff[ff_x - 1U].g, ledsbuff[ff_x - 1U].b);
+          if (willEat || targetIndex != tailIndex) continue;
+        }
+
+        // Manhattan distance logic with horizontal wrap calculation using CENTER_X constant
+        uint8_t dx = ((uint8_t)ff_y > nx) ? ((uint8_t)ff_y - nx) : (nx - (uint8_t)ff_y);
+        if (dx > CENTER_X) dx = WIDTH - dx;
+        uint16_t dist = (uint16_t)dx + (((uint8_t)ff_z > ny) ? ((uint8_t)ff_z - ny) : (ny - (uint8_t)ff_z));
+
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestDir = c;
+        }
+      }
+
+      // CRASH: No valid open directions found
+      if (bestDir < 0) {
+        step = STATE_DEAD;
+        deltaValue = 6U;                                     // Use global deltaValue as the blink frame counter
+        return;
+      }
+
+      // Apply elected movement values back to emitters
+      emitterX = (float)candX[bestDir];
+      emitterY = (float)candY[bestDir];
+
+      uint8_t newX = (uint8_t)((int16_t)headX + (int8_t)emitterX);
+      if ((int16_t)headX + (int8_t)emitterX < 0) newX = MAX_X;
+      else if (newX >= WIDTH) newX = 0;
+
+      uint8_t newY = (uint8_t)((int16_t)headY + (int8_t)emitterY);
+      bool ate = (newX == ff_y && newY == ff_z);
+
+      // If no food consumed, vacate the tail cell from physical map .r channel
+      if (!ate) {
+        uint16_t tailIndex = XY(ledsbuff[ff_x - 1U].g, ledsbuff[ff_x - 1U].b);
+        ledsbuff[tailIndex].r = 0U;
+      }
+
+      // Shift the coordinates forward in the .g and .b channels
+      uint16_t shift = ate ? ff_x : ff_x - 1U;
+      for (uint16_t i = shift; i > 0U; i--) {
+        ledsbuff[i].g = ledsbuff[i - 1U].g;
+        ledsbuff[i].b = ledsbuff[i - 1U].b;
+      }
+
+      // Write new head location down and mark it busy inside mapped .r channel
+      ledsbuff[0].g = newX;
+      ledsbuff[0].b = newY;
+      ledsbuff[XY(newX, newY)].r = 1U;
+
+      // Process food assimilation
+      if (ate) {
+        ff_x++;
+        if (ff_x >= NUM_LEDS) {                              // Perfect Score / Victory
+          step = STATE_DEAD;
+          deltaValue = 10U;
+          return;
+        }
+
+        // Spawn replacement food target
+        bool foodPlaced = false;
+        for (uint16_t attempts = 0; attempts < NUM_LEDS; attempts++) {
+          uint8_t fx = random8(WIDTH);
+          uint8_t fy = random8(HEIGHT);
+          if (ledsbuff[XY(fx, fy)].r == 0U) {              // Target evaluation using .r channel via XY()
+            ff_y = fx; ff_z = fy;
+            foodPlaced = true;
+            break;
+          }
+          yield();                                         // Safely pause inside deep loop to sustain network connections
+        }
+        if (!foodPlaced) {
+          step = STATE_DEAD;
+          deltaValue = 6U;
+          return;
+        }
+      }
+      break;
+    }
+
+    // =====================================================================
+    // STEP 3: GAME OVER / ANIMATION STATE
+    // =====================================================================
+    case STATE_DEAD:
+    {
+      if (deltaValue > 0U) {
+        deltaValue--;
+        if (!(deltaValue & 0x01U)) {
+          shouldRender = false;                              // Drop render cycle to create visibility blink
+        }
+      } else {
+        step = STATE_INIT;                                   // Cycle completed, schedule hard reset
+        return;
+      }
+      break;
+    }
+  }
+
+  // =====================================================================
+  // STEP 4: RENDERING pipeline
+  // =====================================================================
+  ledsClear(); // This clears the main led outputs, safely preserving ledsbuff data
+
+  if (shouldRender) {
+    // Draw the segments compiled from global tracking pools (drawPixelXY handles XY() internally)
+    for (uint16_t i = 0U; i < ff_x; i++) {
+      uint8_t value = 255U - ((uint32_t)i * 165U / ff_x);
+      drawPixelXY(ledsbuff[i].g, ledsbuff[i].b, CHSV(hue, 255U, value));
+    }
+
+    // Draw breathing food object (soft breathing animation with sin8_t)
+    if (step == STATE_GAME) {
+      drawPixelXY((uint8_t)ff_y, (uint8_t)ff_z, CHSV(hue + 128U, 255U, 120U + (sin8_t(pcnt) >> 1)));
     }
   }
 }
