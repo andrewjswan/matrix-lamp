@@ -1,5 +1,21 @@
 # Changelog
 
+## [v1.5.19](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.17...v1.5.19) - 2026-08-17
+
+### What's Changed
+
+### 🚀 Features
+
+- Effect: `Snake Game` @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/277)
+
+### 🤝 Support
+
+If you like the project, you can support it with a star ⭐ on GitHub.
+
+### 📝 Changelog
+
+**Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.17...v1.5.19
+
 ## [v1.5.17](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.15...v1.5.17) - 2026-08-09
 
 ### What's Changed
