@@ -5946,35 +5946,6 @@ static void fire2020Routine2(){
       trackingObjectPosX[i] = (WIDTH + (uint8_t)trackingObjectPosX[i] + 1U - random8(3U)) % WIDTH;
   }
 
-  for (uint8_t i = 0U; i < SPARKLES_NUM; i++) {
-    uint8_t px = (uint8_t)trackingObjectPosX[i];
-    uint8_t py = (uint8_t)trackingObjectPosY[i];
-
-    if (py > 3U) {
-      leds[XY(px, py)] = leds[XY(px, 3U)];
-      leds[XY(px, py)].fadeToBlackBy(py << 1U);
-    }
-
-    py++;
-    if (py >= HEIGHT) {
-      py = random8(4U);
-      px = random8(WIDTH);
-    } else {
-      if (random8(step) == 0U) {
-        uint8_t rnd = random8(3U);
-        if (rnd == 0U) {
-          if (px == 0U) px = MAX_X; else px--;
-        } else if (rnd == 1U) {
-          if (px >= MAX_X) px = 0U; else px++;
-        }
-        // при rnd == 2U координата px остается без изменений (+1 - 2 = -1, +1 - 1 = 0, +1 - 0 = +1)
-      }
-    }
-
-    trackingObjectPosX[i] = px;
-    trackingObjectPosY[i] = py;
-  }
-
   ff_y++;
   if (ff_y & 0x01) {
     ff_z++;
