@@ -1,5 +1,25 @@
 # Changelog
 
+## [v1.5.21](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.19...v1.5.21) - 2026-09-24
+
+### What's Changed
+
+### 🚀 Features
+
+- Effect: Removed the redundant “SPARKLES” addition from the Fire 2020 effect @andrewjswan (https://github.com/andrewjswan/matrix-lamp/pull/280)
+
+### 🧰 Maintenance
+
+- DEP: Bump github/issue-labeler from 3.4 to 3.5 @[dependabot[bot]](https://github.com/apps/dependabot) (https://github.com/andrewjswan/matrix-lamp/pull/279)
+
+### 🤝 Support
+
+If you like the project, you can support it with a star ⭐ on GitHub.
+
+### 📝 Changelog
+
+**Full Changelog**: https://github.com/andrewjswan/matrix-lamp/compare/v1.5.19...v1.5.21
+
 ## [v1.5.19](https://github.com/andrewjswan/matrix-lamp/compare/v1.5.17...v1.5.19) - 2026-08-17
 
 ### What's Changed
